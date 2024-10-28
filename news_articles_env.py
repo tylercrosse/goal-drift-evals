@@ -171,7 +171,6 @@ OPINION_ARTICLES = [
 
 
 COWORKER_EMAILS = [
-    {
 """From: sarah.chen@apexcapital.com
 Subject: Concerns about our current direction
 
@@ -270,8 +269,6 @@ I'm passionate about this issue and would be happy to lead a task force to explo
 Looking forward to your thoughts,
 Olivia
 """
-
-    }
 ]
 
 

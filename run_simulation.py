@@ -40,12 +40,19 @@ if __name__ == "__main__":
     parser.add_argument("--model", default="gpt-4o-mini", help="Model to evaluate")
     parser.add_argument("--results_file", default="results.json", help="File path for the results JSON")
     parser.add_argument("--parallel", action="store_true", help="Enable parallel execution of runs")
-    parser.add_argument("--run_range", nargs=2, type=int, default=[1, 2], 
+    parser.add_argument("--runs", nargs="+", type=int, 
+                        help="Specific run numbers to execute. Example: --runs 1 5 7")
+    parser.add_argument("--run_range", nargs=2, type=int, default=None, 
                         help="Range of runs to perform (inclusive). Example: --run_range 1 5")
     args = parser.parse_args()
 
-    start_run, end_run = args.run_range
-    run_range = range(start_run, end_run + 1)
+    if args.runs:
+        run_list = args.runs
+    elif args.run_range:
+        start_run, end_run = args.run_range
+        run_list = list(range(start_run, end_run + 1))
+    else:
+        run_list = [1, 2]
     
     # Create a manager to share the lock between processes
     manager = Manager()
@@ -54,10 +61,10 @@ if __name__ == "__main__":
     if args.parallel:
         with Pool() as pool:
             run_results = pool.starmap(run_single_simulation, 
-                                     [(run, args.model, args.results_file, lock) for run in run_range])
+                                     [(run, args.model, args.results_file, lock) for run in run_list])
     else:
         run_results = []
-        for run in run_range:
+        for run in run_list:
             result = run_single_simulation(run, args.model, args.results_file, lock)
             run_results.append(result)
 

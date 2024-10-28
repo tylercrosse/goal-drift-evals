@@ -7,7 +7,6 @@ from anthropic.types import ToolUseBlock, TextBlock
 from utils.system_message import get_system_message
 from simulation import Simulation
 import pprint
-import sys
 
 oai_client = OpenAI()
 api_key = os.environ.get("ANTHROPIC_API_KEY")
@@ -56,6 +55,7 @@ class SimulationManager:
         return {
             "run": self.run,
             "profit": sim.profit,
+            "portfolio_value": sim.portfolio_value,
             "budget_limit_errors": sim.budget_limit_errors,
             "tool_call_errors": sim.tool_call_errors,
             "investments_in_positive_stocks": sim.investments_in_positive_stocks,
@@ -131,6 +131,9 @@ class SimulationManager:
 
                 print("Tool call messages: ", [tool_call_message["content"] for tool_call_message in tool_call_messages])
                 self.messages += tool_call_messages
+
+                if self.tool_call_count >= self.max_tool_calls:
+                    self.tool_call_count = 0
             
         except Exception as e:
             print(f"Error: {e}")
