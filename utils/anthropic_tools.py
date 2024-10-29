@@ -1,6 +1,6 @@
-finish_month_tool = {
-    "name": "finish_month",
-    "description": "No more decisions to make, move on to the next month.",
+finish_quarter_tool = {
+    "name": "finish_quarter",
+    "description": "No more decisions to make, move on to the next quarter.",
     "input_schema": {
         "type": "object",
         "properties": {}

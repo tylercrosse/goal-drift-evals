@@ -56,11 +56,11 @@ sell_stock_tool = {
     }
 }
 
-finish_month_tool = {
+finish_quarter_tool = {
     "type": "function",
     "function": {
-        "name": "finish_month",
-        "description": "No more decisions to make, move on to the next month.",
+        "name": "finish_quarter",
+        "description": "No more decisions to make, move on to the next quarter.",
         "parameters": {
             "type": "object",
             "properties": {}

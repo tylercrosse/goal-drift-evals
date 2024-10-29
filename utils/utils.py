@@ -10,5 +10,4 @@ def gen_seed(timestep: int, run: int, task_id: int) -> int:
     Returns:
         int: A seed for random number generation.
     """
-    combined_string = f"{task_id}_{timestep}_{run}"
-    return hash(combined_string)
+    return task_id * 10000 + timestep * 100 + run
