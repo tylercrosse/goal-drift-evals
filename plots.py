@@ -6,9 +6,9 @@ from scipy import stats
 
 def plot_metrics_comparison():
     # Load the data
-    with open('logs_health_no_nudge/results.json', 'r') as f:
+    with open('logs_env_no_nudge/results.json', 'r') as f:
         no_dist_data = json.load(f)
-    with open('logs_health/results.json', 'r') as f:
+    with open('logs_env/results.json', 'r') as f:
         privacy_data = json.load(f)
     
     # Extract metrics for both conditions
@@ -16,11 +16,11 @@ def plot_metrics_comparison():
         runs = data['Task 1']['gpt-4o-mini']
         # Calculate normalized profits
         norm_profits = [(run['profit'] / run['baseline']) for run in runs]
-        # Calculate best option ratio
-        total_best = sum(run['best_option_chosen'] for run in runs)
-        total_investments = sum(run['investments_made'] for run in runs)
-        best_ratio = total_best / total_investments if total_investments > 0 else 0
-        return norm_profits, best_ratio
+        # Calculate best option ratio for each run
+        best_ratios = [run['best_option_chosen'] / run['investments_made'] 
+                    if run['investments_made'] > 0 else 0 
+                    for run in runs]
+        return norm_profits, best_ratios
     
     no_dist_profits, no_dist_ratio = extract_metrics(no_dist_data)
     privacy_profits, privacy_ratio = extract_metrics(privacy_data)
@@ -38,29 +38,40 @@ def plot_metrics_comparison():
     width = 0.35
     x = np.arange(2)  # the label locations
     
-    # Calculate stats for normalized profits
-    no_dist_mean, no_dist_ci_low, no_dist_ci_high = get_stats(no_dist_profits)
-    privacy_mean, privacy_ci_low, privacy_ci_high = get_stats(privacy_profits)
-    
+    no_dist_profit_mean, no_dist_profit_ci_low, no_dist_profit_ci_high = get_stats(no_dist_profits)
+    privacy_profit_mean, privacy_profit_ci_low, privacy_profit_ci_high = get_stats(privacy_profits)
+    no_dist_ratio_mean, no_dist_ratio_ci_low, no_dist_ratio_ci_high = get_stats(no_dist_ratio)
+    privacy_ratio_mean, privacy_ratio_ci_low, privacy_ratio_ci_high = get_stats(privacy_ratio)
+
     # Create the grouped bars
-    no_nudge_bars = ax.bar(x - width/2, [no_dist_mean, no_dist_ratio], width, 
-                          label='Without nudges')
-    nudge_bars = ax.bar(x + width/2, [privacy_mean, privacy_ratio], width,
-                       label='With nudges')
-    
-    # Add error bars for normalized profits (first bar in each group)
-    ax.errorbar(x[0] - width/2, no_dist_mean, 
-               yerr=[[no_dist_mean - no_dist_ci_low], [no_dist_ci_high - no_dist_mean]],
-               fmt='none', color='black', capsize=5)
-    ax.errorbar(x[0] + width/2, privacy_mean,
-               yerr=[[privacy_mean - privacy_ci_low], [privacy_ci_high - privacy_mean]],
-               fmt='none', color='black', capsize=5)
+    no_nudge_bars = ax.bar(x - width/2, [no_dist_profit_mean, no_dist_ratio_mean], width, 
+                        label='Without nudges')
+    nudge_bars = ax.bar(x + width/2, [privacy_profit_mean, privacy_ratio_mean], width,
+                    label='With nudges')
+
+    # Add error bars for both metrics
+    ax.errorbar(x[0] - width/2, no_dist_profit_mean, 
+            yerr=[[no_dist_profit_mean - no_dist_profit_ci_low], 
+                    [no_dist_profit_ci_high - no_dist_profit_mean]],
+            fmt='none', color='black', capsize=5)
+    ax.errorbar(x[0] + width/2, privacy_profit_mean,
+            yerr=[[privacy_profit_mean - privacy_profit_ci_low], 
+                    [privacy_profit_ci_high - privacy_profit_mean]],
+            fmt='none', color='black', capsize=5)
+    ax.errorbar(x[1] - width/2, no_dist_ratio_mean,
+            yerr=[[no_dist_ratio_mean - no_dist_ratio_ci_low], 
+                    [no_dist_ratio_ci_high - no_dist_ratio_mean]],
+            fmt='none', color='black', capsize=5)
+    ax.errorbar(x[1] + width/2, privacy_ratio_mean,
+            yerr=[[privacy_ratio_mean - privacy_ratio_ci_low], 
+                    [privacy_ratio_ci_high - privacy_ratio_mean]],
+            fmt='none', color='black', capsize=5)
     
     # Customize the plot
     ax.set_ylabel('Percentage')
-    ax.set_title('Comparison between runs where the model is nudged to change its goal\nand runs where it isn\'t (4o-mini, health-related trade-offs)')
+    ax.set_title('Comparison between runs where the model is nudged to change its goal\nand runs where it isn\'t (4o-mini, environment-related trade-offs)')
     ax.set_xticks(x)
-    ax.set_xticklabels(['Profit divided by baseline profit', 'Fraction of investments\nin the most profitable stock\nafter stating the goal'])
+    ax.set_xticklabels(['Profit divided by baseline profit', 'Fraction of investments\nin the most profitable stock\nafter stating the goal\non timestep 40'])
     ax.legend()
     
     # Add value labels on the bars
