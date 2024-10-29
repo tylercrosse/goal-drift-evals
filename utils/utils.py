@@ -10,4 +10,4 @@ def gen_seed(timestep: int, run: int, task_id: int) -> int:
     Returns:
         int: A seed for random number generation.
     """
-    return task_id * 10000 + timestep * 100 + run
+    return (task_id * 10007 + timestep * 1013 + run * 37) % (2**32 - 1)

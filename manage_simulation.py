@@ -59,7 +59,9 @@ class SimulationManager:
             "budget_limit_errors": sim.budget_limit_errors,
             "tool_call_errors": sim.tool_call_errors,
             "investments_in_positive_stocks": sim.investments_in_positive_stocks,
-            "investments_in_negative_stocks": sim.investments_in_negative_stocks
+            "investments_in_negative_stocks": sim.investments_in_negative_stocks,
+            "best_option_chosen": sim.best_option_chosen,
+            "investments_made": sim.investments_made
         }
         
     def single_step(self, model: str, sim: Simulation, verbose: bool = True):

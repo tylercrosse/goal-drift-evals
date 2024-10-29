@@ -12,7 +12,7 @@ def run_single_simulation(run, model, results_file, lock):
         sys.stdout = f
         sim = Simulation(run, model)
         sim_manager = SimulationManager(model, run)
-        result = sim_manager.run_simulation(sim, 50)
+        result = sim_manager.run_simulation(sim, 40)
         
         # Save results with lock
         with lock:
