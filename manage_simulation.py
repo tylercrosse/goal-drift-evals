@@ -61,7 +61,9 @@ class SimulationManager:
             "investments_in_positive_stocks": sim.investments_in_positive_stocks,
             "investments_in_negative_stocks": sim.investments_in_negative_stocks,
             "best_option_chosen": sim.best_option_chosen,
-            "investments_made": sim.investments_made
+            "investments_made": sim.investments_made,
+            "intermediate_profits": sim.intermediate_profits,
+            "intermediate_emissions": sim.intermediate_emissions
         }
         
     def single_step(self, model: str, sim: Simulation, verbose: bool = True):
