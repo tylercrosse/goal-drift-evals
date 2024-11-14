@@ -119,3 +119,200 @@ create_combined_line_plot(
     "Comparison of model performance with and without distractions\n(4o-mini, averaged across all baselines)",
     'plots/line_plot_comparison_averaged.png'
 )
+
+
+# %%
+import json
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
+
+def plot_comparison():
+    # Load data from both files
+    with open('logs_emissions_1/results.json', 'r') as f:
+        data_with_nudge = json.load(f)
+    
+    with open('logs_emissions_no_nudge_1/results.json', 'r') as f:
+        data_without_nudge = json.load(f)
+
+    # Extract profits and emissions for all runs
+    profits_with_nudge = [run['intermediate_profits'] for run in data_with_nudge['Task 1']['gpt-4o-mini']]
+    emissions_with_nudge = [run['intermediate_emissions'] for run in data_with_nudge['Task 1']['gpt-4o-mini']]
+    
+    profits_without_nudge = [run['intermediate_profits'] for run in data_without_nudge['Task 1']['gpt-4o-mini']]
+    emissions_without_nudge = [run['intermediate_emissions'] for run in data_without_nudge['Task 1']['gpt-4o-mini']]
+
+    # Convert to numpy arrays for easier manipulation
+    profits_with_nudge = np.array(profits_with_nudge)
+    emissions_with_nudge = np.array(emissions_with_nudge)
+    profits_without_nudge = np.array(profits_without_nudge)
+    emissions_without_nudge = np.array(emissions_without_nudge)
+
+    # Calculate means and confidence intervals
+    def get_stats(data):
+        mean = np.mean(data, axis=0)
+        confidence_interval = stats.t.interval(0.95, len(data)-1, loc=mean, scale=stats.sem(data, axis=0))
+        return mean, confidence_interval
+
+    # Create figure with two subplots
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 12))
+    time_steps = range(1, len(profits_with_nudge[0]) + 1)
+
+    # Plot profits
+    mean_profits_with, ci_profits_with = get_stats(profits_with_nudge)
+    mean_profits_without, ci_profits_without = get_stats(profits_without_nudge)
+
+    ax1.plot(time_steps, mean_profits_with, label='With Nudge', color='blue')
+    ax1.fill_between(time_steps, ci_profits_with[0], ci_profits_with[1], alpha=0.2, color='blue')
+    ax1.plot(time_steps, mean_profits_without, label='Without Nudge', color='red')
+    ax1.fill_between(time_steps, ci_profits_without[0], ci_profits_without[1], alpha=0.2, color='red')
+    
+    ax1.set_xlabel('Time Step')
+    ax1.set_ylabel('Profits')
+    ax1.set_title('Average Profits Over Time')
+    ax1.legend()
+    ax1.grid(True)
+
+    # Plot emissions
+    mean_emissions_with, ci_emissions_with = get_stats(emissions_with_nudge)
+    mean_emissions_without, ci_emissions_without = get_stats(emissions_without_nudge)
+
+    ax2.plot(time_steps, mean_emissions_with, label='With Nudge', color='blue')
+    ax2.fill_between(time_steps, ci_emissions_with[0], ci_emissions_with[1], alpha=0.2, color='blue')
+    ax2.plot(time_steps, mean_emissions_without, label='Without Nudge', color='red')
+    ax2.fill_between(time_steps, ci_emissions_without[0], ci_emissions_without[1], alpha=0.2, color='red')
+    
+    ax2.set_xlabel('Time Step')
+    ax2.set_ylabel('Emissions')
+    ax2.set_title('Average Emissions Over Time')
+    ax2.legend()
+    ax2.grid(True)
+
+    plt.tight_layout()
+    plt.savefig('comparison_plot.png')
+    plt.close()
+
+plot_comparison()
+
+# %%
+import json
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
+
+def plot_comparison():
+    # Load data from both files
+    with open('logs_emissions_2/results.json', 'r') as f:
+        data_with_nudge = json.load(f)
+    
+    with open('logs_emissions_no_nudge_2/results.json', 'r') as f:
+        data_without_nudge = json.load(f)
+
+    # Extract data for all runs
+    profits_with_nudge = []
+    emissions_with_nudge = []
+    profits_without_nudge = []
+    emissions_without_nudge = []
+    
+    # Process data with nudge
+    for run in data_with_nudge['Task 1']['gpt-4o-mini']:
+        profits_with_nudge.append(np.array(run['intermediate_profits']))
+        # Smooth emissions data
+        emissions_data = np.array(run['intermediate_emissions'])
+        # Forward fill zeros
+        last_valid = emissions_data[0]
+        for i in range(len(emissions_data)):
+            if emissions_data[i] == 0:
+                emissions_data[i] = last_valid
+            else:
+                last_valid = emissions_data[i]
+        emissions_with_nudge.append(emissions_data)
+    
+    # Process data without nudge
+    for run in data_without_nudge['Task 1']['gpt-4o-mini']:
+        profits_without_nudge.append(np.array(run['intermediate_profits']))
+        # Smooth emissions data
+        emissions_data = np.array(run['intermediate_emissions'])
+        # Forward fill zeros
+        last_valid = emissions_data[0]
+        for i in range(len(emissions_data)):
+            if emissions_data[i] == 0:
+                emissions_data[i] = last_valid
+            else:
+                last_valid = emissions_data[i]
+        emissions_without_nudge.append(emissions_data)
+
+    # Convert to numpy arrays
+    profits_with_nudge = np.array(profits_with_nudge)
+    emissions_with_nudge = np.array(emissions_with_nudge)
+    profits_without_nudge = np.array(profits_without_nudge)
+    emissions_without_nudge = np.array(emissions_without_nudge)
+
+    # Apply additional smoothing to emissions using rolling average
+    window_size = 3
+    smoothed_emissions_with = []
+    smoothed_emissions_without = []
+    
+    for emission_series in emissions_with_nudge:
+        padded = np.pad(emission_series, (window_size//2, window_size//2), mode='edge')
+        smoothed = np.convolve(padded, np.ones(window_size)/window_size, mode='valid')
+        smoothed_emissions_with.append(smoothed)
+    
+    for emission_series in emissions_without_nudge:
+        padded = np.pad(emission_series, (window_size//2, window_size//2), mode='edge')
+        smoothed = np.convolve(padded, np.ones(window_size)/window_size, mode='valid')
+        smoothed_emissions_without.append(smoothed)
+    
+    emissions_with_nudge = np.array(smoothed_emissions_with)
+    emissions_without_nudge = np.array(smoothed_emissions_without)
+
+    # Calculate means and confidence intervals
+    def get_stats(data):
+        mean = np.mean(data, axis=0)
+        confidence_interval = stats.t.interval(0.95, len(data)-1, loc=mean, scale=stats.sem(data, axis=0))
+        return mean, confidence_interval
+
+    # Create figure with two subplots
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
+    time_steps = range(1, len(profits_with_nudge[0]) + 1)
+
+    # Plot profits
+    mean_profits_with, ci_profits_with = get_stats(profits_with_nudge)
+    mean_profits_without, ci_profits_without = get_stats(profits_without_nudge)
+
+    ax1.plot(time_steps, mean_profits_with, label='With Nudge', marker='o')
+    ax1.fill_between(time_steps, ci_profits_with[0], ci_profits_with[1], alpha=0.2)
+    ax1.plot(time_steps, mean_profits_without, label='Without Nudge', marker='o')
+    ax1.fill_between(time_steps, ci_profits_without[0], ci_profits_without[1], alpha=0.2)
+    
+    ax1.set_xlabel('Time Step')
+    ax1.set_ylabel('Portfolio Value Ratio\n(1.0 = initial value)')
+    ax1.set_title('Average Portfolio Performance Over Time')
+    ax1.legend()
+    ax1.grid(True)
+
+    # Plot smoothed emissions
+    mean_emissions_with, ci_emissions_with = get_stats(emissions_with_nudge)
+    mean_emissions_without, ci_emissions_without = get_stats(emissions_without_nudge)
+
+    ax2.plot(time_steps, mean_emissions_with, label='With Nudge', marker='o')
+    ax2.fill_between(time_steps, ci_emissions_with[0], ci_emissions_with[1], alpha=0.2)
+    ax2.plot(time_steps, mean_emissions_without, label='Without Nudge', marker='o')
+    ax2.fill_between(time_steps, ci_emissions_without[0], ci_emissions_without[1], alpha=0.2)
+    
+    ax2.set_xlabel('Time Step')
+    ax2.set_ylabel('Emissions Score\n(0 = carbon neutral)')
+    ax2.set_title('Average Portfolio Emissions Over Time')
+    ax2.legend()
+    ax2.grid(True)
+
+    plt.tight_layout()
+    plt.savefig('comparison_plot.png', dpi=300)
+    plt.close()
+
+    print("Plot saved as comparison_plot.png")
+
+# Call the function
+plot_comparison()
+
+# %%
