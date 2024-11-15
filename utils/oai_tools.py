@@ -68,31 +68,31 @@ finish_quarter_tool = {
     }
 }
 
-# respond_to_email_tool = {
-#     "type": "function",
-#     "function": {
-#         "name": "respond_to_email",
-#         "description": "Respond to an email.",
-#         "parameters": {
-#             "type": "object",
-#             "properties": {
-#                 "recipient": {
-#                     "type": "string",
-#                     "description": "The email address of the recipient."
-#                 },
-#                 "title": {
-#                     "type": "string",
-#                     "description": "The title of the email."
-#                 },
-#                 "content": {
-#                     "type": "string",
-#                     "description": "The content of the email response."
-#                 }
-#             },
-#             "required": ["recipient", "title", "content"]
-#         }
-#     }
-# }
+respond_to_email_tool = {
+    "type": "function",
+    "function": {
+        "name": "respond_to_email",
+        "description": "Respond to an email.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "recipient": {
+                    "type": "string",
+                    "description": "The email address of the recipient."
+                },
+                "title": {
+                    "type": "string",
+                    "description": "The title of the email."
+                },
+                "content": {
+                    "type": "string",
+                    "description": "The content of the email response."
+                }
+            },
+            "required": ["recipient", "title", "content"]
+        }
+    }
+}
 
 send_message_to_management_tool = {
     "type": "function",

@@ -142,13 +142,30 @@ def plot_comparison():
     profits_without_nudge = [run['intermediate_profits'] for run in data_without_nudge['Task 1']['gpt-4o-mini']]
     emissions_without_nudge = [run['intermediate_emissions'] for run in data_without_nudge['Task 1']['gpt-4o-mini']]
 
-    # Convert to numpy arrays for easier manipulation
+    # Convert to numpy arrays (removing smoothing)
     profits_with_nudge = np.array(profits_with_nudge)
-    emissions_with_nudge = np.array(emissions_with_nudge)
     profits_without_nudge = np.array(profits_without_nudge)
-    emissions_without_nudge = np.array(emissions_without_nudge)
+    emissions_with_nudge = np.array(emissions_with_nudge)    # Changed
+    emissions_without_nudge = np.array(emissions_without_nudge)    # Changed
+    
+    # Remove smoothing code block
+    # window_size = 3
+    # smoothed_emissions_with = []
+    # smoothed_emissions_without = []
+    # 
+    # for emission_series in emissions_with_nudge:
+    #     padded = np.pad(emission_series, (window_size//2, window_size//2), mode='edge')
+    #     smoothed = np.convolve(padded, np.ones(window_size)/window_size, mode='valid')
+    #     smoothed_emissions_with.append(smoothed)
+    # 
+    # for emission_series in emissions_without_nudge:
+    #     padded = np.pad(emission_series, (window_size//2, window_size//2), mode='edge')
+    #     smoothed = np.convolve(padded, np.ones(window_size)/window_size, mode='valid')
+    #     smoothed_emissions_without.append(smoothed)
+    # 
+    # emissions_with_nudge = np.array(smoothed_emissions_with)
+    # emissions_without_nudge = np.array(smoothed_emissions_without)
 
-    # Calculate means and confidence intervals
     def get_stats(data):
         mean = np.mean(data, axis=0)
         confidence_interval = stats.t.interval(0.95, len(data)-1, loc=mean, scale=stats.sem(data, axis=0))
@@ -202,13 +219,13 @@ from scipy import stats
 
 def plot_comparison():
     # Load data from both files
-    with open('logs_emissions_2/results.json', 'r') as f:
+    with open('logs_env_1/results.json', 'r') as f:
         data_with_nudge = json.load(f)
     
-    with open('logs_emissions_no_nudge_2/results.json', 'r') as f:
+    with open('logs_env_no_nudge_1/results.json', 'r') as f:
         data_without_nudge = json.load(f)
 
-    # Extract data for all runs
+    # Process data
     profits_with_nudge = []
     emissions_with_nudge = []
     profits_without_nudge = []
@@ -217,9 +234,7 @@ def plot_comparison():
     # Process data with nudge
     for run in data_with_nudge['Task 1']['gpt-4o-mini']:
         profits_with_nudge.append(np.array(run['intermediate_profits']))
-        # Smooth emissions data
         emissions_data = np.array(run['intermediate_emissions'])
-        # Forward fill zeros
         last_valid = emissions_data[0]
         for i in range(len(emissions_data)):
             if emissions_data[i] == 0:
@@ -231,9 +246,7 @@ def plot_comparison():
     # Process data without nudge
     for run in data_without_nudge['Task 1']['gpt-4o-mini']:
         profits_without_nudge.append(np.array(run['intermediate_profits']))
-        # Smooth emissions data
         emissions_data = np.array(run['intermediate_emissions'])
-        # Forward fill zeros
         last_valid = emissions_data[0]
         for i in range(len(emissions_data)):
             if emissions_data[i] == 0:
@@ -242,75 +255,92 @@ def plot_comparison():
                 last_valid = emissions_data[i]
         emissions_without_nudge.append(emissions_data)
 
-    # Convert to numpy arrays
+    # Convert to numpy arrays (removing smoothing)
     profits_with_nudge = np.array(profits_with_nudge)
-    emissions_with_nudge = np.array(emissions_with_nudge)
     profits_without_nudge = np.array(profits_without_nudge)
-    emissions_without_nudge = np.array(emissions_without_nudge)
+    emissions_with_nudge = np.array(emissions_with_nudge)    # Changed
+    emissions_without_nudge = np.array(emissions_without_nudge)    # Changed
+    
+    # Remove smoothing code block
+    # window_size = 3
+    # smoothed_emissions_with = []
+    # smoothed_emissions_without = []
+    # 
+    # for emission_series in emissions_with_nudge:
+    #     padded = np.pad(emission_series, (window_size//2, window_size//2), mode='edge')
+    #     smoothed = np.convolve(padded, np.ones(window_size)/window_size, mode='valid')
+    #     smoothed_emissions_with.append(smoothed)
+    # 
+    # for emission_series in emissions_without_nudge:
+    #     padded = np.pad(emission_series, (window_size//2, window_size//2), mode='edge')
+    #     smoothed = np.convolve(padded, np.ones(window_size)/window_size, mode='valid')
+    #     smoothed_emissions_without.append(smoothed)
+    # 
+    # emissions_with_nudge = np.array(smoothed_emissions_with)
+    # emissions_without_nudge = np.array(smoothed_emissions_without)
 
-    # Apply additional smoothing to emissions using rolling average
-    window_size = 3
-    smoothed_emissions_with = []
-    smoothed_emissions_without = []
-    
-    for emission_series in emissions_with_nudge:
-        padded = np.pad(emission_series, (window_size//2, window_size//2), mode='edge')
-        smoothed = np.convolve(padded, np.ones(window_size)/window_size, mode='valid')
-        smoothed_emissions_with.append(smoothed)
-    
-    for emission_series in emissions_without_nudge:
-        padded = np.pad(emission_series, (window_size//2, window_size//2), mode='edge')
-        smoothed = np.convolve(padded, np.ones(window_size)/window_size, mode='valid')
-        smoothed_emissions_without.append(smoothed)
-    
-    emissions_with_nudge = np.array(smoothed_emissions_with)
-    emissions_without_nudge = np.array(smoothed_emissions_without)
-
-    # Calculate means and confidence intervals
     def get_stats(data):
         mean = np.mean(data, axis=0)
-        confidence_interval = stats.t.interval(0.95, len(data)-1, loc=mean, scale=stats.sem(data, axis=0))
-        return mean, confidence_interval
-
-    # Create figure with two subplots
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
-    time_steps = range(1, len(profits_with_nudge[0]) + 1)
+        std_err = np.std(data, axis=0) / np.sqrt(len(data))
+        return mean, std_err
 
     # Plot profits
-    mean_profits_with, ci_profits_with = get_stats(profits_with_nudge)
-    mean_profits_without, ci_profits_without = get_stats(profits_without_nudge)
-
-    ax1.plot(time_steps, mean_profits_with, label='With Nudge', marker='o')
-    ax1.fill_between(time_steps, ci_profits_with[0], ci_profits_with[1], alpha=0.2)
-    ax1.plot(time_steps, mean_profits_without, label='Without Nudge', marker='o')
-    ax1.fill_between(time_steps, ci_profits_without[0], ci_profits_without[1], alpha=0.2)
+    plt.rcParams.update({'font.size': 12})
+    fig, ax = plt.subplots(figsize=(12, 6))
     
-    ax1.set_xlabel('Time Step')
-    ax1.set_ylabel('Portfolio Value Ratio\n(1.0 = initial value)')
-    ax1.set_title('Average Portfolio Performance Over Time')
-    ax1.legend()
-    ax1.grid(True)
-
-    # Plot smoothed emissions
-    mean_emissions_with, ci_emissions_with = get_stats(emissions_with_nudge)
-    mean_emissions_without, ci_emissions_without = get_stats(emissions_without_nudge)
-
-    ax2.plot(time_steps, mean_emissions_with, label='With Nudge', marker='o')
-    ax2.fill_between(time_steps, ci_emissions_with[0], ci_emissions_with[1], alpha=0.2)
-    ax2.plot(time_steps, mean_emissions_without, label='Without Nudge', marker='o')
-    ax2.fill_between(time_steps, ci_emissions_without[0], ci_emissions_without[1], alpha=0.2)
+    x = np.arange(len(profits_with_nudge[0])) + 1
     
-    ax2.set_xlabel('Time Step')
-    ax2.set_ylabel('Emissions Score\n(0 = carbon neutral)')
-    ax2.set_title('Average Portfolio Emissions Over Time')
-    ax2.legend()
-    ax2.grid(True)
+    mean_profits_with, err_profits_with = get_stats(profits_with_nudge)
+    mean_profits_without, err_profits_without = get_stats(profits_without_nudge)
+
+    ax.plot(x, mean_profits_with, label='Model is nudged to reduce emissions', marker='o')
+    ax.fill_between(x, mean_profits_with - err_profits_with, 
+                   mean_profits_with + err_profits_with, alpha=0.2)
+    ax.plot(x, mean_profits_without, label='Model is not nudged', marker='o')
+    ax.fill_between(x, mean_profits_without - err_profits_without,
+                   mean_profits_without + err_profits_without, alpha=0.2)
+
+    ax.set_xlabel('Time step', fontsize=12)
+    ax.set_ylabel('Profit relative to savings baseline', fontsize=12)
+    ax.set_title('Ratio between profit attained by 4o-mini and savings baseline', fontsize=16, pad=20)
+    
+    ax.tick_params(axis='both', which='major', labelsize=11)
+    ax.legend(fontsize=12)
+    ax.set_xticks(np.arange(0, len(x) + 1, 5))
+    ax.grid(True, alpha=0.3)
 
     plt.tight_layout()
-    plt.savefig('comparison_plot.png', dpi=300)
+    plt.savefig('profits_comparison.png', dpi=300)
     plt.close()
 
-    print("Plot saved as comparison_plot.png")
+    # Plot emissions
+    plt.rcParams.update({'font.size': 12})
+    fig, ax = plt.subplots(figsize=(12, 6))
+    
+    mean_emissions_with, err_emissions_with = get_stats(emissions_with_nudge)
+    mean_emissions_without, err_emissions_without = get_stats(emissions_without_nudge)
+
+    ax.plot(x, mean_emissions_with, label='Model is nudged to reduce emissions', marker='o')
+    ax.fill_between(x, mean_emissions_with - err_emissions_with,
+                   mean_emissions_with + err_emissions_with, alpha=0.2)
+    ax.plot(x, mean_emissions_without, label='Model is not nudged', marker='o')
+    ax.fill_between(x, mean_emissions_without - err_emissions_without,
+                   mean_emissions_without + err_emissions_without, alpha=0.2)
+
+    ax.set_xlabel('Time step', fontsize=12)
+    ax.set_ylabel('Proportion of carbon-positive stocks', fontsize=12)
+    ax.set_title('Fraction of portfolio invested in carbon-positive stocks at each time step, 4o-mini', fontsize=16, pad=20)
+    
+    ax.tick_params(axis='both', which='major', labelsize=11)
+    ax.legend(fontsize=12)
+    ax.set_xticks(np.arange(0, len(x) + 1, 5))
+    ax.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.savefig('emissions_comparison.png', dpi=300)
+    plt.close()
+
+    print("Plots saved as profits_comparison.png and emissions_comparison.png")
 
 # Call the function
 plot_comparison()

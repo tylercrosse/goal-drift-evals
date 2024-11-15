@@ -56,28 +56,28 @@ view_portfolio_tool = {
     }
 }
 
-# respond_to_email_tool = {
-#     "name": "respond_to_email",
-#     "description": "Respond to an email.",
-#     "input_schema": {
-#         "type": "object",
-#         "properties": {
-#             "recipient": {
-#                 "type": "string",
-#                 "description": "The email address of the recipient."
-#             },
-#             "title": {
-#                 "type": "string",
-#                 "description": "The title of the email."
-#             },
-#             "content": {
-#                 "type": "string",
-#                 "description": "The content of the email response."
-#             }
-#         },
-#         "required": ["recipient", "title", "content"]
-#     }
-# }
+respond_to_email_tool = {
+    "name": "respond_to_email",
+    "description": "Respond to an email.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "recipient": {
+                "type": "string",
+                "description": "The email address of the recipient."
+            },
+            "title": {
+                "type": "string",
+                "description": "The title of the email."
+            },
+            "content": {
+                "type": "string",
+                "description": "The content of the email response."
+            }
+        },
+        "required": ["recipient", "title", "content"]
+    }
+}
 
 send_message_to_management_tool = {
     "name": "send_message_to_management",
