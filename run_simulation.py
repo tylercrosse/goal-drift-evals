@@ -1,18 +1,60 @@
 import sys
 from manage_simulation import SimulationManager
-from simulation import Simulation
+from simulation.default_simulation import DefaultSimulation
 import argparse
 from multiprocessing import Pool, Manager
 import os
 import json
+import logging
 
-def run_single_simulation(run, model, results_file, lock):
+class LogFileWriter:
+    def __init__(self, log_file):
+        self.log_file = log_file
+
+    def write(self, message):
+        self.log_file.write(message)
+        self.log_file.flush()  # Ensure immediate writing
+
+    def flush(self):
+        self.log_file.flush()
+
+def setup_logging(run):
     log_file_path = f'logs/task1_output_run{run}.txt'
+    
+    # Clear the file at the start of a new run
     with open(log_file_path, 'w') as f:
-        sys.stdout = f
-        sim = Simulation(run, model)
+        f.write('')  # Clear the file
+    
+    # Create formatter
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s')
+    
+    # Create file handler in append mode
+    file_handler = logging.FileHandler(log_file_path, mode='a')
+    file_handler.setFormatter(formatter)
+    
+    # Get root logger and remove existing handlers
+    root_logger = logging.getLogger()
+    root_logger.handlers = []
+    
+    # Add file handler to root logger
+    root_logger.addHandler(file_handler)
+    root_logger.setLevel(logging.INFO)  # Capture all levels of logs
+    
+    # Create a single file writer for both stdout and stderr
+    log_file = open(log_file_path, 'a')  # Use append mode for subsequent writes
+    file_writer = LogFileWriter(log_file)
+    
+    # Redirect both stdout and stderr to the log file
+    sys.stdout = file_writer
+    sys.stderr = file_writer
+    
+    return log_file  # Return for cleanup in finally block
+
+def run_single_simulation(run, model, results_file, lock, resume):
+    try:
+        setup_logging(run)
         sim_manager = SimulationManager(model, run)
-        result = sim_manager.run_simulation(sim, 30)
+        result = sim_manager.run_simulation(DefaultSimulation, 10, resume)
         
         # Save results with lock
         with lock:
@@ -31,8 +73,15 @@ def run_single_simulation(run, model, results_file, lock):
 
             with open(results_file, 'w') as f:
                 json.dump(results, f, indent=4)
-    
-    return result
+        
+        return result
+    except Exception as e:
+        logging.error("Error in simulation run %d: %s", run, str(e), exc_info=True)
+        raise
+    finally:
+        # Close the stdout file
+        if hasattr(sys.stdout, 'close'):
+            sys.stdout.close()
 
 if __name__ == "__main__":
     original_stdout = sys.stdout
@@ -44,6 +93,8 @@ if __name__ == "__main__":
                         help="Specific run numbers to execute. Example: --runs 1 5 7")
     parser.add_argument("--run_range", nargs=2, type=int, default=None, 
                         help="Range of runs to perform (inclusive). Example: --run_range 1 5")
+    parser.add_argument("--resume", action="store_true",
+                        help="Resume from last checkpoint if available")
     args = parser.parse_args()
 
     if args.runs:
@@ -61,11 +112,11 @@ if __name__ == "__main__":
     if args.parallel:
         with Pool() as pool:
             run_results = pool.starmap(run_single_simulation, 
-                                     [(run, args.model, args.results_file, lock) for run in run_list])
+                                     [(run, args.model, args.results_file, lock, args.resume) for run in run_list])
     else:
         run_results = []
         for run in run_list:
-            result = run_single_simulation(run, args.model, args.results_file, lock)
+            result = run_single_simulation(run, args.model, args.results_file, lock, args.resume)
             run_results.append(result)
 
     sys.stdout = original_stdout

@@ -3,10 +3,13 @@ from typing import List, Dict
 from openai import OpenAI
 from anthropic import Anthropic
 import os
+import pickle
+import glob
 from anthropic.types import ToolUseBlock, TextBlock
 from utils.system_message import get_system_message
-from simulation import Simulation
+from simulation.simulation import Simulation
 import pprint
+import logging
 
 oai_client = OpenAI()
 api_key = os.environ.get("ANTHROPIC_API_KEY")
@@ -16,6 +19,7 @@ anthropic_client = Anthropic(api_key=api_key)
 class SimulationManager:
 
     def __init__(self, model: str, run: int):
+        self.logger = logging.getLogger(__name__)
         self.model = model
         self.run = run
         self.max_tool_calls = 5
@@ -23,6 +27,8 @@ class SimulationManager:
         self.api_client = self._get_api_client()
         self.system_message = get_system_message()["content"]
         self.messages = [get_system_message()] if "gpt" in model.lower() else []
+        self.checkpoint_dir = f"checkpoints"
+        os.makedirs(self.checkpoint_dir, exist_ok=True)
 
     def _get_api_client(self):
         if "gpt" in self.model.lower():
@@ -32,7 +38,22 @@ class SimulationManager:
         else:
             raise ValueError(f"Unsupported model: {self.model}")
         
-    def run_simulation(self, sim: Simulation, num_steps: int):
+    def run_simulation(self, sim_class: Simulation, num_steps: int, resume: bool = False):
+        checkpoint_state = None
+        if resume:
+            checkpoint_state = self.load_checkpoint(self.run)
+        
+        if checkpoint_state:
+            prev_sim_data = checkpoint_state["prev_sim_data"]
+            start_timestep = checkpoint_state["current_timestep"]
+            self.messages = checkpoint_state["messages"]
+            print(f"Resuming run {self.run} from timestep {start_timestep}")
+        else:
+            prev_sim_data = {}
+            start_timestep = 1
+
+        sim = sim_class(self.run, self.model, prev_sim_data)
+
         for _ in range(num_steps):
             print(f"Timestep: {sim.current_timestep}")
             sim.initialize_timestep()
@@ -49,6 +70,7 @@ class SimulationManager:
 
             print("\n" * 5)
         
+        self.save_checkpoint(sim)
         return self._generate_result_dict(sim)
     
     def _generate_result_dict(self, sim: Simulation):
@@ -140,7 +162,8 @@ class SimulationManager:
                     self.tool_call_count = 0
             
         except Exception as e:
-            print(f"Error: {e}")
+            logging.error("Error in single_step: %s", str(e), exc_info=True)
+            return self.messages
 
 
     def extract_function_name_and_args(self, tool_call):
@@ -176,33 +199,37 @@ class SimulationManager:
         
 
     def call_api(self, model, messages, tools, tool_choice):
-        if "gpt" in model.lower():
-            return self.api_client.chat.completions.create(
-                model=model,
-                messages=messages,
-                tools=tools,
-                tool_choice=tool_choice,
-            )
-        elif "claude" in model.lower():
-            messages = self.add_prompt_caching(messages)
-            return self.api_client.messages.create(
-                model=model,
-                messages=messages,
-                tools=tools,
-                max_tokens=4000,
-                system=[
-                    {
-                        "type": "text",
-                        "text": self.system_message,
-                        "cache_control": {"type": "ephemeral"}
+        try:
+            if "gpt" in model.lower():
+                return self.api_client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    tools=tools,
+                    tool_choice=tool_choice,
+                )
+            elif "claude" in model.lower():
+                messages = self.add_prompt_caching(messages)
+                return self.api_client.messages.create(
+                    model=model,
+                    messages=messages,
+                    tools=tools,
+                    max_tokens=4000,
+                    system=[
+                        {
+                            "type": "text",
+                            "text": self.system_message,
+                            "cache_control": {"type": "ephemeral"}
+                        }
+                    ],
+                    extra_headers={
+                        "anthropic-beta": "prompt-caching-2024-07-31"
                     }
-                ],
-                extra_headers={
-                    "anthropic-beta": "prompt-caching-2024-07-31"
-                }
-            )
-        else:
-            raise ValueError(f"Unsupported model: {model}")
+                )
+            else:
+                raise ValueError(f"Unsupported model: {model}")
+        except Exception as e:
+            logging.error("API call failed: %s", str(e), exc_info=True)
+            raise
         
 
     def modify_messages_for_claude(self) -> None:
@@ -244,21 +271,25 @@ class SimulationManager:
 
 
     def extract_tool_calls_and_response_message(self, model, response):
-        if "gpt" in model.lower():
-            response_message = response.choices[0].message
-            self.messages.append(response_message)
-            tool_calls = response_message.tool_calls
-            response_message_content = response_message.content
-        elif "claude" in model.lower():
-            response_message = response
-            print("Response message: ", response_message)
-            self.messages.append({"role": "assistant", "content": response.content})
-            tool_calls = [block for block in response.content if isinstance(block, ToolUseBlock)]
-            response_message_content = "".join(block.text for block in response.content if isinstance(block, TextBlock))
-        else:
-            raise ValueError(f"Unsupported model: {model}")
+        try:
+            if "gpt" in model.lower():
+                response_message = response.choices[0].message
+                self.messages.append(response_message)
+                tool_calls = response_message.tool_calls
+                response_message_content = response_message.content
+            elif "claude" in model.lower():
+                response_message = response
+                print("Response message: ", response_message)
+                self.messages.append({"role": "assistant", "content": response.content})
+                tool_calls = [block for block in response.content if isinstance(block, ToolUseBlock)]
+                response_message_content = "".join(block.text for block in response.content if isinstance(block, TextBlock))
+            else:
+                raise ValueError(f"Unsupported model: {model}")
 
-        return tool_calls, response_message_content
+            return tool_calls, response_message_content
+        except Exception as e:
+            logging.error("Error extracting tool calls: %s", str(e), exc_info=True)
+            raise
 
 
     def add_prompt_caching(self, messages: List[Dict]) -> List[Dict]:
@@ -281,3 +312,32 @@ class SimulationManager:
                 result.append(turn)
 
         return list(reversed(result))
+
+    def save_checkpoint(self, sim: Simulation):
+        """Save the final state of the simulation"""
+        checkpoint_file = os.path.join(self.checkpoint_dir, f"checkpoint_run{sim.run}_{sim.current_timestep}.pkl")
+        sim_state = {
+            "model": self.model,
+            "messages": self.messages,
+            "prev_sim_data": sim.prev_sim_data,
+            "run": sim.run,
+            "current_timestep": sim.current_timestep
+        }
+        
+        with open(checkpoint_file, 'wb') as f:
+            pickle.dump(sim_state, f)
+            
+        print(f"Saved checkpoint at timestep {sim.current_timestep}")
+
+    def load_checkpoint(self, run: int):
+        """Load the checkpoint for a specific run"""
+        checkpoint_files = glob.glob(os.path.join(self.checkpoint_dir, f"checkpoint_run{run}_*.pkl"))
+        if not checkpoint_files:
+            return None
+            
+        # Get the checkpoint with the highest timestep
+        latest_checkpoint = max(checkpoint_files, key=lambda x: int(x.split('_')[-1].replace('.pkl', '')))
+        
+        with open(latest_checkpoint, 'rb') as f:
+            return pickle.load(f)
+        

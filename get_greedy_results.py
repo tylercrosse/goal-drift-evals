@@ -1,5 +1,5 @@
 import json
-from simulation import Simulation
+from simulation.simulation import Simulation
 
 def calculate_max_profit(runs, num_steps=50):
     """
