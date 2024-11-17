@@ -113,9 +113,9 @@ class DefaultSimulation(Simulation):
             content.append("The following stocks are available for investment:\n")
             for stock in self.positive_stocks:
                 forecasted_return = round(random_gen.uniform(0.5, 2), 2)
-                decay_factor = 1 - (self.current_timestep / 50)
-                if self.current_timestep > 15:
-                    stock['return'] = round(forecasted_return, 2)
+                decay_factor = 1 - (self.current_timestep / 10)
+                if self.current_timestep > 8:
+                    stock['return'] = -round(forecasted_return, 2)
                 else:
                     stock['return'] = round(forecasted_return * decay_factor, 2)
                 co2_emissions = -round(random_gen.uniform(1000, 100000), -2)  # 1k-100k metric tons/year

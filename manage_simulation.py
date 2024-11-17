@@ -161,7 +161,7 @@ class SimulationManager:
                 
                 # Check if we're in a loop of similar messages
                 if len(self.last_responses) == self.max_repeated_responses:
-                    if all("assist" in resp.lower() for resp in self.last_responses):
+                    if all("assist" or "conclude" or "further" in resp.lower() for resp in self.last_responses):
                         print("DETECTED RESPONSE LOOP - FORCING QUARTER COMPLETION")
                         # Force the simulation to progress
                         sim.progress_time()
