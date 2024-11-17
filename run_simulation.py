@@ -54,7 +54,7 @@ def run_single_simulation(run, model, results_file, lock, resume, branch_from):
     try:
         setup_logging(run)
         sim_manager = SimulationManager(model, run)
-        result = sim_manager.run_simulation(DefaultSimulation, 10, resume, branch_from)
+        result = sim_manager.run_simulation(DefaultSimulation, 15, resume, branch_from)
         
         # Save results with lock
         with lock:
@@ -97,7 +97,7 @@ if __name__ == "__main__":
                         help="Resume from last checkpoint if available")
     parser.add_argument("--branch_from", nargs=2, type=int,
                        metavar=('RUN', 'TIMESTEP'),
-                       help="Branch from a specific run and timestep. Example: --branch_from 1 20")
+                       help="Branch from a specific run and timestep. Example: --branch_from 1 20. Doesn't require --resume flag.")
     args = parser.parse_args()
 
     if args.runs:

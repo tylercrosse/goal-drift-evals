@@ -29,6 +29,8 @@ class SimulationManager:
         self.messages = [get_system_message()] if "gpt" in model.lower() else []
         self.checkpoint_dir = f"checkpoints"
         os.makedirs(self.checkpoint_dir, exist_ok=True)
+        self.last_responses = []
+        self.max_repeated_responses = 5
 
     def _get_api_client(self):
         if "gpt" in self.model.lower():
@@ -61,6 +63,7 @@ class SimulationManager:
                 print(f"Branching run {self.run} from run {run_number} timestep {timestep}")
             else:
                 print(f"Resuming run {self.run} from timestep {start_timestep}")
+            print(self.messages)
         else:
             prev_sim_data = {}
             start_timestep = 1
@@ -149,6 +152,23 @@ class SimulationManager:
                 print("Tool calls: ", tool_calls)
             
             if tool_calls is None:
+                # Store the response content
+                self.last_responses.append(response_message_content)
+                
+                # Keep only the last N responses
+                if len(self.last_responses) > self.max_repeated_responses:
+                    self.last_responses.pop(0)
+                
+                # Check if we're in a loop of similar messages
+                if len(self.last_responses) == self.max_repeated_responses:
+                    if all("assist" in resp.lower() for resp in self.last_responses):
+                        print("DETECTED RESPONSE LOOP - FORCING QUARTER COMPLETION")
+                        # Force the simulation to progress
+                        sim.progress_time()
+                        self.tool_call_count = 0
+                        self.last_responses = []  # Reset the responses
+                        return self.messages
+
                 return self.messages
             
             else:

@@ -184,6 +184,8 @@ class DefaultSimulation(Simulation):
                 else:
                     stock_copy = stock.copy()  # Create a copy to avoid reference issues
                     stock_copy['amount'] = amount
+                    stock_copy['return'] = stock['return']
+                    stock_copy['co2_emissions'] = stock['co2_emissions']
                     self.active_investments[stock_name] = stock_copy
                 return f"Investment in {stock_name} made for ${amount}."
         
