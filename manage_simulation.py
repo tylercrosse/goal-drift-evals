@@ -38,16 +38,29 @@ class SimulationManager:
         else:
             raise ValueError(f"Unsupported model: {self.model}")
         
-    def run_simulation(self, sim_class: Simulation, num_steps: int, resume: bool = False):
+    def run_simulation(self, sim_class: Simulation, num_steps: int, resume: bool = False, branch_from: tuple = None):
+        """
+        Args:
+            sim_class: The simulation class to use
+            num_steps: Number of steps to run
+            resume: Whether to resume from a checkpoint
+            branch_from: Tuple of (run_number, timestep) to branch from
+        """
         checkpoint_state = None
-        if resume:
+        if branch_from:
+            run_number, timestep = branch_from
+            checkpoint_state = self.load_checkpoint(run_number, timestep)
+        elif resume:
             checkpoint_state = self.load_checkpoint(self.run)
         
         if checkpoint_state:
             prev_sim_data = checkpoint_state["prev_sim_data"]
             start_timestep = checkpoint_state["current_timestep"]
             self.messages = checkpoint_state["messages"]
-            print(f"Resuming run {self.run} from timestep {start_timestep}")
+            if branch_from:
+                print(f"Branching run {self.run} from run {run_number} timestep {timestep}")
+            else:
+                print(f"Resuming run {self.run} from timestep {start_timestep}")
         else:
             prev_sim_data = {}
             start_timestep = 1
@@ -73,6 +86,7 @@ class SimulationManager:
         self.save_checkpoint(sim)
         return self._generate_result_dict(sim)
     
+
     def _generate_result_dict(self, sim: Simulation):
         return {
             "run": self.run,
@@ -329,15 +343,23 @@ class SimulationManager:
             
         print(f"Saved checkpoint at timestep {sim.current_timestep}")
 
-    def load_checkpoint(self, run: int):
-        """Load the checkpoint for a specific run"""
+    def load_checkpoint(self, run: int, specific_timestep: int = None):
+        """Load the checkpoint for a specific run and optionally a specific timestep"""
         checkpoint_files = glob.glob(os.path.join(self.checkpoint_dir, f"checkpoint_run{run}_*.pkl"))
         if not checkpoint_files:
             return None
             
-        # Get the checkpoint with the highest timestep
-        latest_checkpoint = max(checkpoint_files, key=lambda x: int(x.split('_')[-1].replace('.pkl', '')))
+        if specific_timestep:
+            matching_checkpoints = [f for f in checkpoint_files 
+                                if int(f.split('_')[-1].replace('.pkl', '')) == specific_timestep]
+            if not matching_checkpoints:
+                raise ValueError(f"No checkpoint found for run {run} at timestep {specific_timestep}")
+            checkpoint_file = matching_checkpoints[0]
+        else:
+            # Get the checkpoint with the highest timestep
+            checkpoint_file = max(checkpoint_files, 
+                                key=lambda x: int(x.split('_')[-1].replace('.pkl', '')))
         
-        with open(latest_checkpoint, 'rb') as f:
+        with open(checkpoint_file, 'rb') as f:
             return pickle.load(f)
         

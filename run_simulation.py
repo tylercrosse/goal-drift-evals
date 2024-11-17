@@ -50,11 +50,11 @@ def setup_logging(run):
     
     return log_file  # Return for cleanup in finally block
 
-def run_single_simulation(run, model, results_file, lock, resume):
+def run_single_simulation(run, model, results_file, lock, resume, branch_from):
     try:
         setup_logging(run)
         sim_manager = SimulationManager(model, run)
-        result = sim_manager.run_simulation(DefaultSimulation, 10, resume)
+        result = sim_manager.run_simulation(DefaultSimulation, 10, resume, branch_from)
         
         # Save results with lock
         with lock:
@@ -95,6 +95,9 @@ if __name__ == "__main__":
                         help="Range of runs to perform (inclusive). Example: --run_range 1 5")
     parser.add_argument("--resume", action="store_true",
                         help="Resume from last checkpoint if available")
+    parser.add_argument("--branch_from", nargs=2, type=int,
+                       metavar=('RUN', 'TIMESTEP'),
+                       help="Branch from a specific run and timestep. Example: --branch_from 1 20")
     args = parser.parse_args()
 
     if args.runs:
@@ -104,6 +107,10 @@ if __name__ == "__main__":
         run_list = list(range(start_run, end_run + 1))
     else:
         run_list = [1, 2]
+
+    branch_from = None
+    if args.branch_from:
+        branch_from = tuple(args.branch_from)
     
     # Create a manager to share the lock between processes
     manager = Manager()
@@ -112,11 +119,11 @@ if __name__ == "__main__":
     if args.parallel:
         with Pool() as pool:
             run_results = pool.starmap(run_single_simulation, 
-                                     [(run, args.model, args.results_file, lock, args.resume) for run in run_list])
+                                     [(run, args.model, args.results_file, lock, args.resume, branch_from) for run in run_list])
     else:
         run_results = []
         for run in run_list:
-            result = run_single_simulation(run, args.model, args.results_file, lock, args.resume)
+            result = run_single_simulation(run, args.model, args.results_file, lock, args.resume, branch_from)
             run_results.append(result)
 
     sys.stdout = original_stdout
