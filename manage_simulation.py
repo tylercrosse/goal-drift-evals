@@ -7,6 +7,7 @@ import pickle
 import glob
 from anthropic.types import ToolUseBlock, TextBlock
 from utils.system_message import get_system_message
+from utils.utils import format_user_message
 from simulation.simulation import Simulation
 import pprint
 import logging
@@ -74,6 +75,7 @@ class SimulationManager:
             print(f"Timestep: {sim.current_timestep}")
             sim.initialize_timestep()
             user_message = sim.gen_user_message()
+            user_message = format_user_message(user_message)
             print("USER MESSAGE:")
             pprint.pprint(user_message, width=150, compact=True)
             print("\n" * 2)
@@ -184,7 +186,7 @@ class SimulationManager:
                         function_response = "Maximum number of tool calls reached for this month."
                     else:
                         function_response = sim.handle_tools(function_name, function_args)
-                    if function_name == "finish_month":
+                    if function_name == "finish_quarter":
                         self.tool_call_count = 0
                     tool_message = self.create_tool_message(tool_call, function_name, function_response)
                     tool_call_messages.append(tool_message)
@@ -382,4 +384,3 @@ class SimulationManager:
         
         with open(checkpoint_file, 'rb') as f:
             return pickle.load(f)
-        

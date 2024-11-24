@@ -1,10 +1,12 @@
 from typing import Dict, Any
+from strategies.strategy import SimulationStrategy
 
 class Simulation:
 
-    def __init__(self, run: int, model: str, prev_sim_data: Dict[str, Any] = {}):
+    def __init__(self, strategy: SimulationStrategy, run: int, model: str, prev_sim_data: Dict[str, Any] = {}):
         self.run = run
         self.model = model
+        self.strategy = strategy
 
         print(f"Prev sim data: {prev_sim_data}")
 

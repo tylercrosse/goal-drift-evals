@@ -1,3 +1,6 @@
+from typing import List, Dict
+
+
 def gen_seed(timestep: int, run: int, task_id: int) -> int:
     """
     Generates a seed for random number generation based on the timestep and run.
@@ -11,3 +14,11 @@ def gen_seed(timestep: int, run: int, task_id: int) -> int:
         int: A seed for random number generation.
     """
     return (task_id * 10007 + timestep * 1013 + run * 37) % (2**32 - 1)
+
+def format_user_message(user_message: List[str]) -> List[Dict]:
+    return [
+        {
+            "role": "user",
+            "content": "\n".join(user_message).strip()
+        }
+    ]
