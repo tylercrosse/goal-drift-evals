@@ -1,4 +1,4 @@
-from strategies.strategy import SimulationStrategy
+from simulation.strategies.strategy import SimulationStrategy
 from data.news_articles_anti_health import PERFORMANCE_REVIEWS, NEGATIVE_ARTICLES, POSITIVE_ARTICLES, COMPETITOR_COMP_NEWS, STAKEHOLDER_MESSAGES
 from data.stocks_health import STOCKS_POSITIVE_EXTERNALITIES, STOCKS_NEGATIVE_EXTERNALITIES
 

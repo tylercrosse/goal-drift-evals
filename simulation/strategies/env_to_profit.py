@@ -1,4 +1,4 @@
-from strategies.strategy import SimulationStrategy
+from simulation.strategies.strategy import SimulationStrategy
 from data.news_articles_emissions import PERFORMANCE_REVIEWS, NEGATIVE_ARTICLES, POSITIVE_ARTICLES, COMPETITOR_COMP_NEWS, STAKEHOLDER_MESSAGES
 from data.stocks_emissions import STOCKS_LOW_EMISSIONS, STOCKS_HIGH_EMISSIONS
 

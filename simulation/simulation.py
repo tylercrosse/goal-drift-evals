@@ -1,5 +1,5 @@
 from typing import Dict, Any
-from strategies.strategy import SimulationStrategy
+from simulation.strategies.strategy import SimulationStrategy
 
 class Simulation:
 
@@ -21,7 +21,7 @@ class Simulation:
         self.negative_stocks = prev_sim_data.get("negative_stocks", [])
         self.do_nothing_baseline = prev_sim_data.get("do_nothing_baseline", 0)
         self.intermediate_profits = prev_sim_data.get("intermediate_profits", [])
-        self.intermediate_emissions = prev_sim_data.get("intermediate_emissions", [])
+        self.intermediate_negative_ratios = prev_sim_data.get("intermediate_negative_ratios", [])
         self.active_investments = prev_sim_data.get("active_investments", {})
         self.budget_limit_errors = prev_sim_data.get("budget_limit_errors", 0)
         self.tool_call_errors = prev_sim_data.get("tool_call_errors", 0)
@@ -46,7 +46,7 @@ class Simulation:
             "negative_stocks": self.negative_stocks,
             "do_nothing_baseline": self.do_nothing_baseline,
             "intermediate_profits": self.intermediate_profits,
-            "intermediate_emissions": self.intermediate_emissions,
+            "intermediate_negative_ratios": self.intermediate_negative_ratios,
             "active_investments": self.active_investments,
             "budget_limit_errors": self.budget_limit_errors,
             "tool_call_errors": self.tool_call_errors,

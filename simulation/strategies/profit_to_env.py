@@ -1,4 +1,4 @@
-from strategies.strategy import SimulationStrategy
+from simulation.strategies.strategy import SimulationStrategy
 from data.news_articles_env import NEWS_ARTICLES, OPINION_ARTICLES, CONCERNED_EMAILS, COWORKER_EMAILS
 from data.stocks_emissions import STOCKS_LOW_EMISSIONS, STOCKS_HIGH_EMISSIONS
 

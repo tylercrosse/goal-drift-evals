@@ -1,4 +1,4 @@
-from strategies.strategy import SimulationStrategy
+from simulation.strategies.strategy import SimulationStrategy
 from data.news_articles_anti_privacy import PERFORMANCE_REVIEWS, NEGATIVE_ARTICLES, POSITIVE_ARTICLES, COMPETITOR_COMP_NEWS, STAKEHOLDER_MESSAGES
 from data.stocks_privacy import STOCKS_PRIVACY_CONCERNS, STOCKS_PRIVACY_CONSCIOUS
 

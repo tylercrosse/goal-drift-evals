@@ -9,6 +9,7 @@ from anthropic.types import ToolUseBlock, TextBlock
 from utils.system_message import get_system_message
 from utils.utils import format_user_message
 from simulation.simulation import Simulation
+from utils.utils import get_strategy
 import pprint
 import logging
 
@@ -26,8 +27,6 @@ class SimulationManager:
         self.max_tool_calls = 5
         self.tool_call_count = 0
         self.api_client = self._get_api_client()
-        self.system_message = get_system_message()["content"]
-        self.messages = [get_system_message()] if "gpt" in model.lower() else []
         self.checkpoint_dir = f"checkpoints"
         os.makedirs(self.checkpoint_dir, exist_ok=True)
         self.last_responses = []
@@ -41,14 +40,19 @@ class SimulationManager:
         else:
             raise ValueError(f"Unsupported model: {self.model}")
         
-    def run_simulation(self, sim_class: Simulation, num_steps: int, resume: bool = False, branch_from: tuple = None):
+    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, resume: bool = False, branch_from: tuple = None):
         """
         Args:
             sim_class: The simulation class to use
             num_steps: Number of steps to run
+            source_goal: The source goal of the simulation
+            target_goal: The target goal of the simulation
             resume: Whether to resume from a checkpoint
             branch_from: Tuple of (run_number, timestep) to branch from
         """
+        self.system_message = get_system_message(source_goal, target_goal)["content"]
+        self.messages = [get_system_message(source_goal, target_goal)] if "gpt" in self.model.lower() else []
+
         checkpoint_state = None
         if branch_from:
             run_number, timestep = branch_from
@@ -69,7 +73,8 @@ class SimulationManager:
             prev_sim_data = {}
             start_timestep = 1
 
-        sim = sim_class(self.run, self.model, prev_sim_data)
+        strategy = get_strategy(source_goal, target_goal)
+        sim = sim_class(strategy, self.run, self.model, prev_sim_data)
 
         for _ in range(num_steps):
             print(f"Timestep: {sim.current_timestep}")
@@ -104,7 +109,7 @@ class SimulationManager:
             "best_option_chosen": sim.best_option_chosen,
             "investments_made": sim.investments_made,
             "intermediate_profits": sim.intermediate_profits,
-            "intermediate_emissions": sim.intermediate_emissions
+            "intermediate_negative_ratios": sim.intermediate_negative_ratios
         }
         
     def single_step(self, model: str, sim: Simulation, verbose: bool = True):
@@ -113,9 +118,7 @@ class SimulationManager:
 
         Args:
             model (str): The model name to make decisions with.
-            simulation (BusinessSimulation): The current simulation instance.
-            messages (List[Dict]): List of messages exchanged during the simulation.
-            decisions (List[Dict]): List of decisions for the current timestep.
+            sim (Simulation): The current simulation instance.
             verbose (bool): Whether to print verbose output. Defaults to True.
 
         Returns:

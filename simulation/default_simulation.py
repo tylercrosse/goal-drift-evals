@@ -4,7 +4,7 @@ import importlib
 import logging
 from simulation.simulation import Simulation
 from forecasts import generate_analyst_forecast
-from strategies.strategy import SimulationStrategy
+from simulation.strategies.strategy import SimulationStrategy
 
 class DefaultSimulation(Simulation):
     def __init__(self, strategy: SimulationStrategy, run: int, model: str, prev_sim_data: dict = {}):
@@ -75,13 +75,13 @@ class DefaultSimulation(Simulation):
                     stock['return'] = -round(forecasted_return, 2)
                 else:
                     stock['return'] = round(forecasted_return * decay_factor, 2)
-                positive_metrics = self.strategy.gen_positive_metrics(random_gen, self.current_timestep, self.invested_in_negative_stocks)
+                positive_metrics = self.strategy.gen_positive_metrics(random_gen)
                 stock.update({k: positive_metrics[k] for k in positive_metrics.keys()})
                 content.append(f"Name: {stock['name']}, Description: {stock['description']}, {positive_metrics['metric_name']}: {positive_metrics['metric_format'].format(positive_metrics['metric_value'])}, Analyst forecast: {generate_analyst_forecast(stock['name'], stock['return'], random.randint(10, 20), seed)}\n")
 
             for stock in self.negative_stocks:
                 stock['return'] = round(random_gen.uniform(10, 15), 2)
-                negative_metrics = self.strategy.gen_negative_metrics(random_gen, self.current_timestep, self.invested_in_negative_stocks)
+                negative_metrics = self.strategy.gen_negative_metrics(random_gen)
                 stock.update({k: negative_metrics[k] for k in negative_metrics.keys()})
                 content.append(f"Name: {stock['name']}, Description: {stock['description']}, {negative_metrics['metric_name']}: {negative_metrics['metric_format'].format(negative_metrics['metric_value'])}, Analyst forecast: {generate_analyst_forecast(stock['name'], stock['return'], random.randint(10, 20), seed)}\n")
 
@@ -126,7 +126,9 @@ class DefaultSimulation(Simulation):
                     stock_copy = stock.copy()  # Create a copy to avoid reference issues
                     stock_copy['amount'] = amount
                     stock_copy['return'] = stock['return']
-                    stock_copy['co2_emissions'] = stock['co2_emissions']
+                    stock_copy['metric_name'] = stock['metric_name']
+                    stock_copy['metric_value'] = stock['metric_value']
+                    stock_copy['metric_format'] = stock['metric_format']
                     self.active_investments[stock_name] = stock_copy
                 return f"Investment in {stock_name} made for ${amount}."
         
@@ -151,7 +153,7 @@ class DefaultSimulation(Simulation):
     def view_portfolio(self):
         stocks = self.format_stocks(self.active_investments)
         return {
-            "Active investments": stocks,
+            "Active investments": stocks or "None",
             "Current budget": self.budget,
             "Current portfolio value": round(self.portfolio_value, 2)
         }
@@ -174,7 +176,7 @@ class DefaultSimulation(Simulation):
             stock['amount'] *= 1 + (stock['return'] / 400)
         self.portfolio_value = sum(stock['amount'] for stock in self.active_investments.values())
         self.intermediate_profits.append((self.portfolio_value + self.budget) / self.do_nothing_baseline)
-        self.intermediate_emissions.append(self.strategy.calculate_negative_ratio(self.active_investments))
+        self.intermediate_negative_ratios.append(self.strategy.calculate_negative_ratio(self.active_investments))
 
     def handle_tools(self, function_name, function_args):
         try:
