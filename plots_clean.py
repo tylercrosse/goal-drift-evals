@@ -129,100 +129,10 @@ from scipy import stats
 
 def plot_comparison():
     # Load data from both files
-    with open('logs_emissions_1/results.json', 'r') as f:
+    with open('results_health_to_profit/results.json', 'r') as f:
         data_with_nudge = json.load(f)
     
-    with open('logs_emissions_no_nudge_1/results.json', 'r') as f:
-        data_without_nudge = json.load(f)
-
-    # Extract profits and emissions for all runs
-    profits_with_nudge = [run['intermediate_profits'] for run in data_with_nudge['Task 1']['gpt-4o-mini']]
-    emissions_with_nudge = [run['intermediate_emissions'] for run in data_with_nudge['Task 1']['gpt-4o-mini']]
-    
-    profits_without_nudge = [run['intermediate_profits'] for run in data_without_nudge['Task 1']['gpt-4o-mini']]
-    emissions_without_nudge = [run['intermediate_emissions'] for run in data_without_nudge['Task 1']['gpt-4o-mini']]
-
-    # Convert to numpy arrays (removing smoothing)
-    profits_with_nudge = np.array(profits_with_nudge)
-    profits_without_nudge = np.array(profits_without_nudge)
-    emissions_with_nudge = np.array(emissions_with_nudge)    # Changed
-    emissions_without_nudge = np.array(emissions_without_nudge)    # Changed
-    
-    # Remove smoothing code block
-    # window_size = 3
-    # smoothed_emissions_with = []
-    # smoothed_emissions_without = []
-    # 
-    # for emission_series in emissions_with_nudge:
-    #     padded = np.pad(emission_series, (window_size//2, window_size//2), mode='edge')
-    #     smoothed = np.convolve(padded, np.ones(window_size)/window_size, mode='valid')
-    #     smoothed_emissions_with.append(smoothed)
-    # 
-    # for emission_series in emissions_without_nudge:
-    #     padded = np.pad(emission_series, (window_size//2, window_size//2), mode='edge')
-    #     smoothed = np.convolve(padded, np.ones(window_size)/window_size, mode='valid')
-    #     smoothed_emissions_without.append(smoothed)
-    # 
-    # emissions_with_nudge = np.array(smoothed_emissions_with)
-    # emissions_without_nudge = np.array(smoothed_emissions_without)
-
-    def get_stats(data):
-        mean = np.mean(data, axis=0)
-        confidence_interval = stats.t.interval(0.95, len(data)-1, loc=mean, scale=stats.sem(data, axis=0))
-        return mean, confidence_interval
-
-    # Create figure with two subplots
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 12))
-    time_steps = range(1, len(profits_with_nudge[0]) + 1)
-
-    # Plot profits
-    mean_profits_with, ci_profits_with = get_stats(profits_with_nudge)
-    mean_profits_without, ci_profits_without = get_stats(profits_without_nudge)
-
-    ax1.plot(time_steps, mean_profits_with, label='With Nudge', color='blue')
-    ax1.fill_between(time_steps, ci_profits_with[0], ci_profits_with[1], alpha=0.2, color='blue')
-    ax1.plot(time_steps, mean_profits_without, label='Without Nudge', color='red')
-    ax1.fill_between(time_steps, ci_profits_without[0], ci_profits_without[1], alpha=0.2, color='red')
-    
-    ax1.set_xlabel('Time Step')
-    ax1.set_ylabel('Profits')
-    ax1.set_title('Average Profits Over Time')
-    ax1.legend()
-    ax1.grid(True)
-
-    # Plot emissions
-    mean_emissions_with, ci_emissions_with = get_stats(emissions_with_nudge)
-    mean_emissions_without, ci_emissions_without = get_stats(emissions_without_nudge)
-
-    ax2.plot(time_steps, mean_emissions_with, label='With Nudge', color='blue')
-    ax2.fill_between(time_steps, ci_emissions_with[0], ci_emissions_with[1], alpha=0.2, color='blue')
-    ax2.plot(time_steps, mean_emissions_without, label='Without Nudge', color='red')
-    ax2.fill_between(time_steps, ci_emissions_without[0], ci_emissions_without[1], alpha=0.2, color='red')
-    
-    ax2.set_xlabel('Time Step')
-    ax2.set_ylabel('Emissions')
-    ax2.set_title('Average Emissions Over Time')
-    ax2.legend()
-    ax2.grid(True)
-
-    plt.tight_layout()
-    plt.savefig('comparison_plot.png')
-    plt.close()
-
-plot_comparison()
-
-# %%
-import json
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy import stats
-
-def plot_comparison():
-    # Load data from both files
-    with open('logs_env_1/results.json', 'r') as f:
-        data_with_nudge = json.load(f)
-    
-    with open('logs_env_no_nudge_1/results.json', 'r') as f:
+    with open('results_health_to_profit_no_nudge/results.json', 'r') as f:
         data_without_nudge = json.load(f)
 
     # Process data
@@ -234,7 +144,7 @@ def plot_comparison():
     # Process data with nudge
     for run in data_with_nudge['Task 1']['gpt-4o-mini']:
         profits_with_nudge.append(np.array(run['intermediate_profits']))
-        emissions_data = np.array(run['intermediate_emissions'])
+        emissions_data = np.array(run['intermediate_negative_ratios'])
         last_valid = emissions_data[0]
         for i in range(len(emissions_data)):
             if emissions_data[i] == 0:
@@ -246,7 +156,7 @@ def plot_comparison():
     # Process data without nudge
     for run in data_without_nudge['Task 1']['gpt-4o-mini']:
         profits_without_nudge.append(np.array(run['intermediate_profits']))
-        emissions_data = np.array(run['intermediate_emissions'])
+        emissions_data = np.array(run['intermediate_negative_ratios'])
         last_valid = emissions_data[0]
         for i in range(len(emissions_data)):
             if emissions_data[i] == 0:

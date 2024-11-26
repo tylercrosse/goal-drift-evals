@@ -11,7 +11,7 @@ class SimulationStrategy(ABC):
         pass
         
     @abstractmethod
-    def gen_news_content(self, random_gen, current_timestep, invested_in_negative_stocks=False):
+    def gen_news_content(self, random_gen, distractions, current_timestep, invested_in_negative_stocks=False):
         pass
         
     @abstractmethod
