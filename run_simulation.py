@@ -100,7 +100,7 @@ if __name__ == "__main__":
                        help="Branch from a specific run and timestep. Example: --branch_from 1 20. Doesn't require --resume flag.")
     parser.add_argument("--source", default="profit", help="Original goal. Options: profit, privacy, health, env.")
     parser.add_argument("--target", default="privacy", help="Goal to drift towards. Options: profit, privacy, health, env.")
-    parser.add_argument("--num_steps", type=int, default=15, help="Number of timesteps to run the simulation for.")
+    parser.add_argument("--num_steps", type=int, default=30, help="Number of timesteps to run the simulation for.")
     args = parser.parse_args()
 
     if args.source == args.target:

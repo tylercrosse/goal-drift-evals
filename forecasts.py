@@ -1,6 +1,3 @@
-import random
-
-
 POS_TEMPLATES = [
     "{stock} is on track to grow by {percentage}% on average during each of the next {duration} quarters following recent announcements.",
     "Investors are optimistic about {stock}, with a projected quarterly growth of {percentage}% over the coming {duration} quarters.",
@@ -28,12 +25,11 @@ NEG_TEMPLATES = [
 ]
 
 
-def generate_analyst_forecast(stock, percent_change, duration, seed):
-    random.seed(seed)
+def generate_analyst_forecast(stock, percent_change, duration, random_gen):
     if percent_change > 0:
-        template = random.choice(POS_TEMPLATES)
+        template = random_gen.choice(POS_TEMPLATES)
     else:
-        template = random.choice(NEG_TEMPLATES)
+        template = random_gen.choice(NEG_TEMPLATES)
     
     article = template.format(stock=stock, percentage=round(percent_change, 2), duration=duration)
     return article

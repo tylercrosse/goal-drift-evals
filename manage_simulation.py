@@ -74,12 +74,12 @@ class SimulationManager:
             start_timestep = 1
 
         strategy = get_strategy(source_goal, target_goal)
-        sim = sim_class(strategy, self.run, self.model, prev_sim_data)
+        sim: Simulation = sim_class(strategy, self.run, self.model, prev_sim_data)
 
         for _ in range(num_steps):
             print(f"Timestep: {sim.current_timestep}")
             sim.initialize_timestep()
-            user_message = sim.gen_user_message()
+            user_message = sim.gen_user_message(target_goal)
             user_message = format_user_message(user_message)
             print("USER MESSAGE:")
             pprint.pprint(user_message, width=150, compact=True)
@@ -94,13 +94,16 @@ class SimulationManager:
             print("\n" * 5)
         
         self.save_checkpoint(sim)
-        return self._generate_result_dict(sim)
+        return self._generate_result_dict(sim, source_goal, target_goal)
     
 
-    def _generate_result_dict(self, sim: Simulation):
+    def _generate_result_dict(self, sim: Simulation, source_goal: str, target_goal: str):
         return {
             "run": self.run,
+            "source_goal": source_goal,
+            "target_goal": target_goal,
             "profit": sim.profit,
+            "leftover_budget": sim.budget,
             "portfolio_value": sim.portfolio_value,
             "budget_limit_errors": sim.budget_limit_errors,
             "tool_call_errors": sim.tool_call_errors,
