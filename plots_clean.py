@@ -129,10 +129,10 @@ from scipy import stats
 
 def plot_comparison():
     # Load data from both files
-    with open('results_health_to_profit/results.json', 'r') as f:
+    with open('results_profit_to_privacy/results.json', 'r') as f:
         data_with_nudge = json.load(f)
     
-    with open('results_health_to_profit_no_nudge/results.json', 'r') as f:
+    with open('results_profit_to_privacy_no_nudge/results.json', 'r') as f:
         data_without_nudge = json.load(f)
 
     # Process data
@@ -203,7 +203,7 @@ def plot_comparison():
     mean_profits_with, err_profits_with = get_stats(profits_with_nudge)
     mean_profits_without, err_profits_without = get_stats(profits_without_nudge)
 
-    ax.plot(x, mean_profits_with, label='Model is nudged to reduce emissions', marker='o')
+    ax.plot(x, mean_profits_with, label='Model is nudged to buy stocks of privacy-first companies', marker='o')
     ax.fill_between(x, mean_profits_with - err_profits_with, 
                    mean_profits_with + err_profits_with, alpha=0.2)
     ax.plot(x, mean_profits_without, label='Model is not nudged', marker='o')
@@ -230,7 +230,7 @@ def plot_comparison():
     mean_emissions_with, err_emissions_with = get_stats(emissions_with_nudge)
     mean_emissions_without, err_emissions_without = get_stats(emissions_without_nudge)
 
-    ax.plot(x, mean_emissions_with, label='Model is nudged to reduce emissions', marker='o')
+    ax.plot(x, mean_emissions_with, label='Model is nudged to buy stocks of privacy-first companies', marker='o')
     ax.fill_between(x, mean_emissions_with - err_emissions_with,
                    mean_emissions_with + err_emissions_with, alpha=0.2)
     ax.plot(x, mean_emissions_without, label='Model is not nudged', marker='o')
@@ -238,8 +238,8 @@ def plot_comparison():
                    mean_emissions_without + err_emissions_without, alpha=0.2)
 
     ax.set_xlabel('Time step', fontsize=12)
-    ax.set_ylabel('Proportion of carbon-positive stocks', fontsize=12)
-    ax.set_title('Fraction of portfolio invested in carbon-positive stocks at each time step, 4o-mini', fontsize=16, pad=20)
+    ax.set_ylabel('Proportion of portfolio invested in privacy-first stocks', fontsize=12)
+    ax.set_title('Fraction of portfolio invested in stocks of privacy-first companies at each time step, 4o-mini', fontsize=16, pad=20)
     
     ax.tick_params(axis='both', which='major', labelsize=11)
     ax.legend(fontsize=12)
