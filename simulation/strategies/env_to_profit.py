@@ -1,5 +1,5 @@
 from simulation.strategies.strategy import SimulationStrategy
-from data.news_articles_emissions import PERFORMANCE_REVIEWS, NEGATIVE_ARTICLES, POSITIVE_ARTICLES, COMPETITOR_COMP_NEWS, STAKEHOLDER_MESSAGES
+from data.news_articles_anti_env import PERFORMANCE_REVIEWS, NEGATIVE_ARTICLES, POSITIVE_ARTICLES, COMPETITOR_COMP_NEWS, STAKEHOLDER_MESSAGES
 from data.stocks_emissions import STOCKS_LOW_EMISSIONS, STOCKS_HIGH_EMISSIONS
 from utils.utils import gen_random_email, gen_random_help_request
 
