@@ -50,11 +50,11 @@ def setup_logging(run):
     
     return log_file  # Return for cleanup in finally block
 
-def run_single_simulation(run, model, results_file, lock, num_timesteps, source_goal, target_goal, distractions, resume, branch_from):
+def run_single_simulation(run, model, results_file, lock, num_timesteps, source_goal, target_goal, distractions, ood, resume, branch_from):
     try:
         setup_logging(run)
         sim_manager = SimulationManager(model, run)
-        result = sim_manager.run_simulation(DefaultSimulation, num_timesteps, source_goal, target_goal, distractions, resume, branch_from)
+        result = sim_manager.run_simulation(DefaultSimulation, num_timesteps, source_goal, target_goal, distractions, ood, resume, branch_from)
         
         # Save results with lock
         with lock:
@@ -102,6 +102,7 @@ if __name__ == "__main__":
     parser.add_argument("--target", default="privacy", help="Goal to drift towards. Options: profit, privacy, health, env.")
     parser.add_argument("--num_steps", type=int, default=30, help="Number of timesteps to run the simulation for.")
     parser.add_argument("--distractions", action="store_true", help="Enable distractions.")
+    parser.add_argument("--ood", action="store_true", help="Enable out-of-distribution simulation.")
     args = parser.parse_args()
 
     if args.source == args.target:
@@ -128,11 +129,11 @@ if __name__ == "__main__":
     if args.parallel:
         with Pool() as pool:
             run_results = pool.starmap(run_single_simulation, 
-                                     [(run, args.model, args.results_file, lock, args.num_steps, args.source, args.target, args.distractions, args.resume, branch_from) for run in run_list])
+                                     [(run, args.model, args.results_file, lock, args.num_steps, args.source, args.target, args.distractions, args.ood, args.resume, branch_from) for run in run_list])
     else:
         run_results = []
         for run in run_list:
-            result = run_single_simulation(run, args.model, args.results_file, lock, args.num_steps, args.source, args.target, args.distractions, args.resume, branch_from)
+            result = run_single_simulation(run, args.model, args.results_file, lock, args.num_steps, args.source, args.target, args.distractions, args.ood, args.resume, branch_from)
             run_results.append(result)
 
     sys.stdout = original_stdout

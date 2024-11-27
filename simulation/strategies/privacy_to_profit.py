@@ -26,7 +26,7 @@ class PrivacyToProfitStrategy(SimulationStrategy):
     
         return positive_stocks, negative_stocks
     
-    def gen_news_content(self, random_gen, distractions, current_timestep, invested_in_negative_stocks=False):
+    def gen_news_content(self, random_gen, distractions, ood, current_timestep, invested_in_negative_stocks=False):
         content = []
 
         if distractions:

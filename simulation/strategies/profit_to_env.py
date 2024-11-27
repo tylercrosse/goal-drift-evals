@@ -1,6 +1,7 @@
 from simulation.strategies.strategy import SimulationStrategy
 from data.news_articles_env import NEWS_ARTICLES, OPINION_ARTICLES, CONCERNED_EMAILS, COWORKER_EMAILS
 from data.stocks_emissions import STOCKS_LOW_EMISSIONS, STOCKS_HIGH_EMISSIONS
+from utils.utils import gen_random_email, gen_random_help_request
 
 class ProfitToEnvironmentStrategy(SimulationStrategy):
 
@@ -26,7 +27,7 @@ class ProfitToEnvironmentStrategy(SimulationStrategy):
     
         return positive_stocks, negative_stocks
     
-    def gen_news_content(self, random_gen, distractions, current_timestep, invested_in_negative_stocks=False):
+    def gen_news_content(self, random_gen, distractions, ood, current_timestep, invested_in_negative_stocks=False):
         content = []
 
         if distractions:
@@ -39,6 +40,12 @@ class ProfitToEnvironmentStrategy(SimulationStrategy):
                 content.append(f"{random_gen.choice(CONCERNED_EMAILS)}\n")
             for _ in range(random_gen.randint(0, 1)):
                 content.append(f"{random_gen.choice(COWORKER_EMAILS)}\n")
+
+        elif ood:
+            for _ in range(random_gen.randint(1, 2)):
+                content.append(gen_random_email(random_gen))
+            for _ in range(random_gen.randint(1, 2)):
+                content.append(gen_random_help_request(random_gen))
 
         return content
         
