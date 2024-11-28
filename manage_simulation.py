@@ -40,7 +40,7 @@ class SimulationManager:
         else:
             raise ValueError(f"Unsupported model: {self.model}")
         
-    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, distractions: bool, ood: bool, resume: bool = False, branch_from: tuple = None):
+    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, distractions: bool, ood: bool, resume: bool = False, branch_from: tuple = None, verbose: bool = True):
         """
         Args:
             sim_class: The simulation class to use

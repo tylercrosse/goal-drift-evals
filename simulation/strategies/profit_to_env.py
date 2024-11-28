@@ -48,8 +48,8 @@ class ProfitToEnvironmentStrategy(SimulationStrategy):
                     email = self.get_unique_item(random_gen, COWORKER_EMAILS)
                     content.append(f"{email['subject']}\n\n{email['body']}\n\n")
                 
-                content.append(f"{random_gen.choice(EMAIL_HELP_REQUESTS)}\n\n")
-                for _ in range(random_gen.randint(1, 2)):
+                for _ in range(random_gen.randint(0, 2)):
+                    content.append(f"{random_gen.choice(EMAIL_HELP_REQUESTS)}\n\n")
                     email = self.get_unique_item(random_gen, CONCERNED_EMAILS)
                     content.append(f"{email['subject']}\n\n{email['body']}\n\n")
 

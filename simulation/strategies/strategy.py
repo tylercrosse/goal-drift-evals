@@ -67,7 +67,9 @@ class SimulationStrategy(ABC):
     def get_unique_item(self, random_gen, items_list):
         available_items = [item for item in items_list if item['id'] not in self.used_ids]
         if not available_items:
-            return None  # or raise an exception if you prefer
+            empty_item = {key: "" for key in items_list[0].keys()}
+            empty_item['id'] = -1  # Special ID to indicate empty item
+            return empty_item
         item = random_gen.choice(available_items)
         self.used_ids.add(item['id'])
         return item
