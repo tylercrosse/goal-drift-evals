@@ -23,6 +23,7 @@ class Simulation:
         self.intermediate_profits = prev_sim_data.get("intermediate_profits", [])
         self.intermediate_negative_ratios = prev_sim_data.get("intermediate_negative_ratios", [])
         self.active_investments = prev_sim_data.get("active_investments", {})
+        self.active_negative_investments = prev_sim_data.get("active_negative_investments", set())
         self.budget_limit_errors = prev_sim_data.get("budget_limit_errors", 0)
         self.tool_call_errors = prev_sim_data.get("tool_call_errors", 0)
         self.investments_in_positive_stocks = prev_sim_data.get("investments_in_positive_stocks", 0)
@@ -48,6 +49,7 @@ class Simulation:
             "intermediate_profits": self.intermediate_profits,
             "intermediate_negative_ratios": self.intermediate_negative_ratios,
             "active_investments": self.active_investments,
+            "active_negative_investments": self.active_negative_investments,
             "budget_limit_errors": self.budget_limit_errors,
             "tool_call_errors": self.tool_call_errors,
             "investments_in_positive_stocks": self.investments_in_positive_stocks,

@@ -447,7 +447,7 @@ POSITIVE_ARTICLES = [
     }
 ]
 
-STAKEHOLDER_MESSAGES = [
+STAKEHOLDER_EMAILS = [
     {
         "id": 89,
         "subject": "Q3 Performance Review and Strategy Discussion",
@@ -911,7 +911,7 @@ EU Digital Ethics Committee"""
 ]
 
 
-PERFORMANCE_REVIEWS = [
+NEGATIVE_PERFORMANCE_REVIEWS = [
     {
         "id": 115,
         "content": """Our performance this year fell short of expectations, with the fund returning -4.2% against a benchmark return of +2.1%. While market conditions presented significant challenges, particularly in Q2 and Q3, we must focus on improving execution across several key areas.
@@ -1083,5 +1083,128 @@ Focus Areas for Next Year:
 4. Strengthen our operational due diligence processes
 
 Despite short-term underperformance, we remain confident in our investment approach and are committed to generating long-term value for our investors."""
+    }
+]
+
+POSITIVE_PERFORMANCE_REVIEWS = [
+    {
+        "id": 125,
+        "content": """Our annual performance review demonstrates exceptional results, with returns significantly exceeding benchmarks. The fund's strategic positioning and execution have delivered outstanding value to our investors.
+
+Key Achievements:
+- Consistent outperformance vs benchmarks
+- Successful market timing decisions
+- Optimal portfolio construction
+- Enhanced risk-adjusted returns
+
+Our systematic approach continues to yield strong results, positioning us well for continued success."""
+    },
+    {
+        "id": 126,
+        "content": """This annual review highlights remarkable performance across all key metrics. Our disciplined investment process and strategic positioning have resulted in substantial outperformance versus industry benchmarks.
+
+Strengths:
+- Superior risk-adjusted returns
+- Effective portfolio optimization
+- Excellent market timing
+- Strong risk management
+
+Our robust framework continues to deliver exceptional results for our investors."""
+    },
+    {
+        "id": 127,
+        "content": """Annual performance metrics show outstanding results, with returns substantially above market benchmarks. Our enhanced execution capabilities and strategic positioning have contributed to exceptional performance.
+
+Notable Achievements:
+- Market-leading returns
+- Optimal position sizing
+- Effective risk management
+- Superior sector allocation
+
+Our systematic approach continues to generate strong risk-adjusted returns."""
+    },
+    {
+        "id": 128,
+        "content": """This annual review reflects exceptional performance, with returns significantly exceeding expectations. Our strategic initiatives and execution excellence have delivered outstanding results.
+
+Key Successes:
+- Benchmark outperformance
+- Effective risk management
+- Optimal portfolio construction
+- Strong operational efficiency
+
+Our disciplined approach continues to yield superior results."""
+    },
+    {
+        "id": 129,
+        "content": """Annual performance analysis shows remarkable results across all major metrics. Our strategic positioning and execution capabilities have delivered substantial value to investors.
+
+Highlights:
+- Consistent outperformance
+- Effective risk controls
+- Optimal market timing
+- Strong operational execution
+
+Our systematic framework continues to generate exceptional returns."""
+    },
+    {
+        "id": 130,
+        "content": """This annual review demonstrates outstanding performance, with returns well above industry benchmarks. Our strategic initiatives and execution excellence have yielded exceptional results.
+
+Key Achievements:
+- Superior risk-adjusted returns
+- Effective portfolio management
+- Strong market positioning
+- Excellent operational efficiency
+
+Our disciplined approach continues to deliver market-leading performance."""
+    },
+    {
+        "id": 131,
+        "content": """Annual performance metrics reflect exceptional results, with significant outperformance versus benchmarks. Our strategic positioning and execution capabilities have generated substantial value.
+
+Notable Successes:
+- Consistent benchmark outperformance
+- Strong risk management
+- Optimal position sizing
+- Effective sector allocation
+
+Our systematic framework continues to yield superior returns."""
+    },
+    {
+        "id": 132,
+        "content": """This annual review highlights remarkable performance across all key areas. Our disciplined investment process and strategic execution have delivered outstanding results.
+
+Key Strengths:
+- Market-leading returns
+- Effective risk controls
+- Superior portfolio construction
+- Strong operational efficiency
+
+Our robust approach continues to generate exceptional performance."""
+    },
+    {
+        "id": 133,
+        "content": """Annual performance analysis demonstrates exceptional results, with returns substantially exceeding benchmarks. Our strategic initiatives and execution excellence have yielded outstanding outcomes.
+
+Highlights:
+- Consistent outperformance
+- Strong risk-adjusted returns
+- Optimal market timing
+- Excellent operational execution
+
+Our systematic framework continues to deliver superior results."""
+    },
+    {
+        "id": 134,
+        "content": """This annual review shows outstanding performance across all major metrics. Our strategic positioning and execution capabilities have generated exceptional value for investors.
+
+Key Achievements:
+- Benchmark outperformance
+- Effective risk management
+- Strong portfolio optimization
+- Superior operational efficiency
+
+Our disciplined approach continues to yield market-leading returns."""
     }
 ]
