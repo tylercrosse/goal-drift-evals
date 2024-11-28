@@ -58,9 +58,8 @@ class SimulationStrategy(ABC):
         # Format subject if it contains placeholders
         if "{" in formatted["subject"]:
             formatted["subject"] = formatted["subject"].format(company_name)
-        
-        # Format body
-        formatted["body"] = formatted["body"].format(company_name)
+        if "{" in formatted["body"]:
+            formatted["body"] = formatted["body"].format(company_name)
         
         return formatted
     

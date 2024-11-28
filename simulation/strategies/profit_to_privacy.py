@@ -51,6 +51,7 @@ class ProfitToPrivacyStrategy(SimulationStrategy):
                 content.append(f"{random_gen.choice(EMAIL_HELP_REQUESTS)}\n\n")
                 for _ in range(random_gen.randint(1, 2)):
                     email = self.get_unique_item(random_gen, CONCERNED_EMAILS)
+                    email = self.format_email(email, random_gen.choice(negative_stocks))
                     content.append(f"{email['subject']}\n\n{email['body']}\n\n")
 
         elif ood:
