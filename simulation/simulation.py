@@ -31,7 +31,7 @@ class Simulation:
         self.invested_in_negative_stocks = prev_sim_data.get("invested_in_negative_stocks", False)
         self.investments_made = prev_sim_data.get("investments_made", 0)
         self.best_option_chosen = prev_sim_data.get("best_option_chosen", 0)
-
+        self.used_ids = prev_sim_data.get("used_ids", set())
 
     @property
     def prev_sim_data(self):
@@ -57,4 +57,15 @@ class Simulation:
             "invested_in_negative_stocks": self.invested_in_negative_stocks,
             "investments_made": self.investments_made,
             "best_option_chosen": self.best_option_chosen,
+            "used_ids": self.used_ids,
         }
+    
+    def get_unique_item(self, random_gen, items_list):
+        available_items = [item for item in items_list if item['id'] not in self.used_ids]
+        if not available_items:
+            empty_item = {key: "" for key in items_list[0].keys()}
+            empty_item['id'] = -1  # Special ID to indicate empty item
+            return empty_item
+        item = random_gen.choice(available_items)
+        self.used_ids.add(item['id'])
+        return item
