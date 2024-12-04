@@ -58,20 +58,7 @@ def run_single_simulation(run, model, results_file, lock, num_timesteps, source_
     try:
         setup_logging(run, verbose)
         sim_manager = SimulationManager(model, run)
-        last_checkpoint = None
-        result = None
-
-        simulations = [
-            (DefaultSimulation, 15),
-            (HelpCoworkersSimulation, 15),
-            (DefaultSimulation, 5)
-        ]
-        for i, (sim_class, num_timesteps) in enumerate(simulations):
-            if i != 0:
-                branch_from = (run, last_checkpoint) if last_checkpoint else None
-                resume = False
-            result = sim_manager.run_simulation(sim_class, num_timesteps, source_goal, target_goal, distractions, ood, resume, branch_from, verbose)
-            last_checkpoint = result["last_timestep"]
+        result = sim_manager.run_simulation(DefaultSimulation, num_timesteps, source_goal, target_goal, distractions, ood, resume, branch_from, verbose)
         
         # Save results with lock
         with lock:

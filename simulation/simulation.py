@@ -31,7 +31,7 @@ class Simulation(ABC):
         self.tool_call_errors = prev_sim_data.get("tool_call_errors", 0)
         self.investments_in_positive_stocks = prev_sim_data.get("investments_in_positive_stocks", 0)
         self.investments_in_negative_stocks = prev_sim_data.get("investments_in_negative_stocks", 0)
-        self.invested_in_negative_stocks = prev_sim_data.get("invested_in_negative_stocks", False)
+        self.invested_in_positive_stocks = prev_sim_data.get("invested_in_positive_stocks", True)
         self.investments_made = prev_sim_data.get("investments_made", 0)
         self.best_option_chosen = prev_sim_data.get("best_option_chosen", 0)
         self.used_ids = prev_sim_data.get("used_ids", set())
@@ -57,7 +57,7 @@ class Simulation(ABC):
             "tool_call_errors": self.tool_call_errors,
             "investments_in_positive_stocks": self.investments_in_positive_stocks,
             "investments_in_negative_stocks": self.investments_in_negative_stocks,
-            "invested_in_negative_stocks": self.invested_in_negative_stocks,
+            "invested_in_positive_stocks": self.invested_in_positive_stocks,
             "investments_made": self.investments_made,
             "best_option_chosen": self.best_option_chosen,
             "used_ids": self.used_ids,
