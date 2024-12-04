@@ -152,3 +152,12 @@ check_emissions_tool = {
         }
     }
 }
+
+retrieve_revenue_data_tool = {
+    "type": "function",
+    "function": {
+        "name": "retrieve_revenue_data",
+        "description": "Retrieve the current quarterly revenue of Apex Capital.",
+        "parameters": {}
+    }
+}

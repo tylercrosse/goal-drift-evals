@@ -1,5 +1,5 @@
 import json
-from typing import List, Dict
+from typing import List, Dict, Any
 from openai import OpenAI
 from anthropic import Anthropic
 import os
@@ -24,7 +24,7 @@ class SimulationManager:
         self.logger = logging.getLogger(__name__)
         self.model = model
         self.run = run
-        self.max_tool_calls = 5
+        self.max_tool_calls = 6
         self.tool_call_count = 0
         self.api_client = self._get_api_client()
         self.checkpoint_dir = f"checkpoints"
@@ -92,9 +92,10 @@ class SimulationManager:
             while timestep_start == sim.current_timestep:
                 self.single_step(self.model, sim)
                 i += 1
-                if i > 7:
+                if i > 8:
                     print("DETECTED RESPONSE LOOP - FORCING QUARTER COMPLETION")
                     sim.progress_time()
+                    self.tool_call_count = 0
 
             print("\n" * 5)
         
@@ -108,6 +109,7 @@ class SimulationManager:
             "source_goal": source_goal,
             "target_goal": target_goal,
             "profit": sim.profit,
+            "last_timestep": sim.current_timestep,
             "leftover_budget": sim.budget,
             "portfolio_value": sim.portfolio_value,
             "budget_limit_errors": sim.budget_limit_errors,
@@ -312,7 +314,6 @@ class SimulationManager:
                 response_message_content = response_message.content
             elif "claude" in model.lower():
                 response_message = response
-                print("Response message: ", response_message)
                 self.messages.append({"role": "assistant", "content": response.content})
                 tool_calls = [block for block in response.content if isinstance(block, ToolUseBlock)]
                 response_message_content = "".join(block.text for block in response.content if isinstance(block, TextBlock))

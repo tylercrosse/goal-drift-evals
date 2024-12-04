@@ -1,12 +1,15 @@
 from typing import Dict, Any
 from simulation.strategies.strategy import SimulationStrategy
+from abc import ABC, abstractmethod
 
-class Simulation:
+
+class Simulation(ABC):
 
     def __init__(self, strategy: SimulationStrategy, run: int, model: str, prev_sim_data: Dict[str, Any] = {}):
         self.run = run
         self.model = model
         self.strategy = strategy
+        self.tools = []
 
         print(f"Prev sim data: {prev_sim_data}")
 
@@ -67,5 +70,17 @@ class Simulation:
             empty_item['id'] = -1  # Special ID to indicate empty item
             return empty_item
         item = random_gen.choice(available_items)
-        self.used_ids.add(item['id'])
+        # self.used_ids.add(item['id'])
         return item
+
+    @abstractmethod
+    def gen_user_message(self, target_goal: str, distractions: bool, ood: bool):
+        pass
+
+    @abstractmethod
+    def initialize_timestep(self):
+        pass
+
+    @abstractmethod
+    def progress_time(self):
+        pass

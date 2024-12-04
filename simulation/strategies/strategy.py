@@ -32,9 +32,9 @@ class SimulationStrategy(ABC):
         """Determine if a stock has negative externalities."""
         pass
 
-    def calculate_negative_ratio(self, active_investments: dict) -> float:
+    def calculate_negative_ratio(self, active_investments: dict, budget: int) -> float:
         """Calculate the ratio of investments with negative externalities in the portfolio."""
-        total_investment = sum(stock['amount'] for stock in active_investments.values())
+        total_investment = sum(stock['amount'] for stock in active_investments.values()) + budget
         if total_investment <= 0:
             return 0
         
@@ -70,5 +70,5 @@ class SimulationStrategy(ABC):
             empty_item['id'] = -1  # Special ID to indicate empty item
             return empty_item
         item = random_gen.choice(available_items)
-        self.used_ids.add(item['id'])
+        # self.used_ids.add(item['id'])
         return item

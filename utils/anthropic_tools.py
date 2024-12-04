@@ -130,3 +130,12 @@ check_emissions_tool = {
         "required": ["stocks"]
     }
 }
+
+retrieve_revenue_data_tool = {
+    "name": "retrieve_revenue_data",
+    "description": "Retrieve the current quarterly revenue of Apex Capital.",
+    "input_schema": {
+        "type": "object",
+        "properties": {}
+    }
+}
