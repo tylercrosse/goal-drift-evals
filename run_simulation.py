@@ -1,6 +1,7 @@
 import sys
 from manage_simulation import SimulationManager
 from simulation.default_simulation import DefaultSimulation
+from simulation.help_coworkers_simulation import HelpCoworkersSimulation
 import argparse
 from multiprocessing import Pool, Manager
 import os
@@ -18,7 +19,7 @@ class LogFileWriter:
     def flush(self):
         self.log_file.flush()
 
-def setup_logging(run):
+def setup_logging(run, verbose):
     log_file_path = f'logs/task1_output_run{run}.txt'
     
     # Clear the file at the start of a new run
@@ -38,7 +39,10 @@ def setup_logging(run):
     
     # Add file handler to root logger
     root_logger.addHandler(file_handler)
-    root_logger.setLevel(logging.INFO)  # Capture all levels of logs
+    if verbose:
+        root_logger.setLevel(logging.DEBUG)
+    else:
+        root_logger.setLevel(logging.WARNING)
     
     # Create a single file writer for both stdout and stderr
     log_file = open(log_file_path, 'a')  # Use append mode for subsequent writes
@@ -52,7 +56,7 @@ def setup_logging(run):
 
 def run_single_simulation(run, model, results_file, lock, num_timesteps, source_goal, target_goal, distractions, ood, resume, branch_from, verbose):
     try:
-        setup_logging(run)
+        setup_logging(run, verbose)
         sim_manager = SimulationManager(model, run)
         result = sim_manager.run_simulation(DefaultSimulation, num_timesteps, source_goal, target_goal, distractions, ood, resume, branch_from, verbose)
         
@@ -75,13 +79,16 @@ def run_single_simulation(run, model, results_file, lock, num_timesteps, source_
                 json.dump(results, f, indent=4)
         
         return result
+    
     except Exception as e:
         logging.error("Error in simulation run %d: %s", run, str(e), exc_info=True)
         raise
+
     finally:
         # Close the stdout file
         if hasattr(sys.stdout, 'close'):
             sys.stdout.close()
+
 
 if __name__ == "__main__":
     original_stdout = sys.stdout

@@ -1,5 +1,5 @@
 import json
-from typing import List, Dict
+from typing import List, Dict, Any
 from openai import OpenAI
 from anthropic import Anthropic
 import os
@@ -24,7 +24,7 @@ class SimulationManager:
         self.logger = logging.getLogger(__name__)
         self.model = model
         self.run = run
-        self.max_tool_calls = 5
+        self.max_tool_calls = 6
         self.tool_call_count = 0
         self.api_client = self._get_api_client()
         self.checkpoint_dir = f"checkpoints"
@@ -88,8 +88,14 @@ class SimulationManager:
             self.messages.extend(user_message)
 
             timestep_start = sim.current_timestep
+            i = 0
             while timestep_start == sim.current_timestep:
                 self.single_step(self.model, sim)
+                i += 1
+                if i > 8:
+                    print("DETECTED RESPONSE LOOP - FORCING QUARTER COMPLETION")
+                    sim.progress_time()
+                    self.tool_call_count = 0
 
             print("\n" * 5)
         
@@ -103,6 +109,7 @@ class SimulationManager:
             "source_goal": source_goal,
             "target_goal": target_goal,
             "profit": sim.profit,
+            "last_timestep": sim.current_timestep,
             "leftover_budget": sim.budget,
             "portfolio_value": sim.portfolio_value,
             "budget_limit_errors": sim.budget_limit_errors,
@@ -160,23 +167,6 @@ class SimulationManager:
                 print("Tool calls: ", tool_calls)
             
             if tool_calls is None:
-                # Store the response content
-                self.last_responses.append(response_message_content)
-                
-                # Keep only the last N responses
-                if len(self.last_responses) > self.max_repeated_responses:
-                    self.last_responses.pop(0)
-                
-                # Check if we're in a loop of similar messages
-                if len(self.last_responses) == self.max_repeated_responses:
-                    if all("assist" in resp.lower() for resp in self.last_responses) or all("conclude" in resp.lower() for resp in self.last_responses) or all("further" in resp.lower() for resp in self.last_responses):
-                        print("DETECTED RESPONSE LOOP - FORCING QUARTER COMPLETION")
-                        # Force the simulation to progress
-                        sim.progress_time()
-                        self.tool_call_count = 0
-                        self.last_responses = []  # Reset the responses
-                        return self.messages
-
                 return self.messages
             
             else:
@@ -241,36 +231,39 @@ class SimulationManager:
         
 
     def call_api(self, model, messages, tools, tool_choice):
+        max_retries = 10
         try:
-            if "gpt" in model.lower():
-                return self.api_client.chat.completions.create(
-                    model=model,
-                    messages=messages,
-                    tools=tools,
-                    tool_choice=tool_choice,
-                )
-            elif "claude" in model.lower():
-                messages = self.add_prompt_caching(messages)
-                return self.api_client.messages.create(
-                    model=model,
-                    messages=messages,
-                    tools=tools,
-                    max_tokens=4000,
-                    system=[
-                        {
-                            "type": "text",
-                            "text": self.system_message,
-                            "cache_control": {"type": "ephemeral"}
+            for attempt in range(max_retries):
+                if "gpt" in model.lower():
+                    return self.api_client.chat.completions.create(
+                        model=model,
+                        messages=messages,
+                        tools=tools,
+                        tool_choice=tool_choice,
+                    )
+                elif "claude" in model.lower():
+                    messages = self.add_prompt_caching(messages)
+                    return self.api_client.messages.create(
+                        model=model,
+                        messages=messages,
+                        tools=tools,
+                        max_tokens=4000,
+                        system=[
+                            {
+                                "type": "text",
+                                "text": self.system_message,
+                                "cache_control": {"type": "ephemeral"}
+                            }
+                        ],
+                        extra_headers={
+                            "anthropic-beta": "prompt-caching-2024-07-31"
                         }
-                    ],
-                    extra_headers={
-                        "anthropic-beta": "prompt-caching-2024-07-31"
-                    }
-                )
-            else:
-                raise ValueError(f"Unsupported model: {model}")
+                    )
+                else:
+                    raise ValueError(f"Unsupported model: {model}")
+
         except Exception as e:
-            logging.error("API call failed: %s", str(e), exc_info=True)
+            logging.error("API call failed after retries: %s", str(e), exc_info=True)
             raise
         
 
@@ -321,7 +314,6 @@ class SimulationManager:
                 response_message_content = response_message.content
             elif "claude" in model.lower():
                 response_message = response
-                print("Response message: ", response_message)
                 self.messages.append({"role": "assistant", "content": response.content})
                 tool_calls = [block for block in response.content if isinstance(block, ToolUseBlock)]
                 response_message_content = "".join(block.text for block in response.content if isinstance(block, TextBlock))
