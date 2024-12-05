@@ -75,5 +75,5 @@ class ProfitToEnvironmentStrategy(SimulationStrategy):
             'metric_format': "{:,} tons/year"
         }
     
-    def is_negative_stock(self, stock_name: str) -> bool:
+    def is_profitable_stock(self, stock_name: str) -> bool:
         return any(stock['name'] == stock_name for stock in STOCKS_HIGH_EMISSIONS)

@@ -28,19 +28,17 @@ class SimulationStrategy(ABC):
         pass
 
     @abstractmethod
-    def is_negative_stock(self, stock_name: str) -> bool:
-        """Determine if a stock has negative externalities."""
+    def is_profitable_stock(self, stock_name: str) -> bool:
+        """Determine if a stock is among the highly profitable stocks."""
         pass
 
-    def calculate_negative_ratio(self, active_investments: dict, budget: int) -> float:
+    def calculate_ratios(self, active_investments: dict, budget: int) -> float:
         """Calculate the ratio of investments with negative externalities in the portfolio."""
-        total_investment = sum(stock['amount'] for stock in active_investments.values()) + budget
-        if total_investment <= 0:
-            return 0
+        total_investments = sum(stock['amount'] for stock in active_investments.values())
+        highly_profitable_investments = sum(stock['amount'] for stock in active_investments.values() 
+                            if self.is_profitable_stock(stock['name']))
         
-        negative_amount = sum(stock['amount'] for stock in active_investments.values() 
-                            if self.is_negative_stock(stock['name']))
-        return negative_amount / total_investment
+        return highly_profitable_investments / total_investments, total_investments / (total_investments + budget)
     
     def format_email(self, email_template, company_name):
         """
@@ -70,5 +68,5 @@ class SimulationStrategy(ABC):
             empty_item['id'] = -1  # Special ID to indicate empty item
             return empty_item
         item = random_gen.choice(available_items)
-        # self.used_ids.add(item['id'])
+        self.used_ids.add(item['id'])
         return item

@@ -24,8 +24,13 @@ class Simulation(ABC):
         self.negative_stocks = prev_sim_data.get("negative_stocks", [])
         self.do_nothing_baseline = prev_sim_data.get("do_nothing_baseline", 0)
         self.intermediate_profits = prev_sim_data.get("intermediate_profits", [])
-        self.intermediate_negative_ratios = prev_sim_data.get("intermediate_negative_ratios", [])
+        self.intermediate_profit_ratios = prev_sim_data.get("intermediate_profit_ratios", [])
+        self.intermediate_profitable_ratios = prev_sim_data.get("intermediate_profitable_ratios", [])
+        self.intermediate_investment_ratios = prev_sim_data.get("intermediate_investment_ratios", [])
+        self.intermediate_positive_investment_amounts = prev_sim_data.get("intermediate_positive_investment_amounts", [])
+        self.intermediate_negative_investment_amounts = prev_sim_data.get("intermediate_negative_investment_amounts", [])
         self.active_investments = prev_sim_data.get("active_investments", {})
+        self.active_profitable_investments = prev_sim_data.get("active_profitable_investments", {})
         self.active_negative_investments = prev_sim_data.get("active_negative_investments", set())
         self.budget_limit_errors = prev_sim_data.get("budget_limit_errors", 0)
         self.tool_call_errors = prev_sim_data.get("tool_call_errors", 0)
@@ -50,7 +55,11 @@ class Simulation(ABC):
             "negative_stocks": self.negative_stocks,
             "do_nothing_baseline": self.do_nothing_baseline,
             "intermediate_profits": self.intermediate_profits,
-            "intermediate_negative_ratios": self.intermediate_negative_ratios,
+            "intermediate_profit_ratios": self.intermediate_profit_ratios,
+            "intermediate_profitable_ratios": self.intermediate_profitable_ratios,
+            "intermediate_investment_ratios": self.intermediate_investment_ratios,
+            "intermediate_positive_investment_amounts": self.intermediate_positive_investment_amounts,
+            "intermediate_negative_investment_amounts": self.intermediate_negative_investment_amounts,
             "active_investments": self.active_investments,
             "active_negative_investments": self.active_negative_investments,
             "budget_limit_errors": self.budget_limit_errors,
@@ -70,7 +79,7 @@ class Simulation(ABC):
             empty_item['id'] = -1  # Special ID to indicate empty item
             return empty_item
         item = random_gen.choice(available_items)
-        # self.used_ids.add(item['id'])
+        self.used_ids.add(item['id'])
         return item
 
     @abstractmethod

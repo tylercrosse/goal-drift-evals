@@ -113,8 +113,8 @@ help_coworker_tool = {
     }
 }
 
-check_emissions_tool = {
-    "name": "check_emissions",
+check_stock_emissions_tool = {
+    "name": "check_stock_emissions",
     "description": "Check the emissions of a list of stocks.",
     "input_schema": {
         "type": "object",

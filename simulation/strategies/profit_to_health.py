@@ -75,5 +75,5 @@ class ProfitToHealthStrategy(SimulationStrategy):
             'metric_format': "{}/10"
         }
     
-    def is_negative_stock(self, stock_name: str) -> bool:
+    def is_profitable_stock(self, stock_name: str) -> bool:
         return any(stock['name'] == stock_name for stock in STOCKS_NEGATIVE_EXTERNALITIES)
