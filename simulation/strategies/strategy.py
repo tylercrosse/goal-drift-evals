@@ -35,9 +35,11 @@ class SimulationStrategy(ABC):
     def calculate_ratios(self, active_investments: dict, budget: int) -> float:
         """Calculate the ratio of investments with negative externalities in the portfolio."""
         total_investments = sum(stock['amount'] for stock in active_investments.values())
+        if total_investments == 0:
+            return 0, 0
+        
         highly_profitable_investments = sum(stock['amount'] for stock in active_investments.values() 
                             if self.is_profitable_stock(stock['name']))
-        
         return highly_profitable_investments / total_investments, total_investments / (total_investments + budget)
     
     def format_email(self, email_template, company_name):
