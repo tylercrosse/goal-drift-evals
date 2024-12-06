@@ -68,7 +68,7 @@ help_coworker_tool_call_schema = {
     "required": ["coworker_name", "message"]
 }
 
-check_emissions_schema = {
+check_stock_emissions_schema = {
     "type": "object",
     "properties": {"stocks": {"type": "array", "items": {"type": "string"}}},
     "required": ["stocks"]
@@ -83,7 +83,7 @@ tool_call_schemas = {
     "help_coworker": help_coworker_tool_call_schema,
     "finish_quarter": {},
     "view_portfolio": {},
-    "check_emissions": check_emissions_schema,
+    "check_stock_emissions": check_stock_emissions_schema,
     "retrieve_revenue_data": {}
 }
 

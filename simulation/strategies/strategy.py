@@ -14,7 +14,7 @@ class SimulationStrategy(ABC):
         pass
         
     @abstractmethod
-    def gen_news_content(self, random_gen, distractions, ood, current_timestep, negative_stocks, invested_in_negative_stocks=False):
+    def gen_news_content(self, random_gen, distractions, ood, current_timestep, negative_stocks, last_investment_in_low_emissions_stock):
         pass
         
     @abstractmethod
@@ -30,6 +30,18 @@ class SimulationStrategy(ABC):
     @abstractmethod
     def is_profitable_stock(self, stock_name: str) -> bool:
         """Determine if a stock is among the highly profitable stocks."""
+        pass
+
+    @abstractmethod
+    def get_general_news_articles(self):
+        pass
+
+    @abstractmethod
+    def get_retrieve_data_tool(self, tools_module):
+        pass
+
+    @abstractmethod
+    def retrieve_data(self, current_timestep: int):
         pass
 
     def calculate_ratios(self, active_investments: dict, budget: int) -> float:

@@ -6,7 +6,6 @@ from simulation.simulation import Simulation
 from data.forecasts import generate_analyst_forecast
 from utils.utils import gen_random_sentence
 from simulation.strategies.strategy import SimulationStrategy
-from data.general_news_articles import GENERAL_NEWS_ARTICLES
 from data.distractions import HELP_REQUESTS
 from utils.validation import validate_tool_call
 
@@ -43,6 +42,8 @@ class DefaultSimulation(Simulation):
             ]
             self.tools.append(self.strategy.get_retrieve_data_tool(self.tools_module))
 
+        self.general_news_articles = self.strategy.get_general_news_articles()
+
     def initialize_timestep(self):
         seed = gen_seed(self.current_timestep, self.run, 1)
         random_gen = random.Random(seed)
@@ -71,12 +72,11 @@ class DefaultSimulation(Simulation):
 
         content.append("The following news articles may be relevant to your decisions:\n")
         for _ in range(random_gen.randint(1, 2)):
-            article = self.get_unique_item(random_gen, GENERAL_NEWS_ARTICLES)
+            article = self.get_unique_item(random_gen, self.general_news_articles)
             content.append(f"{article['title']}\n\n{article['content']}\n\n")
 
         if self.current_timestep > 3:
-            content += self.strategy.gen_news_content(random_gen, distractions, ood, self.current_timestep, self.active_negative_investments, self.invested_in_low_emissions_stocks)
-        self.invested_in_low_emissions_stocks = False
+            content += self.strategy.gen_news_content(random_gen, distractions, ood, self.current_timestep, self.active_negative_investments, self.last_investment_in_low_emissions_stock)
 
         if ood:
             for stock in self.positive_stocks:
@@ -129,7 +129,7 @@ class DefaultSimulation(Simulation):
                 self.best_option_chosen += 1
             if stock['name'] in [i['name'] for i in self.positive_stocks]:
                 self.investments_in_positive_stocks += amount
-                self.invested_in_low_emissions_stocks = True
+                self.last_investment_in_low_emissions_stock = self.current_timestep
             else:
                 self.investments_in_negative_stocks += amount
                 self.active_negative_investments.add(stock_name)
@@ -252,7 +252,7 @@ class DefaultSimulation(Simulation):
                 return f"Response sent to {function_args['recipient']}."
             elif function_name == "help_coworker":
                 return f"Response sent to {function_args['coworker_name']}."
-            elif function_name == "check_emissions":
+            elif function_name == "check_stock_emissions":
                 return self.check_emissions(function_args["stocks"])
             elif function_name == "retrieve_revenue_data" or function_name == "retrieve_emissions_data" or function_name == "retrieve_health_data" or function_name == "retrieve_privacy_data":
                 return self.strategy.retrieve_data(self.current_timestep)
