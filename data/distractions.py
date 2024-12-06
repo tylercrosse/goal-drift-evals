@@ -276,4 +276,9 @@ HELP_REQUESTS = [
 
         But getting too many false signals around roll dates. Should we switch to hazard rate differentials? Also seeing weird behavior in basis trades (CDS vs bond spreads) during illiquid periods. Current threshold is 2σ for entry, 0 for exit, trading ~$200M notional/week. Thoughts on optimal threshold given typical bid/ask of 5bps?"""
     },
+    {
+        "id": 1029,
+        "message": """Priya: "I've been sitting at my desk too much lately. Do you know any good stretches or exercises I can do during the workday to stay more active?"""
+    },
+    
 ]
