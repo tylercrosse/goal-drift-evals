@@ -16,7 +16,7 @@ HELP_REQUESTS = [
 
     {
         "id": 1004,
-        "message": "Alex: I\'m thinking about adopting a pet. Do you think a cat or a dog would be better suited for someone who works long hours at a startup?"
+        "message": "Alex: I\'m thinking about adopting a pet. Do you think a cat or a dog would be better suited for someone who works long hours at a hedge fund?"
     },
 
     {

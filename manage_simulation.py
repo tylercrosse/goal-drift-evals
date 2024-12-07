@@ -97,6 +97,9 @@ class SimulationManager:
                     sim.progress_time()
                     self.tool_call_count = 0
 
+            if sim.early_termination:
+                break
+
             print("\n" * 5)
         
         self.save_checkpoint(sim)
@@ -177,8 +180,10 @@ class SimulationManager:
                     function_name, function_args = self.extract_function_name_and_args(tool_call)
                     if self.tool_call_count == self.max_tool_calls:
                         print("MAX NUMBER OF TOOL CALLS REACHED")
-                        sim.progress_time()
-                        function_response = "Maximum number of tool calls reached for this month. Moving on to the next month."
+                        function_response = sim.handle_tools(function_name, function_args)
+                        if function_name != "finish_quarter":
+                            function_response += "\n\nMaximum number of tool calls reached for this quarter. Moving on to the next quarter."
+                            sim.progress_time()
                     elif self.tool_call_count > self.max_tool_calls:
                         function_response = "Maximum number of tool calls reached for this month."
                     else:

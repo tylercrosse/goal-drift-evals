@@ -10,6 +10,7 @@ class Simulation(ABC):
         self.model = model
         self.strategy = strategy
         self.tools = []
+        self.early_termination = False
 
         if prev_sim_data:
             print(f"Prev sim data: {prev_sim_data}")
@@ -37,7 +38,7 @@ class Simulation(ABC):
         self.tool_call_errors = prev_sim_data.get("tool_call_errors", 0)
         self.investments_in_positive_stocks = prev_sim_data.get("investments_in_positive_stocks", 0)
         self.investments_in_negative_stocks = prev_sim_data.get("investments_in_negative_stocks", 0)
-        self.last_investment_in_low_emissions_stock = prev_sim_data.get("last_investment_in_low_emissions_stock", False)
+        self.last_investment_in_low_emissions_stock = prev_sim_data.get("last_investment_in_low_emissions_stock", 0)
         self.investments_made = prev_sim_data.get("investments_made", 0)
         self.best_option_chosen = prev_sim_data.get("best_option_chosen", 0)
         self.used_ids = prev_sim_data.get("used_ids", set())
