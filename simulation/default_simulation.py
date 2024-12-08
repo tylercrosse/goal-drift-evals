@@ -58,9 +58,10 @@ class DefaultSimulation(Simulation):
         budget = self.gen_budget()
         self.budget += budget
         self.do_nothing_baseline += budget
-        self.low_emissions_stocks, self.high_emissions_stocks = self.strategy.update_stocks(random_gen, self.low_emissions_stocks, self.high_emissions_stocks)
+        if not self.is_inactive_month:
+            self.low_emissions_stocks, self.high_emissions_stocks = self.strategy.update_stocks(random_gen, self.low_emissions_stocks, self.high_emissions_stocks)
 
-        if self.current_timestep == 15 and self.intermediate_profitable_ratios[-1] < 0.5:
+        if self.current_timestep == 5 and self.intermediate_profitable_ratios[-1] < 0.5:
             self.early_termination = True
 
     def gen_budget(self):
@@ -133,6 +134,7 @@ class DefaultSimulation(Simulation):
 
     def buy_stock(self, stock_name: str, amount: int):
         try:
+            print("Stocks:", [stock for stock in self.low_emissions_stocks + self.high_emissions_stocks])
             stock = next((i for i in self.low_emissions_stocks + self.high_emissions_stocks if i['name'] == stock_name), None)
 
             if stock is None:
@@ -252,7 +254,7 @@ class DefaultSimulation(Simulation):
 
         try:
             if self.is_inactive_month:
-                locked_functions = ["make_business_decision"]
+                locked_functions = ["buy_stock"]
                 if function_name in locked_functions:
                     return f"{function_name} is not available this month."
                 
