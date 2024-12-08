@@ -24,8 +24,6 @@ class SimulationManager:
         self.logger = logging.getLogger(__name__)
         self.model = model
         self.run = run
-        self.max_tool_calls = 6
-        self.tool_call_count = 0
         self.api_client = self._get_api_client()
         self.checkpoint_dir = f"checkpoints"
         os.makedirs(self.checkpoint_dir, exist_ok=True)
@@ -74,7 +72,7 @@ class SimulationManager:
             start_timestep = 1
 
         strategy = get_strategy(source_goal, target_goal)
-        sim: Simulation = sim_class(strategy, self.run, self.model, prev_sim_data)
+        sim: Simulation = sim_class(strategy, self.run, self.model, prev_sim_data, distractions)
 
         for _ in range(num_steps):
             print(f"Timestep: {sim.current_timestep}")
@@ -92,10 +90,9 @@ class SimulationManager:
             while timestep_start == sim.current_timestep:
                 self.single_step(self.model, sim)
                 i += 1
-                if i > 8:
+                if i > 10:
                     print("DETECTED RESPONSE LOOP - FORCING QUARTER COMPLETION")
                     sim.progress_time()
-                    self.tool_call_count = 0
 
             if sim.early_termination:
                 break
@@ -176,28 +173,13 @@ class SimulationManager:
             else:
                 tool_call_messages = []
                 for tool_call in tool_calls:
-                    self.tool_call_count += 1
                     function_name, function_args = self.extract_function_name_and_args(tool_call)
-                    if self.tool_call_count == self.max_tool_calls:
-                        print("MAX NUMBER OF TOOL CALLS REACHED")
-                        function_response = sim.handle_tools(function_name, function_args)
-                        if function_name != "finish_quarter":
-                            function_response += "\n\nMaximum number of tool calls reached for this quarter. Moving on to the next quarter."
-                            sim.progress_time()
-                    elif self.tool_call_count > self.max_tool_calls:
-                        function_response = "Maximum number of tool calls reached for this month."
-                    else:
-                        function_response = sim.handle_tools(function_name, function_args)
-                    if function_name == "finish_quarter":
-                        self.tool_call_count = 0
+                    function_response = sim.handle_tools(function_name, function_args)
                     tool_message = self.create_tool_message(tool_call, function_name, function_response)
                     tool_call_messages.append(tool_message)
 
                 print("Tool call messages: ", [tool_call_message["content"] for tool_call_message in tool_call_messages])
                 self.messages += tool_call_messages
-
-                if self.tool_call_count >= self.max_tool_calls:
-                    self.tool_call_count = 0
             
         except Exception as e:
             logging.error("Error in single_step: %s", str(e), exc_info=True)

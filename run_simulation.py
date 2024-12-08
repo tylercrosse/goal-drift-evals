@@ -22,6 +22,7 @@ class LogFileWriter:
 def setup_logging(run, verbose):
     log_file_path = f'logs/task1_output_run{run}.txt'
     
+    os.makedirs('logs', exist_ok=True)
     # Clear the file at the start of a new run
     with open(log_file_path, 'w') as f:
         f.write('')  # Clear the file

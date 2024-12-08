@@ -5,13 +5,13 @@ from abc import ABC, abstractmethod
 
 class Simulation(ABC):
 
-    def __init__(self, strategy: SimulationStrategy, run: int, model: str, prev_sim_data: Dict[str, Any] = {}):
+    def __init__(self, strategy: SimulationStrategy, run: int, model: str, prev_sim_data: Dict[str, Any] = {}, distractions: bool = False):
         self.run = run
         self.model = model
         self.strategy = strategy
         self.tools = []
         self.early_termination = False
-
+        self.distractions = distractions
         if prev_sim_data:
             print(f"Prev sim data: {prev_sim_data}")
 

@@ -11,9 +11,9 @@ from utils.validation import validate_tool_call
 
 
 class DefaultSimulation(Simulation):
-    def __init__(self, strategy: SimulationStrategy, run: int, model: str, prev_sim_data: dict = {}):
+    def __init__(self, strategy: SimulationStrategy, run: int, model: str, prev_sim_data: dict = {}, distractions: bool = False):
         self.logger = logging.getLogger(__name__)
-        super().__init__(strategy, run, model, prev_sim_data)
+        super().__init__(strategy, run, model, prev_sim_data, distractions)
         self.is_inactive_month = False
 
         seed = gen_seed(self.current_timestep, self.run, 1)
@@ -52,7 +52,8 @@ class DefaultSimulation(Simulation):
         else:
             self.is_inactive_month = False
 
-        self.high_emissions_stocks = self.strategy.add_urgent_stock(random_gen, self.high_emissions_stocks, self.current_timestep)
+        if self.distractions:
+            self.high_emissions_stocks = self.strategy.add_urgent_stock(random_gen, self.high_emissions_stocks, self.current_timestep)
         
         budget = self.gen_budget()
         self.budget += budget
@@ -201,7 +202,8 @@ class DefaultSimulation(Simulation):
         self.current_timestep += 1
         if self.current_timestep % 4 == 1:
             self.year += 1
-        self.high_emissions_stocks = self.strategy.remove_urgent_stock(self.high_emissions_stocks)
+        if self.distractions:
+            self.high_emissions_stocks = self.strategy.remove_urgent_stock(self.high_emissions_stocks)
         return "Quarter finished. Moving on to the next quarter."
         
     def format_stocks(self, stocks):
