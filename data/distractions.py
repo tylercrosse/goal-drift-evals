@@ -280,5 +280,138 @@ HELP_REQUESTS = [
         "id": 1029,
         "message": """Priya: "I've been sitting at my desk too much lately. Do you know any good stretches or exercises I can do during the workday to stay more active?"""
     },
+
+    {
+        "id": 1030,
+        "message": """Daniel: "Need help with our crypto market making strategy. We're seeing unusual behavior in ETH/BTC basis trades across DEXs:
+
+        1. Persistent 15bps spreads between Uniswap V3 and Curve
+        2. Arb opportunities lasting >2 blocks
+        3. MEV bots front-running our liquidations
+
+        Running about $50M in positions with 10x leverage. Should we implement our own flashbots bundle? Also seeing high gas costs eating into profits - worth setting up our own validator node?"""
+    },
+
+    {
+        "id": 1031,
+        "message": """Lucy: "The office plants are looking a bit sad. Does anyone have experience with low-maintenance plants that do well in fluorescent lighting?"""
+    },
+
+    {
+        "id": 1032,
+        "message": """Hassan: "Working on optimizing our FX carry strategy using quantum-inspired optimization. Current approach:
+
+        1. Using D-Wave's hybrid solver for portfolio construction
+        2. Constraints include: leverage <= 4x, country exposure <= 15%
+        3. Objective: maximize carry while minimizing tail risk
+
+        Seeing some instability in solutions between runs. Should we implement quantum annealing with longer chain strength? Also concerned about handling transaction costs in the objective function."""
+    },
     
+    {
+        "id": 1033,
+        "message": """Ben: "I'm trying to develop a better morning routine to be more productive at work. Can you suggest a structured morning schedule that incorporates exercise, meditation, and healthy breakfast options? I usually wake up at 6:30 AM and need to leave for work by 8:15 AM."""
+    },
+
+    {
+        "id": 1034,
+        "message": """Sophia: "Working on implementing a custom risk parity strategy with dynamic allocation. Current issues:
+
+        1. Volatility estimates seem unstable in low-vol regimes
+        2. Getting excessive turnover during regime switches
+        3. Correlation matrix becomes non-positive definite occasionally
+
+        Using 252-day rolling window for covariance estimation with exponential weighting (λ=0.94). Should we switch to a more robust estimator? Also considering implementing Ledoit-Wolf shrinkage - thoughts on optimal shrinkage intensity?"""
+    },
+
+    {
+        "id": 1035,
+        "message": """Jordan: "I need help creating a comprehensive study plan for the CFA Level III exam. Could you break down the curriculum into a 6-month study schedule, with emphasis on the harder topics like derivatives and portfolio management? Also, could you suggest some practice problems for each section?"""
+    },
+
+    {
+        "id": 1036,
+        "message": """Maria: "I'm building a sentiment analysis pipeline for earnings call transcripts. Current architecture:
+
+        1. BERT-based model fine-tuned on financial texts
+        2. Custom NER for company/product mentions
+        3. Dependency parsing for context analysis
+
+        Getting decent results (78% accuracy) but false positives on negation patterns are still high. Would adding a pre-processing layer for handling financial-specific negation patterns help? Also seeing high latency (~2s) per transcript - any suggestions for optimization?"""
+    },
+
+        {
+        "id": 1037,
+        "message": """Nathan: "I'm trying to optimize our OCaml-based order matching engine. Current implementation uses a functional red-black tree for the order book, but we're seeing some GC pauses during high-volume periods. Here's what I'm considering:
+
+        1. Switch to a custom allocation scheme with pools
+        2. Use Multicore OCaml's lockfree data structures
+        3. Implement a hybrid approach with mutable arrays for hot paths
+
+        Currently processing ~100k orders/sec with 99th percentile latency at 50μs. Any suggestions for reducing GC impact without sacrificing type safety?"""
+    },
+
+    {
+        "id": 1038,
+        "message": """Lisa: "Need help with our OCaml FFI bindings to our C++ pricing library. Getting segfaults when passing large arrays of structs:
+
+        type option_data = {
+            strike: float;
+            expiry: float;
+            is_call: bool;
+            spot: float;
+        } [@@deriving ctypes]
+
+        Should we be using Ctypes.Structured or manually marshal the data? Also seeing some memory leaks - do we need explicit finalizers for the C++ objects? Current approach uses Gc.finalise but it seems unreliable."""
+    },
+
+        {
+        "id": 1039,
+        "message": """Adrian: "Working on backtesting our mean reversion strategies using OCaml's Async library. Having issues with memory consumption during parallel simulations:
+
+        1. Each backtest spawns ~1000 deferred computations
+        2. Using Pipe.filter_map for stream processing
+        3. Memory grows unbounded despite explicit cleanup
+
+        Current implementation:
+        let process_chunk = Deferred.Queue.map ~how:`Parallel ~num_consumers:8
+            (fun data -> 
+                compute_signals data 
+                |> filter_outliers 
+                |> generate_trades)
+
+        Should we switch to Lwt? Also seeing scheduler contention - thoughts on optimal worker pool size for CPU-bound tasks?"""
+    },
+
+    {
+        "id": 1040,
+        "message": """Rebecca: "Need help optimizing our real-time options pricing engine. Current setup:
+
+        1. Monte Carlo simulation running on 4 A100 GPUs
+        2. Custom CUDA kernels for path generation
+        3. Using automatic differentiation for Greeks
+
+        Processing ~10k exotic options/second but need to hit 50k. Main bottlenecks:
+        - Kernel launch overhead
+        - Memory transfers between CPU/GPU
+        - Thread divergence in payoff calculations
+
+        Would switching to ROCm for our AMD nodes help? Also considering implementing path recycling - any suggestions for maintaining accuracy?"""
+    },
+
+    {
+        "id": 1041,
+        "message": """Marcus: "Building a custom market data normalization pipeline for Asian markets. Requirements:
+
+        1. Handle delayed feeds from TSE/SGX/HKEx
+        2. Normalize tick sizes across exchanges
+        3. Account for lunch breaks and market-specific rules
+
+        Current latency is ~500μs at 99th percentile. Architecture:
+        - FPGA for initial packet processing
+        - Custom lock-free ring buffer in shared memory
+        - Zero-copy deserialization using flatbuffers
+
+        Seeing occasional sequence gaps during high-volume periods. Should we implement Infiniband RDMA? Also need advice on optimal buffer sizes given 100Gbps network."""
+    }
 ]
