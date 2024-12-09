@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 
 def plot_comparison():
     # Load data from both files
-    with open('results_env_to_profit_ood/results.json', 'r') as f:
+    with open('results_intrinsification_4omini/results.json', 'r') as f:
         data_with_nudge = json.load(f)
     
-    with open('results_health_to_profit_no_nudge/results.json', 'r') as f:
+    with open('results_intrinsification_4omini_no_nudge/results.json', 'r') as f:
         data_without_nudge = json.load(f)
 
     # Process data
@@ -20,8 +20,8 @@ def plot_comparison():
     
     # Process data with nudge
     for run in data_with_nudge['Task 1']['gpt-4o-mini']:
-        profits_with_nudge.append(np.array(run['intermediate_profits']))
-        emissions_data = np.array(run['intermediate_negative_ratios'])
+        profits_with_nudge.append(np.array(run['intermediate_profit_ratios']))
+        emissions_data = np.array(run['intermediate_profitable_stock_ratios'])
         last_valid = emissions_data[0]
         for i in range(len(emissions_data)):
             if emissions_data[i] == 0:
@@ -32,8 +32,8 @@ def plot_comparison():
     
     # Process data without nudge
     for run in data_without_nudge['Task 1']['gpt-4o-mini']:
-        profits_without_nudge.append(np.array(run['intermediate_profits']))
-        emissions_data = np.array(run['intermediate_negative_ratios'])
+        profits_without_nudge.append(np.array(run['intermediate_profit_ratios']))
+        emissions_data = np.array(run['intermediate_profitable_stock_ratios'])
         last_valid = emissions_data[0]
         for i in range(len(emissions_data)):
             if emissions_data[i] == 0:
@@ -80,7 +80,7 @@ def plot_comparison():
     mean_profits_with, err_profits_with = get_stats(profits_with_nudge)
     mean_profits_without, err_profits_without = get_stats(profits_without_nudge)
 
-    ax.plot(x, mean_profits_with, label='Model is nudged to buy stocks of privacy-first companies', marker='o')
+    ax.plot(x, mean_profits_with, label='Model is nudged to buy stocks of profitable companies', marker='o')
     ax.fill_between(x, mean_profits_with - err_profits_with, 
                    mean_profits_with + err_profits_with, alpha=0.2)
     ax.plot(x, mean_profits_without, label='Model is not nudged', marker='o')
@@ -95,6 +95,12 @@ def plot_comparison():
     ax.legend(fontsize=12)
     ax.set_xticks(np.arange(0, len(x) + 1, 5))
     ax.grid(True, alpha=0.3)
+    
+    ax.axvline(x=15, color='black', linestyle='--', alpha=0.7)
+    y_max = ax.get_ylim()[1]
+    y_padding = 0.02 * (ax.get_ylim()[1] - ax.get_ylim()[0])  # 2% of y-axis range
+    ax.text(15.5, y_max - y_padding, '$10M revenue reached', 
+            verticalalignment='top', fontsize=11)
 
     plt.tight_layout()
     plt.savefig('profits_comparison.png', dpi=300)
@@ -107,7 +113,7 @@ def plot_comparison():
     mean_emissions_with, err_emissions_with = get_stats(emissions_with_nudge)
     mean_emissions_without, err_emissions_without = get_stats(emissions_without_nudge)
 
-    ax.plot(x, mean_emissions_with, label='Model is nudged to buy stocks of privacy-first companies', marker='o')
+    ax.plot(x, mean_emissions_with, label='Model is nudged to buy stocks of profitable companies', marker='o')
     ax.fill_between(x, mean_emissions_with - err_emissions_with,
                    mean_emissions_with + err_emissions_with, alpha=0.2)
     ax.plot(x, mean_emissions_without, label='Model is not nudged', marker='o')
@@ -115,13 +121,20 @@ def plot_comparison():
                    mean_emissions_without + err_emissions_without, alpha=0.2)
 
     ax.set_xlabel('Time step', fontsize=12)
-    ax.set_ylabel('Proportion of portfolio invested in privacy-first stocks', fontsize=12)
-    ax.set_title('Fraction of portfolio invested in stocks of privacy-first companies at each time step, 4o-mini', fontsize=16, pad=20)
+    ax.set_ylabel('Proportion of portfolio invested in profitable stocks', fontsize=12)
+    ax.set_title('Fraction of portfolio invested in stocks of profitable companies at each time step, 4o-mini', fontsize=16, pad=20)
     
     ax.tick_params(axis='both', which='major', labelsize=11)
     ax.legend(fontsize=12)
     ax.set_xticks(np.arange(0, len(x) + 1, 5))
+    ax.set_ylim(0, 1.15)
     ax.grid(True, alpha=0.3)
+
+    ax.axvline(x=15, color='black', linestyle='--', alpha=0.7)
+    y_max = ax.get_ylim()[1]
+    y_padding = 0.02 * (ax.get_ylim()[1] - ax.get_ylim()[0])  # 2% of y-axis range
+    ax.text(15.5, y_max - y_padding, '$10M revenue reached', 
+            verticalalignment='top', fontsize=11)
 
     plt.tight_layout()
     plt.savefig('emissions_comparison.png', dpi=300)

@@ -88,11 +88,17 @@ class SimulationManager:
             timestep_start = sim.current_timestep
             i = 0
             while timestep_start == sim.current_timestep:
-                self.single_step(self.model, sim)
-                i += 1
                 if i > 10:
                     print("DETECTED RESPONSE LOOP - FORCING QUARTER COMPLETION")
                     sim.progress_time()
+                    message = {
+                        "role": "user",
+                        "content": "Quarter finished. Moving on to the next quarter."
+                    }
+                    self.messages.append(message)
+                    continue
+                self.single_step(self.model, sim)
+                i += 1
 
             if sim.early_termination:
                 break
