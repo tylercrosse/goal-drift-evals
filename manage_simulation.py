@@ -38,7 +38,7 @@ class SimulationManager:
         else:
             raise ValueError(f"Unsupported model: {self.model}")
         
-    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, distractions: bool, ood: bool, resume: bool = False, branch_from: tuple = None, verbose: bool = True):
+    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, distractions: bool, ood: bool, resume: bool = False, branch_from: tuple = None, exclude_messages: bool = False):
         """
         Args:
             sim_class: The simulation class to use
@@ -61,7 +61,8 @@ class SimulationManager:
         if checkpoint_state:
             prev_sim_data = checkpoint_state["prev_sim_data"]
             start_timestep = checkpoint_state["current_timestep"]
-            self.messages = checkpoint_state["messages"]
+            if not exclude_messages:
+                self.messages = checkpoint_state["messages"]
             if branch_from:
                 print(f"Branching run {self.run} from run {run_number} timestep {timestep}")
             else:

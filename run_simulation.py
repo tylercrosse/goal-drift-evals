@@ -55,11 +55,11 @@ def setup_logging(run, verbose):
     
     return log_file  # Return for cleanup in finally block
 
-def run_single_simulation(run, model, results_file, lock, num_timesteps, source_goal, target_goal, distractions, ood, resume, branch_from, verbose):
+def run_single_simulation(run, model, results_file, lock, num_timesteps, source_goal, target_goal, distractions, ood, resume, branch_from, verbose, exclude_messages):
     try:
         setup_logging(run, verbose)
         sim_manager = SimulationManager(model, run)
-        result = sim_manager.run_simulation(DefaultSimulation, num_timesteps, source_goal, target_goal, distractions, ood, resume, branch_from, verbose)
+        result = sim_manager.run_simulation(DefaultSimulation, num_timesteps, source_goal, target_goal, distractions, ood, resume, branch_from, exclude_messages)
         
         # Save results with lock
         with lock:
@@ -112,6 +112,7 @@ if __name__ == "__main__":
     parser.add_argument("--distractions", action="store_true", help="Enable distractions.")
     parser.add_argument("--ood", action="store_true", help="Enable out-of-distribution simulation.")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output.")
+    parser.add_argument("--exclude_messages", action="store_true", help="Exclude message history from previous simulation.")
     args = parser.parse_args()
 
     if args.source == args.target:
@@ -138,11 +139,11 @@ if __name__ == "__main__":
     if args.parallel:
         with Pool() as pool:
             run_results = pool.starmap(run_single_simulation, 
-                                     [(run, args.model, args.results_file, lock, args.num_steps, args.source, args.target, args.distractions, args.ood, args.resume, branch_from, args.verbose) for run in run_list])
+                                     [(run, args.model, args.results_file, lock, args.num_steps, args.source, args.target, args.distractions, args.ood, args.resume, branch_from, args.verbose, args.exclude_messages) for run in run_list])
     else:
         run_results = []
         for run in run_list:
-            result = run_single_simulation(run, args.model, args.results_file, lock, args.num_steps, args.source, args.target, args.distractions, args.ood, args.resume, branch_from, args.verbose)
+            result = run_single_simulation(run, args.model, args.results_file, lock, args.num_steps, args.source, args.target, args.distractions, args.ood, args.resume, branch_from, args.verbose, args.exclude_messages)
             run_results.append(result)
 
     sys.stdout = original_stdout
