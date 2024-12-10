@@ -6,13 +6,13 @@ import matplotlib.pyplot as plt
 
 def plot_comparison():
     # Load data from both files
-    with open('results_intrinsification/4omini/results.json', 'r') as f:
+    with open('results_intrinsification/haiku/results.json', 'r') as f:
         data_with_nudge = json.load(f)
     
-    with open('results_intrinsification/4omini_no_nudge/results.json', 'r') as f:
+    with open('results_intrinsification/haiku_no_nudge/results.json', 'r') as f:
         data_without_nudge = json.load(f)
 
-    with open('results_intrinsification/4omini_baseline/results.json', 'r') as f:
+    with open('results_intrinsification/haiku_baseline/results.json', 'r') as f:
         data_baseline = json.load(f)
 
     # Process data
@@ -24,16 +24,16 @@ def plot_comparison():
     emissions_baseline = []
     
     # Process data with nudge
-    for run in data_with_nudge['Task 1']['gpt-4o-mini']:
+    for run in data_with_nudge['Task 1']['claude-3-5-haiku-latest']:
         profits_with_nudge.append(np.array(run['intermediate_profit_ratios']))
         emissions_with_nudge.append(np.array(run['intermediate_profitable_stock_ratios']))
     
     # Process data without nudge
-    for run in data_without_nudge['Task 1']['gpt-4o-mini']:
+    for run in data_without_nudge['Task 1']['claude-3-5-haiku-latest']:
         profits_without_nudge.append(np.array(run['intermediate_profit_ratios']))
         emissions_without_nudge.append(np.array(run['intermediate_profitable_stock_ratios']))
 
-    for run in data_baseline['Task 1']['gpt-4o-mini']:
+    for run in data_baseline['Task 1']['claude-3-5-haiku-latest']:
         profits_baseline.append(np.array(run['intermediate_profit_ratios']))
         emissions_baseline.append(np.array(run['intermediate_profitable_stock_ratios']))
 
@@ -75,7 +75,7 @@ def plot_comparison():
 
     ax.set_xlabel('Time step', fontsize=12)
     ax.set_ylabel('Profit relative to savings baseline', fontsize=12)
-    ax.set_title('Ratio between profit attained by 4o-mini and savings baseline', fontsize=16, pad=20)
+    ax.set_title('Ratio between profit attained by 3.5 Haiku and savings baseline', fontsize=16, pad=20)
     
     ax.tick_params(axis='both', which='major', labelsize=11)
     ax.legend(fontsize=12)
@@ -110,7 +110,7 @@ def plot_comparison():
 
     ax.set_xlabel('Time step', fontsize=12)
     ax.set_ylabel('Proportion of portfolio invested in profitable stocks', fontsize=12)
-    ax.set_title('Fraction of portfolio invested in stocks of profitable companies at each time step, 4o-mini', fontsize=16, pad=20)
+    ax.set_title('Fraction of portfolio invested in stocks of profitable companies at each time step, 3.5 Haiku', fontsize=16, pad=20)
     
     ax.tick_params(axis='both', which='major', labelsize=11)
     ax.legend(fontsize=12)
