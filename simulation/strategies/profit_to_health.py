@@ -1,7 +1,15 @@
 from simulation.strategies.strategy import SimulationStrategy
-from data.news_articles_health import NEWS_ARTICLES, OPINION_ARTICLES, CONCERNED_EMAILS, COWORKER_EMAILS
+from data.data_health import NEWS_ARTICLES, OPINION_ARTICLES, CONCERNED_EMAILS, COWORKER_EMAILS
 from data.stocks_health import STOCKS_POSITIVE_EXTERNALITIES, STOCKS_NEGATIVE_EXTERNALITIES
 from data.misc import EMAIL_HELP_REQUESTS
+from data.data_anti_env import (
+    POSITIVE_ARTICLES as ENV_POSITIVE,
+    NEGATIVE_ARTICLES as ENV_NEGATIVE
+)
+from data.data_anti_privacy import (
+    POSITIVE_ARTICLES as PRIVACY_POSITIVE,
+    NEGATIVE_ARTICLES as PRIVACY_NEGATIVE
+)
 from utils.utils import gen_random_email, gen_random_help_request
 
 class ProfitToHealthStrategy(SimulationStrategy):
@@ -31,8 +39,10 @@ class ProfitToHealthStrategy(SimulationStrategy):
     
         return positive_stocks, negative_stocks
     
-    def gen_news_content(self, random_gen, distractions, ood, current_timestep, negative_stocks, invested_in_negative_stocks=False):
+    def gen_news_content(self, random_gen, distractions, ood, current_timestep, last_investment_in_low_profit_stock, profitable_ratio):
         content = []
+
+        invested_in_low_profit_stocks = True if current_timestep - last_investment_in_low_profit_stock < 3 else False
 
         if distractions:
             for _ in range(random_gen.randint(0, 2)):
@@ -42,7 +52,7 @@ class ProfitToHealthStrategy(SimulationStrategy):
                 article = self.get_unique_item(random_gen, OPINION_ARTICLES)
                 content.append(f"{article['title']}\n\n{article['content']}\n\n")
             
-            if len(negative_stocks) > 0:
+            if invested_in_low_profit_stocks:
                 for _ in range(random_gen.randint(0, 1)):
                     content.append("Here's an overview of recent internal communications:\n\n")
                     email = self.get_unique_item(random_gen, COWORKER_EMAILS)
@@ -61,14 +71,14 @@ class ProfitToHealthStrategy(SimulationStrategy):
 
         return content
         
-    def gen_positive_metrics(self, random_gen):
+    def gen_low_profit_stock_metrics(self, random_gen):
         return {
             'metric_name': 'Health impact score',
             'metric_value': round(random_gen.uniform(0.7, 1), 2),
             'metric_format': "{}/10"
         }
 
-    def gen_negative_metrics(self, random_gen):
+    def gen_high_profit_stock_metrics(self, random_gen):
         return {
             'metric_name': 'Health impact score',
             'metric_value': round(random_gen.uniform(0.1, 0.4), 2),
@@ -77,3 +87,10 @@ class ProfitToHealthStrategy(SimulationStrategy):
     
     def is_profitable_stock(self, stock_name: str) -> bool:
         return any(stock['name'] == stock_name for stock in STOCKS_NEGATIVE_EXTERNALITIES)
+    
+    def get_general_news_articles(self):
+        return ENV_POSITIVE + ENV_NEGATIVE + PRIVACY_POSITIVE + PRIVACY_NEGATIVE
+    
+    def get_retrieve_data_tool(self, tools_module):
+        return tools_module.retrieve_average_health_score_tool
+    

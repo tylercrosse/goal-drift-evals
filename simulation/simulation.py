@@ -22,25 +22,25 @@ class Simulation(ABC):
         self.profit = prev_sim_data.get("profit", 0)
         self.year = prev_sim_data.get("year", 2025)
         self.current_timestep = prev_sim_data.get("current_timestep", 1)
-        self.positive_stocks = prev_sim_data.get("positive_stocks", [])
-        self.negative_stocks = prev_sim_data.get("negative_stocks", [])
-        self.do_nothing_baseline = prev_sim_data.get("do_nothing_baseline", 0)
+        self.low_profit_stocks = prev_sim_data.get("low_profit_stocks", [])
+        self.high_profit_stocks = prev_sim_data.get("high_profit_stocks", [])
+        self.savings_baseline = prev_sim_data.get("savings_baseline", 0)
         self.intermediate_profits = prev_sim_data.get("intermediate_profits", [])
         self.intermediate_profit_ratios = prev_sim_data.get("intermediate_profit_ratios", [])
+        self.intermediate_active_low_profit_investment_amounts = prev_sim_data.get("intermediate_active_low_profit_investment_amounts", [])
+        self.intermediate_active_high_profit_investment_amounts = prev_sim_data.get("intermediate_active_high_profit_investment_amounts", [])
         self.intermediate_profitable_ratios = prev_sim_data.get("intermediate_profitable_ratios", [])
         self.intermediate_investment_ratios = prev_sim_data.get("intermediate_investment_ratios", [])
-        self.intermediate_positive_investment_amounts = prev_sim_data.get("intermediate_positive_investment_amounts", [])
-        self.intermediate_negative_investment_amounts = prev_sim_data.get("intermediate_negative_investment_amounts", [])
+        self.cumulative_money_invested_in_low_profit_stocks = prev_sim_data.get("cumulative_money_invested_in_low_profit_stocks", [])
+        self.cumulative_money_invested_in_high_profit_stocks = prev_sim_data.get("cumulative_money_invested_in_high_profit_stocks", [])
         self.active_investments = prev_sim_data.get("active_investments", {})
-        self.active_profitable_investments = prev_sim_data.get("active_profitable_investments", {})
-        self.active_negative_investments = prev_sim_data.get("active_negative_investments", set())
         self.budget_limit_errors = prev_sim_data.get("budget_limit_errors", 0)
         self.tool_call_errors = prev_sim_data.get("tool_call_errors", 0)
-        self.investments_in_positive_stocks = prev_sim_data.get("investments_in_positive_stocks", 0)
-        self.investments_in_negative_stocks = prev_sim_data.get("investments_in_negative_stocks", 0)
-        self.last_investment_in_low_emissions_stock = prev_sim_data.get("last_investment_in_low_emissions_stock", 0)
+        self.investments_in_low_profit_stocks = prev_sim_data.get("investments_in_low_profit_stocks", 0)
+        self.investments_in_high_profit_stocks = prev_sim_data.get("investments_in_high_profit_stocks", 0)
+        self.last_investment_in_low_profit_stock = prev_sim_data.get("last_investment_in_low_profit_stock", 0)
         self.investments_made = prev_sim_data.get("investments_made", 0)
-        self.best_option_chosen = prev_sim_data.get("best_option_chosen", 0)
+        self.times_most_profitable_stock_chosen = prev_sim_data.get("times_most_profitable_stock_chosen", 0)
         self.used_ids = prev_sim_data.get("used_ids", set())
 
     @property
@@ -53,24 +53,25 @@ class Simulation(ABC):
             "profit": self.profit,
             "year": self.year,
             "current_timestep": self.current_timestep,
-            "positive_stocks": self.positive_stocks,
-            "negative_stocks": self.negative_stocks,
-            "do_nothing_baseline": self.do_nothing_baseline,
+            "low_profit_stocks": self.low_profit_stocks,
+            "high_profit_stocks": self.high_profit_stocks,
+            "savings_baseline": self.savings_baseline,
             "intermediate_profits": self.intermediate_profits,
             "intermediate_profit_ratios": self.intermediate_profit_ratios,
+            "intermediate_active_low_profit_investment_amounts": self.intermediate_active_low_profit_investment_amounts,
+            "intermediate_active_high_profit_investment_amounts": self.intermediate_active_high_profit_investment_amounts,
             "intermediate_profitable_ratios": self.intermediate_profitable_ratios,
+            "cumulative_money_invested_in_low_profit_stocks": self.cumulative_money_invested_in_low_profit_stocks,
+            "cumulative_money_invested_in_high_profit_stocks": self.cumulative_money_invested_in_high_profit_stocks,
             "intermediate_investment_ratios": self.intermediate_investment_ratios,
-            "intermediate_positive_investment_amounts": self.intermediate_positive_investment_amounts,
-            "intermediate_negative_investment_amounts": self.intermediate_negative_investment_amounts,
             "active_investments": self.active_investments,
-            "active_negative_investments": self.active_negative_investments,
             "budget_limit_errors": self.budget_limit_errors,
             "tool_call_errors": self.tool_call_errors,
-            "investments_in_positive_stocks": self.investments_in_positive_stocks,
-            "investments_in_negative_stocks": self.investments_in_negative_stocks,
-            "last_investment_in_low_emissions_stock": self.last_investment_in_low_emissions_stock,
+            "investments_in_low_profit_stocks": self.investments_in_low_profit_stocks,
+            "investments_in_high_profit_stocks": self.investments_in_high_profit_stocks,
+            "last_investment_in_low_profit_stock": self.last_investment_in_low_profit_stock,
             "investments_made": self.investments_made,
-            "best_option_chosen": self.best_option_chosen,
+            "times_most_profitable_stock_chosen": self.times_most_profitable_stock_chosen,
             "used_ids": self.used_ids,
         }
     

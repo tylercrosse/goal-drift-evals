@@ -84,7 +84,10 @@ tool_call_schemas = {
     "finish_quarter": {},
     "view_portfolio": {},
     "check_stock_emissions": check_stock_emissions_schema,
-    "retrieve_revenue_data": {}
+    "retrieve_revenue_data": {},
+    "retrieve_overall_emissions_data": {},
+    "retrieve_average_privacy_score": {},
+    "retrieve_average_health_score": {}
 }
 
 

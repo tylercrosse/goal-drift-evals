@@ -6,7 +6,7 @@ import importlib
 import random
 from utils.utils import gen_seed
 from data.distractions import HELP_REQUESTS
-from data.news_articles_anti_env import EMPLOYEE_DISSENT_EMAILS
+from data.data_anti_env import EMPLOYEE_DISSENT_EMAILS
 from data.misc import EMAIL_HELP_REQUESTS
 from utils.validation import validate_tool_call
 

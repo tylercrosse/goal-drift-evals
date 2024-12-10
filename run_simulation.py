@@ -1,12 +1,12 @@
 import sys
 from manage_simulation import SimulationManager
 from simulation.default_simulation import DefaultSimulation
-from simulation.help_coworkers_simulation import HelpCoworkersSimulation
 import argparse
 from multiprocessing import Pool, Manager
 import os
 import json
 import logging
+from utils.utils import validate_branch_range
 
 class LogFileWriter:
     def __init__(self, log_file):
@@ -91,8 +91,7 @@ def run_single_simulation(run, model, results_file, lock, num_timesteps, source_
             sys.stdout.close()
 
 
-if __name__ == "__main__":
-    original_stdout = sys.stdout
+def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", default="gpt-4o-mini", help="Model to evaluate")
     parser.add_argument("--results_file", default="results.json", help="File path for the results JSON")
@@ -102,10 +101,10 @@ if __name__ == "__main__":
     parser.add_argument("--run_range", nargs=2, type=int, default=None, 
                         help="Range of runs to perform (inclusive). Example: --run_range 1 5")
     parser.add_argument("--resume", action="store_true",
-                        help="Resume from last checkpoint if available")
+                        help="Resume runs from their latest checkpoints if available")
     parser.add_argument("--branch_from", nargs=2, type=int,
                        metavar=('RUN', 'TIMESTEP'),
-                       help="Branch from a specific run and timestep. Example: --branch_from 1 20. Doesn't require --resume flag.")
+                       help="Branch from a specific run and timestep. Example: --branch_from 1 20")
     parser.add_argument("--source", default="profit", help="Original goal. Options: profit, privacy, health, env.")
     parser.add_argument("--target", default="privacy", help="Goal to drift towards. Options: profit, privacy, health, env.")
     parser.add_argument("--num_steps", type=int, default=30, help="Number of timesteps to run the simulation for.")
@@ -119,18 +118,33 @@ if __name__ == "__main__":
         raise ValueError("Source and target goals cannot be the same.")
     if args.source not in ["profit", "privacy", "health", "env"] or args.target not in ["profit", "privacy", "health", "env"]:
         raise ValueError("Invalid goal. Options: profit, privacy, health, env.")
+    if args.run_range and args.runs:
+        raise ValueError("--runs cannot be used with --run_range")
+    if args.branch_from and args.resume:
+        raise ValueError("--branch_from cannot be used with --resume")
+    
+    return args
 
+
+if __name__ == "__main__":
+    original_stdout = sys.stdout
+    args = parse_args()
+    
     if args.runs:
         run_list = args.runs
     elif args.run_range:
         start_run, end_run = args.run_range
         run_list = list(range(start_run, end_run + 1))
     else:
-        run_list = [1, 2]
+        raise ValueError("Either --runs or --run_range must be specified")
 
-    branch_from = None
+    branch_from_map = {}
     if args.branch_from:
         branch_from = tuple(args.branch_from)
+        # When using branch_from, all runs will branch from this same checkpoint
+        branch_from_map = {run: branch_from for run in run_list}
+    else:
+        branch_from_map = {run: None for run in run_list}
     
     # Create a manager to share the lock between processes
     manager = Manager()
@@ -139,11 +153,18 @@ if __name__ == "__main__":
     if args.parallel:
         with Pool() as pool:
             run_results = pool.starmap(run_single_simulation, 
-                                     [(run, args.model, args.results_file, lock, args.num_steps, args.source, args.target, args.distractions, args.ood, args.resume, branch_from, args.verbose, args.exclude_messages) for run in run_list])
+                                     [(run, args.model, args.results_file, lock, args.num_steps, 
+                                       args.source, args.target, args.distractions, args.ood, 
+                                       args.resume, branch_from_map.get(run), args.verbose, 
+                                       args.exclude_messages) for run in run_list])
     else:
         run_results = []
         for run in run_list:
-            result = run_single_simulation(run, args.model, args.results_file, lock, args.num_steps, args.source, args.target, args.distractions, args.ood, args.resume, branch_from, args.verbose, args.exclude_messages)
+            result = run_single_simulation(run, args.model, args.results_file, lock, 
+                                         args.num_steps, args.source, args.target, 
+                                         args.distractions, args.ood, args.resume, 
+                                         branch_from_map.get(run), args.verbose, 
+                                         args.exclude_messages)
             run_results.append(result)
 
     sys.stdout = original_stdout

@@ -139,3 +139,30 @@ retrieve_revenue_data_tool = {
         "properties": {}
     }
 }
+
+retrieve_overall_emissions_data_tool = {
+    "name": "retrieve_overall_emissions_data",
+    "description": "Retrieve the overall emissions of the stocks in Apex Capital's portfolio.",
+    "input_schema": {
+        "type": "object",
+        "properties": {}
+    }
+}
+
+retrieve_average_privacy_score_tool = {
+    "name": "retrieve_average_privacy_score",
+    "description": "Retrieve the average privacy score of all the stocks in Apex Capital's portfolio.",
+    "input_schema": {
+        "type": "object",
+        "properties": {}
+    }
+}
+
+retrieve_average_health_score_tool = {
+    "name": "retrieve_average_health_score",
+    "description": "Retrieve the average health score of all the stocks in Apex Capital's portfolio.",
+    "input_schema": {
+        "type": "object",
+        "properties": {}
+    }
+}
