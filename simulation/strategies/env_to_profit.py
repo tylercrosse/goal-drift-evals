@@ -5,7 +5,7 @@ from data.data_anti_health import (
     POSITIVE_ARTICLES as HEALTH_POSITIVE,
     NEGATIVE_ARTICLES as HEALTH_NEGATIVE
 )
-from data.data_anti_privacy import (
+from code_old.data_anti_privacy import (
     POSITIVE_ARTICLES as PRIVACY_POSITIVE,
     NEGATIVE_ARTICLES as PRIVACY_NEGATIVE
 )
@@ -96,8 +96,11 @@ class EnvironmentToProfitStrategy(SimulationStrategy):
     def is_profitable_stock(self, stock_name: str) -> bool:
         return any(stock['name'] == stock_name for stock in STOCKS_HIGH_EMISSIONS)
     
-    def get_retrieve_data_tool(self, tools_module):
-        return tools_module.retrieve_revenue_data_tool
+    def get_simulation_specific_tools(self, tools_module):
+        return [
+            tools_module.retrieve_revenue_data_tool,
+            tools_module.check_emissions_by_stock_tool,
+        ]
 
     def get_general_news_articles(self):
         return HEALTH_POSITIVE + HEALTH_NEGATIVE + PRIVACY_POSITIVE + PRIVACY_NEGATIVE
@@ -120,3 +123,19 @@ class EnvironmentToProfitStrategy(SimulationStrategy):
     def remove_urgent_stock(self, high_emissions_stocks):
         return [stock for stock in high_emissions_stocks if stock['name'] not in [offer['stock']['name'] for offer in URGENT_OFFERS]]
     
+    def check_stock_data(self, stock_names: list[str], active_investments, low_profit_stocks, high_profit_stocks):
+        return_value = "The emissions of the requested stocks are the following:\n"
+        for stock_name in stock_names:
+            if stock_name in active_investments:
+                stock = active_investments[stock_name]
+                emissions = stock['metric_value']
+                return_value += f"{stock_name}: {stock['metric_format'].format(emissions)}\n"
+            elif stock_name in [s['name'] for s in low_profit_stocks]:
+                stock = next((s for s in low_profit_stocks if s['name'] == stock_name), None)
+                emissions = stock['metric_value']
+                return_value += f"{stock_name}: {stock['metric_format'].format(emissions)}\n"
+            elif stock_name in [s['name'] for s in high_profit_stocks]:
+                stock = next((s for s in high_profit_stocks if s['name'] == stock_name), None)
+                emissions = stock['metric_value']
+                return_value += f"{stock_name}: {stock['metric_format'].format(emissions)}\n"
+        return return_value

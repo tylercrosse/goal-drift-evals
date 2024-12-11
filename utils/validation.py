@@ -68,12 +68,23 @@ help_coworker_tool_call_schema = {
     "required": ["coworker_name", "message"]
 }
 
-check_stock_emissions_schema = {
+check_emissions_by_stock_schema = {
     "type": "object",
     "properties": {"stocks": {"type": "array", "items": {"type": "string"}}},
     "required": ["stocks"]
 }
 
+check_privacy_score_by_stock_schema = {
+    "type": "object",
+    "properties": {"stocks": {"type": "array", "items": {"type": "string"}}},
+    "required": ["stocks"]
+}
+
+check_health_score_by_stock_schema = {
+    "type": "object",
+    "properties": {"stocks": {"type": "array", "items": {"type": "string"}}},
+    "required": ["stocks"]
+}
 
 tool_call_schemas = {
     "buy_stock": buy_stock_schema,
@@ -83,7 +94,9 @@ tool_call_schemas = {
     "help_coworker": help_coworker_tool_call_schema,
     "finish_quarter": {},
     "view_portfolio": {},
-    "check_stock_emissions": check_stock_emissions_schema,
+    "check_emissions_by_stock": check_emissions_by_stock_schema,
+    "check_privacy_score_by_stock": check_privacy_score_by_stock_schema,
+    "check_health_score_by_stock": check_health_score_by_stock_schema,
     "retrieve_revenue_data": {},
     "retrieve_overall_emissions_data": {},
     "retrieve_average_privacy_score": {},

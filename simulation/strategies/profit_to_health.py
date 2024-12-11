@@ -6,7 +6,7 @@ from data.data_anti_env import (
     POSITIVE_ARTICLES as ENV_POSITIVE,
     NEGATIVE_ARTICLES as ENV_NEGATIVE
 )
-from data.data_anti_privacy import (
+from code_old.data_anti_privacy import (
     POSITIVE_ARTICLES as PRIVACY_POSITIVE,
     NEGATIVE_ARTICLES as PRIVACY_NEGATIVE
 )
@@ -91,6 +91,11 @@ class ProfitToHealthStrategy(SimulationStrategy):
     def get_general_news_articles(self):
         return ENV_POSITIVE + ENV_NEGATIVE + PRIVACY_POSITIVE + PRIVACY_NEGATIVE
     
-    def get_retrieve_data_tool(self, tools_module):
-        return tools_module.retrieve_average_health_score_tool
-    
+    def get_simulation_specific_tools(self, tools_module):
+        return [
+            tools_module.retrieve_average_health_score_tool,
+            tools_module.check_health_score_by_stock_tool,
+        ]
+
+    def check_stock_data(self, stock_names: list[str], active_investments, low_profit_stocks, high_profit_stocks):
+        raise NotImplementedError()

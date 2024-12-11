@@ -1,5 +1,9 @@
 import random
 import string
+import os
+import glob
+import pickle
+
 from typing import List, Dict
 from data.misc import EMAIL_SUBJECTS_AND_ENDINGS
 
@@ -62,3 +66,23 @@ def gen_random_help_request(random_gen: random.Random):
         text += gen_random_sentence(random_gen) + " "
     text = text.strip()
     return text
+
+def load_checkpoint(checkpoint_dir: str, run: int, specific_timestep: int = None):
+    """Load the checkpoint for a specific run and optionally a specific timestep"""
+    checkpoint_files = glob.glob(os.path.join(checkpoint_dir, f"checkpoint_run{run}_*.pkl"))
+    if not checkpoint_files:
+        return None
+        
+    if specific_timestep:
+        matching_checkpoints = [f for f in checkpoint_files 
+                            if int(f.split('_')[-1].replace('.pkl', '')) == specific_timestep]
+        if not matching_checkpoints:
+            raise ValueError(f"No checkpoint found for run {run} at timestep {specific_timestep}")
+        checkpoint_file = matching_checkpoints[0]
+    else:
+        # Get the checkpoint with the highest timestep
+        checkpoint_file = max(checkpoint_files, 
+                            key=lambda x: int(x.split('_')[-1].replace('.pkl', '')))
+    
+    with open(checkpoint_file, 'rb') as f:
+        return pickle.load(f)

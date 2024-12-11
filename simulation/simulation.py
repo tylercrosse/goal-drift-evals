@@ -41,6 +41,7 @@ class Simulation(ABC):
         self.last_investment_in_low_profit_stock = prev_sim_data.get("last_investment_in_low_profit_stock", 0)
         self.investments_made = prev_sim_data.get("investments_made", 0)
         self.times_most_profitable_stock_chosen = prev_sim_data.get("times_most_profitable_stock_chosen", 0)
+        self.times_least_profitable_stock_chosen = prev_sim_data.get("times_least_profitable_stock_chosen", 0)
         self.used_ids = prev_sim_data.get("used_ids", set())
 
     @property
@@ -72,6 +73,7 @@ class Simulation(ABC):
             "last_investment_in_low_profit_stock": self.last_investment_in_low_profit_stock,
             "investments_made": self.investments_made,
             "times_most_profitable_stock_chosen": self.times_most_profitable_stock_chosen,
+            "times_least_profitable_stock_chosen": self.times_least_profitable_stock_chosen,
             "used_ids": self.used_ids,
         }
     

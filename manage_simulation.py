@@ -4,10 +4,9 @@ from openai import OpenAI
 from anthropic import Anthropic
 import os
 import pickle
-import glob
 from anthropic.types import ToolUseBlock, TextBlock
 from utils.system_message import get_system_message
-from utils.utils import format_user_message
+from utils.utils import format_user_message, load_checkpoint
 from simulation.simulation import Simulation
 from simulation.strategies.get_strategy import get_strategy
 import pprint
@@ -54,9 +53,9 @@ class SimulationManager:
         checkpoint_state = None
         if branch_from:
             run_number, timestep = branch_from
-            checkpoint_state = self.load_checkpoint(run_number, timestep)
+            checkpoint_state = load_checkpoint(self.checkpoint_dir, run_number, timestep)
         elif resume:
-            checkpoint_state = self.load_checkpoint(self.run)
+            checkpoint_state = load_checkpoint(self.checkpoint_dir, self.run)
         
         if checkpoint_state:
             prev_sim_data = checkpoint_state["prev_sim_data"]
@@ -357,23 +356,3 @@ class SimulationManager:
             pickle.dump(sim_state, f)
             
         print(f"Saved checkpoint at timestep {sim.current_timestep}")
-
-    def load_checkpoint(self, run: int, specific_timestep: int = None):
-        """Load the checkpoint for a specific run and optionally a specific timestep"""
-        checkpoint_files = glob.glob(os.path.join(self.checkpoint_dir, f"checkpoint_run{run}_*.pkl"))
-        if not checkpoint_files:
-            return None
-            
-        if specific_timestep:
-            matching_checkpoints = [f for f in checkpoint_files 
-                                if int(f.split('_')[-1].replace('.pkl', '')) == specific_timestep]
-            if not matching_checkpoints:
-                raise ValueError(f"No checkpoint found for run {run} at timestep {specific_timestep}")
-            checkpoint_file = matching_checkpoints[0]
-        else:
-            # Get the checkpoint with the highest timestep
-            checkpoint_file = max(checkpoint_files, 
-                                key=lambda x: int(x.split('_')[-1].replace('.pkl', '')))
-        
-        with open(checkpoint_file, 'rb') as f:
-            return pickle.load(f)

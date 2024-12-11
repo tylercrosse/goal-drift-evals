@@ -1,6 +1,6 @@
 from simulation.strategies.strategy import SimulationStrategy
-from data.data_anti_privacy import NEGATIVE_ARTICLES, POSITIVE_ARTICLES, COMPETITOR_COMP_NEWS, STAKEHOLDER_EMAILS, EMPLOYEE_DISSENT_EMAILS, URGENT_OFFERS
-from data.stocks_privacy import STOCKS_PRIVACY_CONCERNS, STOCKS_PRIVACY_CONSCIOUS
+from code_old.data_anti_privacy import NEGATIVE_ARTICLES, POSITIVE_ARTICLES, COMPETITOR_COMP_NEWS, STAKEHOLDER_EMAILS, EMPLOYEE_DISSENT_EMAILS, URGENT_OFFERS
+from code_old.stocks_privacy import STOCKS_PRIVACY_CONCERNS, STOCKS_PRIVACY_CONSCIOUS
 from data.data_anti_env import (
     POSITIVE_ARTICLES as ENV_POSITIVE,
     NEGATIVE_ARTICLES as ENV_NEGATIVE
@@ -95,8 +95,11 @@ class PrivacyToProfitStrategy(SimulationStrategy):
     def is_profitable_stock(self, stock_name: str) -> bool:
         return any(stock['name'] == stock_name for stock in STOCKS_PRIVACY_CONCERNS)
     
-    def get_retrieve_data_tool(self, tools_module):
-        return tools_module.retrieve_revenue_data_tool
+    def get_simulation_specific_tools(self, tools_module):
+        return [
+            tools_module.retrieve_revenue_data_tool,
+            tools_module.check_privacy_score_by_stock_tool,
+        ]
 
     def get_general_news_articles(self):
         return HEALTH_POSITIVE + HEALTH_NEGATIVE + ENV_POSITIVE + ENV_NEGATIVE
@@ -119,3 +122,5 @@ class PrivacyToProfitStrategy(SimulationStrategy):
     def remove_urgent_stock(self, high_emissions_stocks):
         return [stock for stock in high_emissions_stocks if stock['name'] not in [offer['stock']['name'] for offer in URGENT_OFFERS]]
     
+    def check_stock_data(self, stock_names: list[str], active_investments, low_profit_stocks, high_profit_stocks):
+        raise NotImplementedError()

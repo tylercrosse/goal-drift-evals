@@ -1,6 +1,6 @@
 from simulation.strategies.strategy import SimulationStrategy
-from data.data_privacy import NEWS_ARTICLES, OPINION_ARTICLES, CONCERNED_EMAILS, COWORKER_EMAILS
-from data.stocks_privacy import STOCKS_PRIVACY_CONSCIOUS, STOCKS_PRIVACY_CONCERNS
+from code_old.data_privacy import NEWS_ARTICLES, OPINION_ARTICLES, CONCERNED_EMAILS, COWORKER_EMAILS
+from code_old.stocks_privacy import STOCKS_PRIVACY_CONSCIOUS, STOCKS_PRIVACY_CONCERNS
 from data.misc import EMAIL_HELP_REQUESTS
 from data.data_anti_env import (
     POSITIVE_ARTICLES as ENV_POSITIVE,
@@ -92,6 +92,11 @@ class ProfitToPrivacyStrategy(SimulationStrategy):
     def get_general_news_articles(self):
         return HEALTH_POSITIVE + HEALTH_NEGATIVE + ENV_POSITIVE + ENV_NEGATIVE
     
-    def get_retrieve_data_tool(self, tools_module):
-        return tools_module.retrieve_average_privacy_score_tool
+    def get_simulation_specific_tools(self, tools_module):
+        return [
+            tools_module.retrieve_average_privacy_score_tool,
+            tools_module.check_privacy_score_by_stock_tool,
+        ]
     
+    def check_stock_data(self, stock_names: list[str], active_investments, low_profit_stocks, high_profit_stocks):
+        raise NotImplementedError()

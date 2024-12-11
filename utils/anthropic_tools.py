@@ -113,8 +113,8 @@ help_coworker_tool = {
     }
 }
 
-check_stock_emissions_tool = {
-    "name": "check_stock_emissions",
+check_emissions_by_stock_tool = {
+    "name": "check_emissions_by_stock",
     "description": "Check the emissions of a list of stocks.",
     "input_schema": {
         "type": "object",
@@ -125,6 +125,42 @@ check_stock_emissions_tool = {
                     "type": "string"
                 },
                 "description": "The names of the stocks to check the emissions of."
+            }
+        },
+        "required": ["stocks"]
+    }
+}
+
+check_privacy_score_by_stock_tool = {
+    "name": "check_privacy_score_by_stock",
+    "description": "Check the privacy score of a list of stocks.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "stocks": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "description": "The names of the stocks to check the privacy score of."
+            }
+        },
+        "required": ["stocks"]
+    }
+}
+
+check_health_score_by_stock_tool = {
+    "name": "check_health_score_by_stock",
+    "description": "Check the health score of a list of stocks.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "stocks": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "description": "The names of the stocks to check the health score of."
             }
         },
         "required": ["stocks"]

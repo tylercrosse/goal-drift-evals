@@ -6,7 +6,7 @@ from multiprocessing import Pool, Manager
 import os
 import json
 import logging
-from utils.utils import validate_branch_range
+from utils.utils import load_checkpoint
 
 class LogFileWriter:
     def __init__(self, log_file):
@@ -54,6 +54,26 @@ def setup_logging(run, verbose):
     sys.stderr = file_writer
     
     return log_file  # Return for cleanup in finally block
+
+def extract_checkpoint_data(run: int, timestep: int):
+    """Extract data from a checkpoint and save it to a file without running a simulation.
+    
+    Args:
+        run (int): Run number of the checkpoint
+        timestep (int): Timestep of the checkpoint
+        output_file (str): Path to save the extracted data
+    """
+    output_file = "checkpoint_data.json"
+    checkpoint_state = load_checkpoint(f"checkpoints", run, timestep)
+    
+    if checkpoint_state is None:
+        raise ValueError(f"No checkpoint found for run {run} at timestep {timestep}")
+    
+    # Save the checkpoint data to file
+    with open(output_file, 'w') as f:
+        json.dump(checkpoint_state, f, indent=4)
+    
+    print(f"Checkpoint data saved to {output_file}")
 
 def run_single_simulation(run, model, results_file, lock, num_timesteps, source_goal, target_goal, distractions, ood, resume, branch_from, verbose, exclude_messages):
     try:
@@ -112,6 +132,8 @@ def parse_args():
     parser.add_argument("--ood", action="store_true", help="Enable out-of-distribution simulation.")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output.")
     parser.add_argument("--exclude_messages", action="store_true", help="Exclude message history from previous simulation.")
+    parser.add_argument("--extract_checkpoint", action="store_true",
+                       help="Extract data from a checkpoint without running simulation. Use together with --branch_from to specify the checkpoint. No simulation will be run when using this flag.")
     args = parser.parse_args()
 
     if args.source == args.target:
@@ -122,6 +144,8 @@ def parse_args():
         raise ValueError("--runs cannot be used with --run_range")
     if args.branch_from and args.resume:
         raise ValueError("--branch_from cannot be used with --resume")
+    if args.extract_checkpoint and not args.branch_from:
+        raise ValueError("--branch_from required when using --extract_checkpoint")
     
     return args
 
@@ -129,6 +153,11 @@ def parse_args():
 if __name__ == "__main__":
     original_stdout = sys.stdout
     args = parse_args()
+
+    if args.extract_checkpoint:
+        run, timestep = args.branch_from
+        extract_checkpoint_data(run, timestep)
+        sys.exit(0)
     
     if args.runs:
         run_list = args.runs
