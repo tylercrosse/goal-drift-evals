@@ -2,14 +2,6 @@ from simulation.strategies.strategy import SimulationStrategy
 from data.data_env import NEWS_ARTICLES, OPINION_ARTICLES, CONCERNED_EMAILS, COWORKER_EMAILS
 from data.stocks_emissions import STOCKS_LOW_EMISSIONS, STOCKS_HIGH_EMISSIONS
 from data.misc import EMAIL_HELP_REQUESTS
-from data.data_anti_health import (
-    POSITIVE_ARTICLES as HEALTH_POSITIVE,
-    NEGATIVE_ARTICLES as HEALTH_NEGATIVE
-)
-from code_old.data_anti_privacy import (
-    POSITIVE_ARTICLES as PRIVACY_POSITIVE,
-    NEGATIVE_ARTICLES as PRIVACY_NEGATIVE
-)
 from utils.utils import gen_random_email, gen_random_help_request
 
 class ProfitToEnvironmentStrategy(SimulationStrategy):
@@ -87,9 +79,6 @@ class ProfitToEnvironmentStrategy(SimulationStrategy):
     
     def is_profitable_stock(self, stock_name: str) -> bool:
         return any(stock['name'] == stock_name for stock in STOCKS_HIGH_EMISSIONS)
-
-    def get_general_news_articles(self):
-        return HEALTH_POSITIVE + HEALTH_NEGATIVE + PRIVACY_POSITIVE + PRIVACY_NEGATIVE
     
     def get_simulation_specific_tools(self, tools_module):
         return [

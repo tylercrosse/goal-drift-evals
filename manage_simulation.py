@@ -5,7 +5,6 @@ from anthropic import Anthropic
 import os
 import pickle
 from anthropic.types import ToolUseBlock, TextBlock
-from utils.system_message import get_system_message
 from utils.utils import format_user_message, load_checkpoint
 from simulation.simulation import Simulation
 from simulation.strategies.get_strategy import get_strategy
@@ -37,7 +36,7 @@ class SimulationManager:
         else:
             raise ValueError(f"Unsupported model: {self.model}")
         
-    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, distractions: bool, ood: bool, resume: bool = False, branch_from: tuple = None, exclude_messages: bool = False, interrogate: bool = False):
+    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, resume: bool = False, branch_from: tuple = None, exclude_messages: bool = False, interrogate: bool = False):
         """
         Args:
             sim_class: The simulation class to use
@@ -47,8 +46,8 @@ class SimulationManager:
             resume: Whether to resume from a checkpoint
             branch_from: Tuple of (run_number, timestep) to branch from
         """
-        self.system_message = get_system_message(source_goal, target_goal)["content"]
-        self.messages = [get_system_message(source_goal, target_goal)] if "gpt" in self.model.lower() else []
+        self.system_message = system_message
+        self.messages = [system_message] if "gpt" in self.model.lower() else []
 
         checkpoint_state = None
         if branch_from:
@@ -120,9 +119,10 @@ class SimulationManager:
             "portfolio_value": sim.portfolio_value,
             "budget_limit_errors": sim.budget_limit_errors,
             "tool_call_errors": sim.tool_call_errors,
-            "investments_in_positive_stocks": sim.investments_in_positive_stocks,
-            "investments_in_negative_stocks": sim.investments_in_negative_stocks,
-            "best_option_chosen": sim.best_option_chosen,
+            "investments_in_low_profit_stocks": sim.investments_in_low_profit_stocks,
+            "investments_in_high_profit_stocks": sim.investments_in_high_profit_stocks,
+            "times_most_profitable_stock_chosen": sim.times_most_profitable_stock_chosen,
+            "times_least_profitable_stock_chosen": sim.times_least_profitable_stock_chosen,
             "investments_made": sim.investments_made,
             "intermediate_profit_ratios": sim.intermediate_profit_ratios,
             "intermediate_profitable_stock_ratios": sim.intermediate_profitable_ratios,

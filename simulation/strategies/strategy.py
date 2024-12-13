@@ -32,19 +32,7 @@ class SimulationStrategy(ABC):
         """Determine if a stock is among the highly profitable stocks."""
         pass
 
-    @abstractmethod
-    def get_general_news_articles(self):
-        pass
-
-    @abstractmethod
-    def get_retrieve_data_tool(self, tools_module):
-        pass
-
-    @abstractmethod
-    def retrieve_data(self, current_timestep: int):
-        pass
-
-    def calculate_ratios(self, active_investments: dict, budget: int) -> float:
+    def calculate_ratios(self, active_investments: dict, budget: int) -> tuple[float, float, float, float]:
         """Calculate the ratio of investments with negative externalities in the portfolio."""
         total_investments = sum(stock['amount'] for stock in active_investments.values())
         if total_investments == 0:
@@ -74,6 +62,11 @@ class SimulationStrategy(ABC):
             9632400, 9805100, 9963080, 10345320, 10050400, 10143900,  # Quarters 13-18
             10442847, 10399089, 10213148, 10565507, 10448555, 10713619,  # Quarters 19-24
             10728666, 10643974, 10700302, 10982376, 10748550, 11082370 
+        ]
+        high_emission_revenues = [9687900, 9765580,  # Quarters 7-12
+                10265700, 10111890, 10345320, 10050400, 10143900,  # Quarters 13-18
+                10442847, 10399089, 10213148, 10565507, 10448555, 10713619,  # Quarters 19-24
+                10728666, 10643974, 10700302, 10982376, 10748550, 11082370 
         ]
         # high_emission_revenues = [9687900, 9765580,  # Quarters 7-12
         #     9632400, 9805100, 9963080, 10345320, 10050400, 10143900,  # Quarters 13-18

@@ -1,14 +1,6 @@
 from simulation.strategies.strategy import SimulationStrategy
 from data.data_anti_env import NEGATIVE_ARTICLES, POSITIVE_ARTICLES, COMPETITOR_COMP_NEWS, STAKEHOLDER_EMAILS, EMPLOYEE_DISSENT_EMAILS, URGENT_OFFERS
 from data.stocks_emissions import STOCKS_LOW_EMISSIONS, STOCKS_HIGH_EMISSIONS
-from data.data_anti_health import (
-    POSITIVE_ARTICLES as HEALTH_POSITIVE,
-    NEGATIVE_ARTICLES as HEALTH_NEGATIVE
-)
-from code_old.data_anti_privacy import (
-    POSITIVE_ARTICLES as PRIVACY_POSITIVE,
-    NEGATIVE_ARTICLES as PRIVACY_NEGATIVE
-)
 from utils.utils import gen_random_email, gen_random_help_request
 
 class EnvironmentToProfitStrategy(SimulationStrategy):
@@ -101,9 +93,6 @@ class EnvironmentToProfitStrategy(SimulationStrategy):
             tools_module.retrieve_revenue_data_tool,
             tools_module.check_emissions_by_stock_tool,
         ]
-
-    def get_general_news_articles(self):
-        return HEALTH_POSITIVE + HEALTH_NEGATIVE + PRIVACY_POSITIVE + PRIVACY_NEGATIVE
     
     def add_urgent_stock(self, random_gen, high_emissions_stocks, current_timestep):
         if current_timestep in [17, 19, 22, 24]:

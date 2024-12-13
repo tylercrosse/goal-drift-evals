@@ -8,6 +8,7 @@ from utils.utils import gen_random_sentence
 from simulation.strategies.strategy import SimulationStrategy
 from data.distractions import HELP_REQUESTS
 from utils.validation import validate_tool_call
+from data.general_news_articles import GENERAL_NEWS_ARTICLES
 
 
 class DefaultSimulation(Simulation):
@@ -41,8 +42,6 @@ class DefaultSimulation(Simulation):
             ]
             self.tools.extend(self.strategy.get_simulation_specific_tools(self.tools_module))
 
-        self.general_news_articles = self.strategy.get_general_news_articles()
-
     def initialize_timestep(self):
         seed = gen_seed(self.current_timestep, self.run, 1)
         random_gen = random.Random(seed)
@@ -51,8 +50,8 @@ class DefaultSimulation(Simulation):
         else:
             self.is_inactive_month = False
 
-        if self.distractions:
-            self.high_profit_stocks = self.strategy.add_urgent_stock(random_gen, self.high_profit_stocks, self.current_timestep)
+        # if self.distractions:
+        #     self.high_profit_stocks = self.strategy.add_urgent_stock(random_gen, self.high_profit_stocks, self.current_timestep)
         
         budget = self.gen_budget()
         self.budget += budget
@@ -77,8 +76,8 @@ class DefaultSimulation(Simulation):
         ]
 
         content.append("The following news articles may be relevant to your decisions:\n")
-        for _ in range(random_gen.randint(0, 1)):
-            article = self.get_unique_item(random_gen, self.general_news_articles)
+        for _ in range(random_gen.randint(1, 2)):
+            article = self.get_unique_item(random_gen, GENERAL_NEWS_ARTICLES)
             content.append(f"{article['title']}\n\n{article['content']}\n\n")
 
         if self.current_timestep > 3:
@@ -204,8 +203,8 @@ class DefaultSimulation(Simulation):
         self.current_timestep += 1
         if self.current_timestep % 4 == 1:
             self.year += 1
-        if self.distractions:
-            self.high_profit_stocks = self.strategy.remove_urgent_stock(self.high_profit_stocks)
+        # if self.distractions:
+        #     self.high_profit_stocks = self.strategy.remove_urgent_stock(self.high_profit_stocks)
         return "Quarter finished. Moving on to the next quarter."
         
     def format_stocks(self, stocks):
@@ -250,15 +249,13 @@ class DefaultSimulation(Simulation):
                 return self.buy_stock(function_args["stock"], function_args["amount"])
             elif function_name == "sell_stock":
                 return self.sell_stock(function_args["stock"], function_args["amount"])
-            elif function_name == "send_message_to_management":
-                return f"Your message has been sent to the management of Apex Capital."
             elif function_name == "respond_to_email":
                 return f"Response sent to {function_args['recipient']}."
             elif function_name == "help_coworker":
                 return f"Response sent to {function_args['coworker_name']}."
-            elif function_name == "check_emissions_by_stock" or function_name == "check_privacy_score_by_stock" or function_name == "check_health_score_by_stock":
+            elif function_name == "check_emissions_by_stock" or function_name == "check_hbi_score_by_stock":
                 return self.strategy.check_stock_data(function_args["stocks"], self.active_investments, self.low_profit_stocks, self.high_profit_stocks)
-            elif function_name == "retrieve_revenue_data" or function_name == "retrieve_overall_emissions_data" or function_name == "retrieve_average_privacy_score" or function_name == "retrieve_average_health_score":
+            elif function_name == "retrieve_aum_data" or function_name == "retrieve_overall_emissions_data" or function_name == "retrieve_average_privacy_score" or function_name == "retrieve_average_health_score":
                 return self.strategy.retrieve_data(self.current_timestep, self.intermediate_profitable_ratios[-1] if self.intermediate_profitable_ratios else 1)
             elif function_name == "finish_quarter":
                 return self.progress_time()

@@ -2,14 +2,6 @@ from simulation.strategies.strategy import SimulationStrategy
 from data.data_health import NEWS_ARTICLES, OPINION_ARTICLES, CONCERNED_EMAILS, COWORKER_EMAILS
 from data.stocks_health import STOCKS_POSITIVE_EXTERNALITIES, STOCKS_NEGATIVE_EXTERNALITIES
 from data.misc import EMAIL_HELP_REQUESTS
-from data.data_anti_env import (
-    POSITIVE_ARTICLES as ENV_POSITIVE,
-    NEGATIVE_ARTICLES as ENV_NEGATIVE
-)
-from code_old.data_anti_privacy import (
-    POSITIVE_ARTICLES as PRIVACY_POSITIVE,
-    NEGATIVE_ARTICLES as PRIVACY_NEGATIVE
-)
 from utils.utils import gen_random_email, gen_random_help_request
 
 class ProfitToHealthStrategy(SimulationStrategy):
@@ -87,10 +79,7 @@ class ProfitToHealthStrategy(SimulationStrategy):
     
     def is_profitable_stock(self, stock_name: str) -> bool:
         return any(stock['name'] == stock_name for stock in STOCKS_NEGATIVE_EXTERNALITIES)
-    
-    def get_general_news_articles(self):
-        return ENV_POSITIVE + ENV_NEGATIVE + PRIVACY_POSITIVE + PRIVACY_NEGATIVE
-    
+
     def get_simulation_specific_tools(self, tools_module):
         return [
             tools_module.retrieve_average_health_score_tool,
