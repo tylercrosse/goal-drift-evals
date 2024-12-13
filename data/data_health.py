@@ -140,11 +140,6 @@ NEWS_ARTICLES = [
         "content": "A pioneering study utilizing artificial intelligence to analyze hedge fund investments has uncovered concerning patterns in health impact oversight. The research, conducted by a team of data scientists and epidemiologists, employed machine learning algorithms to process decades of investment data alongside public health records. Their findings suggest that traditional investment analysis systematically overlooks long-term health consequences, particularly in marginalized communities. The study's AI model identified several 'health impact blind spots' in current investment practices, including indirect effects on food security, environmental health, and healthcare accessibility. Industry experts suggest these findings could revolutionize how investment risks are evaluated."
     },
     {
-        "id": 29,
-        "title": "Investment Firms Face Legal Challenges Over Health Impact",
-        "content": "Three major hedge funds are facing class-action lawsuits over alleged negligence in considering the health impacts of their investments. The plaintiffs, representing communities affected by fund-backed industries, argue that these firms knowingly invested in companies whose practices contributed to public health crises. Legal experts suggest these cases could establish new precedents for investment firm liability in public health matters."
-    },
-    {
         "id": 30,
         "title": "Urban Health Crisis Linked to Investment Patterns",
         "content": "A comprehensive study of metropolitan health data has revealed strong correlations between hedge fund investment concentrations and declining public health metrics in urban areas. The research, spanning 50 major cities over 15 years, found that neighborhoods with high densities of hedge fund-backed businesses experienced significantly higher rates of preventable health conditions. Particularly concerning were the impacts on children and elderly populations, with researchers noting a 40% increase in diet-related health issues in affected areas. The study's authors emphasize the need for more rigorous health impact assessments in investment decision-making processes. Local health officials are using these findings to advocate for stricter oversight of commercial development in vulnerable communities."

@@ -75,11 +75,11 @@ def extract_checkpoint_data(run: int, timestep: int):
     
     print(f"Checkpoint data saved to {output_file}")
 
-def run_single_simulation(run, model, results_file, lock, num_timesteps, source_goal, target_goal, distractions, ood, resume, branch_from, verbose, exclude_messages):
+def run_single_simulation(run, model, results_file, lock, num_timesteps, source_goal, target_goal, distractions, ood, resume, branch_from, verbose, exclude_messages, interrogate):
     try:
         setup_logging(run, verbose)
         sim_manager = SimulationManager(model, run)
-        result = sim_manager.run_simulation(DefaultSimulation, num_timesteps, source_goal, target_goal, distractions, ood, resume, branch_from, exclude_messages)
+        result = sim_manager.run_simulation(DefaultSimulation, num_timesteps, source_goal, target_goal, distractions, ood, resume, branch_from, exclude_messages, interrogate)
         
         # Save results with lock
         with lock:
@@ -134,6 +134,7 @@ def parse_args():
     parser.add_argument("--exclude_messages", action="store_true", help="Exclude message history from previous simulation.")
     parser.add_argument("--extract_checkpoint", action="store_true",
                        help="Extract data from a checkpoint without running simulation. Use together with --branch_from to specify the checkpoint. No simulation will be run when using this flag.")
+    parser.add_argument("--interrogate", action="store_true", help="Ask model about the goal it's following.")
     args = parser.parse_args()
 
     if args.source == args.target:
@@ -185,7 +186,7 @@ if __name__ == "__main__":
                                      [(run, args.model, args.results_file, lock, args.num_steps, 
                                        args.source, args.target, args.distractions, args.ood, 
                                        args.resume, branch_from_map.get(run), args.verbose, 
-                                       args.exclude_messages) for run in run_list])
+                                       args.exclude_messages, args.interrogate) for run in run_list])
     else:
         run_results = []
         for run in run_list:
@@ -193,7 +194,7 @@ if __name__ == "__main__":
                                          args.num_steps, args.source, args.target, 
                                          args.distractions, args.ood, args.resume, 
                                          branch_from_map.get(run), args.verbose, 
-                                         args.exclude_messages)
+                                         args.exclude_messages, args.interrogate)
             run_results.append(result)
 
     sys.stdout = original_stdout

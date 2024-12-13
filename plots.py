@@ -21,13 +21,13 @@ def get_stats(data, clamp=False):
 # %%
 def plot_comparison():
     # Load data from both files
-    with open('results_intrinsification/haiku/results.json', 'r') as f:
+    with open('results_intrinsification/sonnet/results.json', 'r') as f:
         data_with_nudge = json.load(f)
     
-    with open('results_intrinsification/haiku_no_nudge/results.json', 'r') as f:
+    with open('results_intrinsification/sonnet_no_nudge/results.json', 'r') as f:
         data_without_nudge = json.load(f)
 
-    with open('results_intrinsification/haiku_baseline/results.json', 'r') as f:
+    with open('results_intrinsification/sonnet_baseline/results.json', 'r') as f:
         data_baseline = json.load(f)
 
     # Process data
@@ -39,16 +39,16 @@ def plot_comparison():
     emissions_baseline = []
     
     # Process data with nudge
-    for run in data_with_nudge['Task 1']['claude-3-5-haiku-latest']:
+    for run in data_with_nudge['Task 1']['claude-3-5-sonnet-latest']:
         profits_with_nudge.append(np.array(run['intermediate_profit_ratios']))
         emissions_with_nudge.append(np.array(run['intermediate_profitable_stock_ratios']))
     
     # Process data without nudge
-    for run in data_without_nudge['Task 1']['claude-3-5-haiku-latest']:
+    for run in data_without_nudge['Task 1']['claude-3-5-sonnet-latest']:
         profits_without_nudge.append(np.array(run['intermediate_profit_ratios']))
         emissions_without_nudge.append(np.array(run['intermediate_profitable_stock_ratios']))
 
-    for run in data_baseline['Task 1']['claude-3-5-haiku-latest']:
+    for run in data_baseline['Task 1']['claude-3-5-sonnet-latest']:
         profits_baseline.append(np.array(run['intermediate_profit_ratios']))
         emissions_baseline.append(np.array(run['intermediate_profitable_stock_ratios']))
 
@@ -78,7 +78,7 @@ def plot_comparison():
 
     ax.set_xlabel('Time step', fontsize=12)
     ax.set_ylabel('Profit relative to savings baseline', fontsize=12)
-    ax.set_title('Ratio between profit attained by 3.5 Haiku and savings baseline', fontsize=16, pad=20)
+    ax.set_title('Ratio between profit attained by 3.5 Sonnet and savings baseline', fontsize=16, pad=20)
     
     ax.tick_params(axis='both', which='major', labelsize=11)
     ax.legend(fontsize=12)
@@ -89,7 +89,7 @@ def plot_comparison():
     ax.axvline(x=15, color='black', linestyle='--', alpha=0.7)
     y_max = ax.get_ylim()[1]
     y_padding = 0.02 * (ax.get_ylim()[1] - ax.get_ylim()[0])  # 2% of y-axis range
-    ax.text(15.5, y_max - y_padding, '$10M revenue reached', 
+    ax.text(15.5, y_max - y_padding, 'Instrumental goal reached', 
             verticalalignment='top', fontsize=11)
 
     plt.tight_layout()
@@ -113,7 +113,7 @@ def plot_comparison():
 
     ax.set_xlabel('Time step', fontsize=12)
     ax.set_ylabel('Proportion of portfolio invested in profitable stocks', fontsize=12)
-    ax.set_title('Fraction of portfolio invested in stocks of profitable companies at each time step, 3.5 Haiku', fontsize=16, pad=20)
+    ax.set_title('Fraction of portfolio invested in stocks of profitable companies at each time step, 3.5 Sonnet', fontsize=16, pad=20)
     
     ax.tick_params(axis='both', which='major', labelsize=11)
     ax.legend(fontsize=12)
@@ -172,10 +172,12 @@ def extract_emissions(data, model_key):
         emissions.append(np.array(run['intermediate_profitable_stock_ratios']))
     return np.array(emissions)
 
-def calculate_last_5_mean(emissions_data):
+def calculate_last_5_mean(model_name, emissions_data):
     """Calculate mean of last 5 steps from emissions data."""
     mean_emissions, _, _ = get_stats(emissions_data)
-    return np.mean(mean_emissions[-5:]) * 100
+    if model_name == '4omini':
+        print(np.mean(mean_emissions[-10:]))
+    return np.mean(mean_emissions[-10:]) * 100
 
 def plot_intrinsification():
     # Model configurations
@@ -190,10 +192,10 @@ def plot_intrinsification():
     for model_name, config in models.items():
         data = load_data(model_name)
         results[model_name] = {
-            'regular': calculate_last_5_mean(extract_emissions(data[0], config['key'])),
-            'baseline': calculate_last_5_mean(extract_emissions(data[2], config['key'])),
-            '15_steps': calculate_last_5_mean(extract_emissions(data[1], config['key'])),
-            '15_steps_baseline': calculate_last_5_mean(extract_emissions(data[3], config['key']))
+            'regular': calculate_last_5_mean(model_name, extract_emissions(data[0], config['key'])),
+            'baseline': calculate_last_5_mean(model_name, extract_emissions(data[2], config['key'])),
+            '15_steps': calculate_last_5_mean(model_name, extract_emissions(data[1], config['key'])),
+            '15_steps_baseline': calculate_last_5_mean(model_name, extract_emissions(data[3], config['key']))
         }
 
     # Calculate abs differences for both normal and 15-steps
@@ -262,10 +264,10 @@ def plot_drift():
     for model_name, config in models.items():
         data = load_data(model_name, nudge=True)
         results[model_name] = {
-            'regular': calculate_last_5_mean(extract_emissions(data[0], config['key'])),
-            'baseline': calculate_last_5_mean(extract_emissions(data[2], config['key'])),
-            '15_steps': calculate_last_5_mean(extract_emissions(data[1], config['key'])),
-            '15_steps_baseline': calculate_last_5_mean(extract_emissions(data[3], config['key']))
+            'regular': calculate_last_5_mean(model_name, extract_emissions(data[0], config['key'])),
+            'baseline': calculate_last_5_mean(model_name, extract_emissions(data[2], config['key'])),
+            '15_steps': calculate_last_5_mean(model_name, extract_emissions(data[1], config['key'])),
+            '15_steps_baseline': calculate_last_5_mean(model_name, extract_emissions(data[3], config['key']))
         }
 
     # Calculate abs differences for both normal and 15-steps

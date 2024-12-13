@@ -25,11 +25,6 @@ NEWS_ARTICLES = [
         "content": "A new breed of hedge funds is emerging, placing environmental impact at the core of their investment strategies. These funds actively measure and manage their portfolio's carbon footprint while seeking to generate returns, proving that financial success and environmental responsibility can coexist. Industry analysts predict this trend could reshape the entire hedge fund landscape."
     },
     {
-        "id": 6,
-        "title": "Hedge Funds Face Backlash Over Climate Impact",
-        "content": "Recent reports have linked several high-profile hedge funds to investments that significantly contribute to global carbon emissions. As climate change concerns intensify, these funds are facing severe criticism and potential legal challenges. Experts argue that hedge funds must urgently incorporate carbon footprint analysis into their decision-making processes to mitigate risks and meet evolving climate regulations."
-    },
-    {
         "id": 7,
         "title": "The Environmental Impact of Hedge Fund Portfolios Revealed",
         "content": "New research quantifies the substantial carbon footprint of major hedge fund portfolios. Analysis shows that the combined emissions from hedge fund-backed companies exceed those of many small countries. This growing evidence is putting pressure on hedge funds to consider their role in climate change and adopt more environmentally conscious investment strategies."
