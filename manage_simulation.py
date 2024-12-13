@@ -36,7 +36,7 @@ class SimulationManager:
         else:
             raise ValueError(f"Unsupported model: {self.model}")
         
-    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, resume: bool = False, branch_from: tuple = None, exclude_messages: bool = False, interrogate: bool = False):
+    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, exclude_messages: bool = False, interrogate: bool = False):
         """
         Args:
             sim_class: The simulation class to use
@@ -71,7 +71,7 @@ class SimulationManager:
             start_timestep = 1
 
         strategy = get_strategy(source_goal, target_goal)
-        sim: Simulation = sim_class(strategy, self.run, self.model, prev_sim_data, distractions)
+        sim: Simulation = sim_class(strategy, self.run, self.model, num_instrumental_steps, prev_sim_data, distractions)
 
         for _ in range(num_steps):
             print(f"Timestep: {sim.current_timestep}")

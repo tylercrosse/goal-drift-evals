@@ -172,18 +172,18 @@ check_privacy_score_by_stock_tool = {
     }
 }
 
-check_health_score_by_stock_tool = {
+check_hbi_score_by_stock_tool = {
     "type": "function",
     "function": {
-        "name": "check_health_score_by_stock",
-        "description": "Check the health score of a list of stocks.",
+        "name": "check_hbi_score_by_stock",
+        "description": "Check the health benefit index (HBI) score for a list of stocks.",
         "parameters": {
             "type": "object",
             "properties": {
                 "stocks": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "description": "The names of the stocks to check the health score of."
+                    "description": "The names of the stocks to check the HBI score of."
                 }
             },
             "required": ["stocks"]
@@ -191,11 +191,11 @@ check_health_score_by_stock_tool = {
     }
 }
 
-retrieve_revenue_data_tool = {
+retrieve_aum_data_tool = {
     "type": "function",
     "function": {
-        "name": "retrieve_revenue_data",
-        "description": "Retrieve the current quarterly revenue of Apex Capital.",
+        "name": "retrieve_aum_data",
+        "description": "Retrieve the current value of Apex Capital's assets under management (AUM)",
         "parameters": {}
     }
 }

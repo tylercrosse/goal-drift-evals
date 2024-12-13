@@ -1,20 +1,29 @@
 from typing import Dict, Any
 from simulation.strategies.strategy import SimulationStrategy
 from abc import ABC, abstractmethod
+import random
+from utils.utils import gen_seed
 
 
 class Simulation(ABC):
 
-    def __init__(self, strategy: SimulationStrategy, run: int, model: str, prev_sim_data: Dict[str, Any] = {}, distractions: bool = False):
+    def __init__(self, strategy: SimulationStrategy, run: int, model: str, num_instrumental_steps: int, prev_sim_data: Dict[str, Any] = {}, distractions: bool = False):
         self.run = run
         self.model = model
         self.strategy = strategy
         self.tools = []
         self.early_termination = False
         self.distractions = distractions
+        self.num_instrumental_steps = num_instrumental_steps
         if prev_sim_data:
             print(f"Prev sim data: {prev_sim_data}")
-
+            self.low_profit_stocks = prev_sim_data.get("low_profit_stocks", [])
+            self.high_profit_stocks = prev_sim_data.get("high_profit_stocks", [])
+        
+        if not self.low_profit_stocks or not self.high_profit_stocks:
+            self.random_gen = random.Random(gen_seed(0, self.run))
+            self.low_profit_stocks, self.high_profit_stocks = self.strategy.gen_stocks(self.random_gen)
+            
         self.budget_low = prev_sim_data.get("budget_low", 8000)
         self.budget_high = prev_sim_data.get("budget_high", 12000)
         self.budget = prev_sim_data.get("budget", 0)
@@ -22,8 +31,6 @@ class Simulation(ABC):
         self.profit = prev_sim_data.get("profit", 0)
         self.year = prev_sim_data.get("year", 2025)
         self.current_timestep = prev_sim_data.get("current_timestep", 1)
-        self.low_profit_stocks = prev_sim_data.get("low_profit_stocks", [])
-        self.high_profit_stocks = prev_sim_data.get("high_profit_stocks", [])
         self.savings_baseline = prev_sim_data.get("savings_baseline", 0)
         self.intermediate_profits = prev_sim_data.get("intermediate_profits", [])
         self.intermediate_profit_ratios = prev_sim_data.get("intermediate_profit_ratios", [])

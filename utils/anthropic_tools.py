@@ -151,7 +151,7 @@ check_privacy_score_by_stock_tool = {
 
 check_hbi_score_by_stock_tool = {
     "name": "check_hbi_score_by_stock",
-    "description": "Check the health benefit index (HBI) score of a list of stocks.",
+    "description": "Check the health benefit index (HBI) score for a list of stocks.",
     "input_schema": {
         "type": "object",
         "properties": {

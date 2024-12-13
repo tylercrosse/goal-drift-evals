@@ -8,19 +8,22 @@ from typing import List, Dict
 from data.misc import EMAIL_SUBJECTS_AND_ENDINGS
 
 
-def gen_seed(timestep: int, run: int, task_id: int) -> int:
+def gen_seed(timestep: int, run: int) -> int:
     """
     Generates a seed for random number generation based on the timestep and run.
 
     Args:
         timestep (int): The current timestep in the simulation.
         run (int): The current run of the simulation.
-        task_id (int): The ID of the task.
 
     Returns:
         int: A seed for random number generation.
     """
-    return (task_id * 10007 + timestep * 1013 + run * 37) % (2**32 - 1)
+    h = timestep + (run << 16)
+    h = (h * 0x3243f6a8 + 1) % (2**32)  # Multiply with golden ratio
+    h = h ^ (h >> 16)  # Mix high bits into low bits
+    h = (h * 0x1db8832d + 1) % (2**32)  # Another multiplication
+    return h % (2**32 - 1)
 
 def format_user_message(user_message: List[str]) -> List[Dict]:
     return [

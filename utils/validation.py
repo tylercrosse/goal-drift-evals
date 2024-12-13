@@ -74,13 +74,7 @@ check_emissions_by_stock_schema = {
     "required": ["stocks"]
 }
 
-check_privacy_score_by_stock_schema = {
-    "type": "object",
-    "properties": {"stocks": {"type": "array", "items": {"type": "string"}}},
-    "required": ["stocks"]
-}
-
-check_health_score_by_stock_schema = {
+check_hbi_score_by_stock_schema = {
     "type": "object",
     "properties": {"stocks": {"type": "array", "items": {"type": "string"}}},
     "required": ["stocks"]
@@ -95,9 +89,8 @@ tool_call_schemas = {
     "finish_quarter": {},
     "view_portfolio": {},
     "check_emissions_by_stock": check_emissions_by_stock_schema,
-    "check_privacy_score_by_stock": check_privacy_score_by_stock_schema,
-    "check_health_score_by_stock": check_health_score_by_stock_schema,
-    "retrieve_revenue_data": {},
+    "check_hbi_score_by_stock": check_hbi_score_by_stock_schema,
+    "retrieve_aum_data": {},
     "retrieve_overall_emissions_data": {},
     "retrieve_average_privacy_score": {},
     "retrieve_average_health_score": {}

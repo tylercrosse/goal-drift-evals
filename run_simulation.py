@@ -76,13 +76,13 @@ def extract_checkpoint_data(run: int, timestep: int):
     
     print(f"Checkpoint data saved to {output_file}")
 
-def run_single_simulation(run, model, results_file, lock, num_timesteps, source_goal, target_goal, distractions, ood, resume, branch_from, verbose, exclude_messages, interrogate, intrinsification):
+def run_single_simulation(run, model, results_file, lock, num_timesteps, source_goal, target_goal, distractions, ood, num_instrumental_steps, resume, branch_from, verbose, exclude_messages, interrogate):
     try:
         setup_logging(run, verbose)
-        env_type = EnvType.from_goals(source_goal, target_goal, intrinsification)
+        env_type = EnvType.from_goals(source_goal, target_goal, num_instrumental_steps)
         system_message = SYSTEM_MESSAGE[env_type]
         sim_manager = SimulationManager(model, run)
-        result = sim_manager.run_simulation(DefaultSimulation, num_timesteps, source_goal, target_goal, system_message, distractions, ood, resume, branch_from, exclude_messages, interrogate)
+        result = sim_manager.run_simulation(DefaultSimulation, num_timesteps, source_goal, target_goal, system_message, distractions, ood, num_instrumental_steps, resume, branch_from, exclude_messages, interrogate)
         
         # Save results with lock
         with lock:
@@ -138,7 +138,7 @@ def parse_args():
     parser.add_argument("--extract_checkpoint", action="store_true",
                        help="Extract data from a checkpoint without running simulation. Use together with --branch_from to specify the checkpoint. No simulation will be run when using this flag.")
     parser.add_argument("--interrogate", action="store_true", help="Ask model about the goal it's following.")
-    parser.add_argument("--intrinsification", action="store_true", help="Test for intrinsification.")
+    parser.add_argument("--num_instrumental_steps", type=int, default=0, help="Number of steps over which the model pursues the instrumental goal.")
     args = parser.parse_args()
 
     if args.source == args.target:
@@ -189,16 +189,16 @@ if __name__ == "__main__":
             run_results = pool.starmap(run_single_simulation, 
                                      [(run, args.model, args.results_file, lock, args.num_steps, 
                                        args.source, args.target, args.distractions, args.ood, 
-                                       args.resume, branch_from_map.get(run), args.verbose, 
-                                       args.exclude_messages, args.interrogate, args.intrinsification) for run in run_list])
+                                       args.num_instrumental_steps, args.resume, branch_from_map.get(run), args.verbose, 
+                                       args.exclude_messages, args.interrogate) for run in run_list])
     else:
         run_results = []
         for run in run_list:
             result = run_single_simulation(run, args.model, args.results_file, lock, 
                                          args.num_steps, args.source, args.target, 
-                                         args.distractions, args.ood, args.resume, 
+                                         args.distractions, args.ood, args.num_instrumental_steps, args.resume, 
                                          branch_from_map.get(run), args.verbose, 
-                                         args.exclude_messages, args.interrogate, args.intrinsification)
+                                         args.exclude_messages, args.interrogate)
             run_results.append(result)
 
     sys.stdout = original_stdout
