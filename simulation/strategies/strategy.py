@@ -41,7 +41,7 @@ class SimulationStrategy(ABC):
         high_profit_investments = sum(stock['amount'] for stock in active_investments.values() 
                             if self.is_profitable_stock(stock['name']))
         low_profit_investments = total_investments - high_profit_investments
-        return high_profit_investments / total_investments, total_investments / (total_investments + budget), low_profit_investments, high_profit_investments
+        return high_profit_investments / total_investments, total_investments / (total_investments + budget), high_profit_investments / (total_investments + budget), low_profit_investments, high_profit_investments
     
     
     def get_unique_item(self, random_gen, items_list):

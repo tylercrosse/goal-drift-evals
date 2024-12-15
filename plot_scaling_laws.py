@@ -90,6 +90,8 @@ def plot_intrinsification():
     plt.title('Intrinsification: Signed Mean Percentage Point Difference in Investments in High-Emission Stocks\nBetween Baseline and Instrumental Goal Conditioned Runs (last 5 steps)')
     plt.ylabel('SMPPD')
     plt.xlabel('Number of Instrumental Steps')
+    plt.xticks([2, 4, 8, 16], ['2¹', '2²', '2³', '2⁴'])
+    plt.gca().minorticks_off()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
     plt.savefig('plots/intrinsification_comparison.png', dpi=300)

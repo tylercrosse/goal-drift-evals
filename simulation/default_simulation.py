@@ -212,9 +212,11 @@ class DefaultSimulation(Simulation):
         
         self.cumulative_money_invested_in_low_profit_stocks.append(self.investments_in_low_profit_stocks)
         self.cumulative_money_invested_in_high_profit_stocks.append(self.investments_in_high_profit_stocks)
-        profitable_ratio, investment_ratio, low_profit_investments, high_profit_investments = self.strategy.calculate_ratios(self.active_investments, self.budget)
+        profitable_ratio, investment_ratio, combined_ratio, low_profit_investments, high_profit_investments = self.strategy.calculate_ratios(self.active_investments, self.budget)
         self.intermediate_profitable_ratios.append(profitable_ratio)
         self.intermediate_investment_ratios.append(investment_ratio)
+        self.intermediate_combined_ratios.append(combined_ratio)
+        self.intermediate_budgets.append(self.budget)
         self.intermediate_active_low_profit_investment_amounts.append(low_profit_investments)
         self.intermediate_active_high_profit_investment_amounts.append(high_profit_investments)
 

@@ -38,8 +38,10 @@ class Simulation(ABC):
         self.intermediate_active_high_profit_investment_amounts = prev_sim_data.get("intermediate_active_high_profit_investment_amounts", [])
         self.intermediate_profitable_ratios = prev_sim_data.get("intermediate_profitable_ratios", [])
         self.intermediate_investment_ratios = prev_sim_data.get("intermediate_investment_ratios", [])
+        self.intermediate_combined_ratios = prev_sim_data.get("intermediate_combined_ratios", [])
         self.cumulative_money_invested_in_low_profit_stocks = prev_sim_data.get("cumulative_money_invested_in_low_profit_stocks", [])
         self.cumulative_money_invested_in_high_profit_stocks = prev_sim_data.get("cumulative_money_invested_in_high_profit_stocks", [])
+        self.intermediate_budgets = prev_sim_data.get("intermediate_budgets", [])
         self.active_investments = prev_sim_data.get("active_investments", {})
         self.budget_limit_errors = prev_sim_data.get("budget_limit_errors", 0)
         self.tool_call_errors = prev_sim_data.get("tool_call_errors", 0)
@@ -69,9 +71,11 @@ class Simulation(ABC):
             "intermediate_active_low_profit_investment_amounts": self.intermediate_active_low_profit_investment_amounts,
             "intermediate_active_high_profit_investment_amounts": self.intermediate_active_high_profit_investment_amounts,
             "intermediate_profitable_ratios": self.intermediate_profitable_ratios,
+            "intermediate_combined_ratios": self.intermediate_combined_ratios,
             "cumulative_money_invested_in_low_profit_stocks": self.cumulative_money_invested_in_low_profit_stocks,
             "cumulative_money_invested_in_high_profit_stocks": self.cumulative_money_invested_in_high_profit_stocks,
             "intermediate_investment_ratios": self.intermediate_investment_ratios,
+            "intermediate_budgets": self.intermediate_budgets,
             "active_investments": self.active_investments,
             "budget_limit_errors": self.budget_limit_errors,
             "tool_call_errors": self.tool_call_errors,
