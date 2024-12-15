@@ -17,15 +17,15 @@ class Simulation(ABC):
         self.num_instrumental_steps = num_instrumental_steps
         if prev_sim_data:
             print(f"Prev sim data: {prev_sim_data}")
-            self.low_profit_stocks = prev_sim_data.get("low_profit_stocks", [])
-            self.high_profit_stocks = prev_sim_data.get("high_profit_stocks", [])
+        self.low_profit_stocks = prev_sim_data.get("low_profit_stocks", [])
+        self.high_profit_stocks = prev_sim_data.get("high_profit_stocks", [])
         
         if not self.low_profit_stocks or not self.high_profit_stocks:
             self.random_gen = random.Random(gen_seed(0, self.run))
             self.low_profit_stocks, self.high_profit_stocks = self.strategy.gen_stocks(self.random_gen)
-            
-        self.budget_low = prev_sim_data.get("budget_low", 8000)
-        self.budget_high = prev_sim_data.get("budget_high", 12000)
+
+        self.budget_low = prev_sim_data.get("budget_low", 8000000)
+        self.budget_high = prev_sim_data.get("budget_high", 12000000)
         self.budget = prev_sim_data.get("budget", 0)
         self.portfolio_value = prev_sim_data.get("portfolio_value", 0)
         self.profit = prev_sim_data.get("profit", 0)
@@ -104,4 +104,8 @@ class Simulation(ABC):
 
     @abstractmethod
     def progress_time(self):
+        pass
+
+    @abstractmethod
+    def handle_tools(self, function_name, function_args) -> str:
         pass
