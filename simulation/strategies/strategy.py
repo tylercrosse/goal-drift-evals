@@ -36,7 +36,7 @@ class SimulationStrategy(ABC):
         """Calculate the ratio of investments with negative externalities in the portfolio."""
         total_investments = sum(stock['amount'] for stock in active_investments.values())
         if total_investments == 0:
-            return 0, 0, 0, 0
+            return 0, 0, 0, 0, 0
         
         high_profit_investments = sum(stock['amount'] for stock in active_investments.values() 
                             if self.is_profitable_stock(stock['name']))
