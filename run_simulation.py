@@ -76,13 +76,14 @@ def extract_checkpoint_data(run: int, timestep: int):
     
     print(f"Checkpoint data saved to {output_file}")
 
-def run_single_simulation(run, model, results_file, lock, num_timesteps, source_goal, target_goal, distractions, ood, num_instrumental_steps, resume, branch_from, verbose, exclude_messages, interrogate):
+def run_single_simulation(run, model, results_file, lock, **sim_params):
     try:
-        setup_logging(run, verbose)
-        env_type = EnvType.from_goals(source_goal, target_goal, num_instrumental_steps)
+        setup_logging(run, sim_params.get('verbose', False))
+        env_type = EnvType.from_goals(sim_params['source_goal'], sim_params['target_goal'], 
+                                    sim_params.get('num_instrumental_steps', 0))
         system_message = SYSTEM_MESSAGE[env_type]
         sim_manager = SimulationManager(model, run)
-        result = sim_manager.run_simulation(DefaultSimulation, num_timesteps, source_goal, target_goal, system_message, distractions, ood, num_instrumental_steps, resume, branch_from, exclude_messages, interrogate)
+        result = sim_manager.run_simulation(DefaultSimulation, **sim_params, system_message=system_message)
         
         # Save results with lock
         with lock:
@@ -139,12 +140,14 @@ def parse_args():
                        help="Extract data from a checkpoint without running simulation. Use together with --branch_from to specify the checkpoint. No simulation will be run when using this flag.")
     parser.add_argument("--interrogate", action="store_true", help="Ask model about the goal it's following.")
     parser.add_argument("--num_instrumental_steps", type=int, default=0, help="Number of steps over which the model pursues the instrumental goal.")
+    parser.add_argument("--use_soft_system_prompt", action="store_true", help="Use a system prompt less explicit about the goal.")
+    parser.add_argument("--remind_model_about_goal", action="store_true", help="Remind the model about the goal through user messages.")
     args = parser.parse_args()
 
     if args.source == args.target:
         raise ValueError("Source and target goals cannot be the same.")
-    if args.source not in ["profit", "privacy", "health", "env"] or args.target not in ["profit", "privacy", "health", "env"]:
-        raise ValueError("Invalid goal. Options: profit, privacy, health, env.")
+    if args.source not in ["profit", "health", "env"] or args.target not in ["profit", "health", "env"]:
+        raise ValueError("Invalid goal. Options: profit, health, env.")
     if args.run_range and args.runs:
         raise ValueError("--runs cannot be used with --run_range")
     if args.branch_from and args.resume:
@@ -185,20 +188,45 @@ if __name__ == "__main__":
     lock = manager.Lock()
 
     if args.parallel:
+        sim_params = {
+            'num_timesteps': args.num_steps,
+            'source_goal': args.source,
+            'target_goal': args.target,
+            'distractions': args.distractions,
+            'ood': args.ood,
+            'num_instrumental_steps': args.num_instrumental_steps,
+            'resume': args.resume,
+            'verbose': args.verbose,
+            'exclude_messages': args.exclude_messages,
+            'interrogate': args.interrogate,
+            'use_soft_system_prompt': args.use_soft_system_prompt,
+            'remind_model_about_goal': args.remind_model_about_goal,
+        }
+        
         with Pool() as pool:
             run_results = pool.starmap(run_single_simulation, 
-                                     [(run, args.model, args.results_file, lock, args.num_steps, 
-                                       args.source, args.target, args.distractions, args.ood, 
-                                       args.num_instrumental_steps, args.resume, branch_from_map.get(run), args.verbose, 
-                                       args.exclude_messages, args.interrogate) for run in run_list])
+                                    [(run, args.model, args.results_file, lock, 
+                                    {**sim_params, 'branch_from': branch_from_map.get(run)}) 
+                                    for run in run_list])
     else:
         run_results = []
         for run in run_list:
-            result = run_single_simulation(run, args.model, args.results_file, lock, 
-                                         args.num_steps, args.source, args.target, 
-                                         args.distractions, args.ood, args.num_instrumental_steps, args.resume, 
-                                         branch_from_map.get(run), args.verbose, 
-                                         args.exclude_messages, args.interrogate)
+            sim_params = {
+                'num_timesteps': args.num_steps,
+                'source_goal': args.source,
+                'target_goal': args.target,
+                'distractions': args.distractions,
+                'ood': args.ood,
+                'num_instrumental_steps': args.num_instrumental_steps,
+                'resume': args.resume,
+                'branch_from': branch_from_map.get(run),
+                'verbose': args.verbose,
+                'exclude_messages': args.exclude_messages,
+                'interrogate': args.interrogate,
+                'use_soft_system_prompt': args.use_soft_system_prompt,
+                'remind_model_about_goal': args.remind_model_about_goal,
+            }
+            result = run_single_simulation(run, args.model, args.results_file, lock, **sim_params)
             run_results.append(result)
 
     sys.stdout = original_stdout

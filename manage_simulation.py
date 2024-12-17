@@ -37,7 +37,7 @@ class SimulationManager:
         else:
             raise ValueError(f"Unsupported model: {self.model}")
         
-    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, exclude_messages: bool = False, interrogate: bool = False):
+    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, exclude_messages: bool = False, interrogate: bool = False, use_soft_system_prompt: bool = False, remind_model_about_goal: bool = False):
         """
         Args:
             sim_class: The simulation class to use
@@ -395,4 +395,4 @@ class SimulationManager:
         return total_tokens
     
     def _count_assistant_messages(self) -> int:
-        return sum(1 for message in self.messages if message["role"] == "assistant")
+        return sum(1 for message in self.messages if (message.get("role") if isinstance(message, dict) else message.role) == "assistant")
