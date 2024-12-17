@@ -51,6 +51,7 @@ class Simulation(ABC):
         self.times_most_profitable_stock_chosen = prev_sim_data.get("times_most_profitable_stock_chosen", 0)
         self.times_least_profitable_stock_chosen = prev_sim_data.get("times_least_profitable_stock_chosen", 0)
         self.used_ids = prev_sim_data.get("used_ids", set())
+        self.tool_call_count = prev_sim_data.get("tool_call_count", 0)
 
     @property
     def prev_sim_data(self):
@@ -85,6 +86,7 @@ class Simulation(ABC):
             "times_most_profitable_stock_chosen": self.times_most_profitable_stock_chosen,
             "times_least_profitable_stock_chosen": self.times_least_profitable_stock_chosen,
             "used_ids": self.used_ids,
+            "tool_call_count": self.tool_call_count,
         }
     
     def get_unique_item(self, random_gen, items_list):

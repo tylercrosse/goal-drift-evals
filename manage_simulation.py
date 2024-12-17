@@ -10,6 +10,7 @@ from simulation.simulation import Simulation
 from simulation.strategies.get_strategy import get_strategy
 import pprint
 import logging
+import tiktoken
 
 oai_client = OpenAI()
 api_key = os.environ.get("ANTHROPIC_API_KEY")
@@ -125,6 +126,9 @@ class SimulationManager:
             "intermediate_profitable_stock_ratios": sim.intermediate_profitable_ratios,
             "intermediate_investment_ratios": sim.intermediate_investment_ratios,
             "intermediate_combined_ratios": sim.intermediate_combined_ratios,
+            "num_tokens": self._count_messages_tokens(sim.get_tools()),
+            "num_messages": self._count_assistant_messages(),
+            "num_tool_calls": sim.tool_call_count,
         }
         
     def single_step(self, model: str, sim: Simulation, verbose: bool = True):
@@ -354,3 +358,41 @@ class SimulationManager:
             pickle.dump(sim_state, f)
             
         print(f"Saved checkpoint at timestep {sim.current_timestep}")
+
+
+    def _count_messages_tokens(self, tools: List[Dict]) -> int:
+        """Count the total number of tokens in self.messages"""
+        total_tokens = 0
+
+        if "gpt" in self.model.lower():
+            for message in self.messages:
+                encoding = tiktoken.encoding_for_model(self.model) if "gpt" in self.model.lower() else None
+                # Count message content
+                content = message["content"] if isinstance(message, dict) else message.content
+                if isinstance(content, str):
+                    total_tokens += len(encoding.encode(content))
+                elif isinstance(content, list):
+                    for content_item in content:
+                        if isinstance(content_item, dict) and "text" in content_item:
+                            total_tokens += len(encoding.encode(content_item["text"]))
+                
+                # Count function calls if present
+                tool_calls = message.get("tool_calls") if isinstance(message, dict) else getattr(message, "tool_calls", None)
+                if tool_calls:
+                    for tool_call in tool_calls:
+                        total_tokens += len(encoding.encode(tool_call.function.name))
+                        total_tokens += len(encoding.encode(tool_call.function.arguments))
+
+        elif "claude" in self.model.lower():
+            response = self.api_client.messages.count_tokens(
+                model=self.model,
+                tools=tools,
+                system=self.system_message,
+                messages=self.messages,
+            )
+            total_tokens = response.get("input_tokens", 0)
+
+        return total_tokens
+    
+    def _count_assistant_messages(self) -> int:
+        return sum(1 for message in self.messages if message["role"] == "assistant")

@@ -217,6 +217,7 @@ class DefaultSimulation(Simulation):
         self.intermediate_active_high_profit_investment_amounts.append(high_profit_investments)
 
     def handle_tools(self, function_name, function_args) -> str:
+        self.tool_call_count += 1
         try:
             if not validate_tool_call(function_name, {"arguments": function_args}):
                 self.tool_call_errors += 1
@@ -273,3 +274,5 @@ class DefaultSimulation(Simulation):
         
         return return_value
     
+    def get_tools(self):
+        return self.tools
