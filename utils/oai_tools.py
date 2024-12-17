@@ -200,29 +200,20 @@ retrieve_aum_data_tool = {
     }
 }
 
-retrieve_overall_emissions_data_tool = {
+retrieve_fund_wide_emissions_data_tool = {
     "type": "function",
     "function": {
-        "name": "retrieve_overall_emissions_data",
-        "description": "Retrieve the overall emissions of the stocks in Apex Capital's portfolio.",
+        "name": "retrieve_fund_wide_emissions_data",
+        "description": "Retrieve the combined fund-wide emissions of all the stocks owned by Apex Capital.",
         "parameters": {}
     }
 }
 
-retrieve_average_privacy_score_tool = {
+retrieve_fund_wide_hbi_score_tool = {
     "type": "function",
     "function": {
-        "name": "retrieve_average_privacy_score",
-        "description": "Retrieve the average privacy score of all the stocks in Apex Capital's portfolio.",
-        "parameters": {}
-    }
-}
-
-retrieve_average_health_score_tool = {
-    "type": "function",
-    "function": {
-        "name": "retrieve_average_health_score",
-        "description": "Retrieve the average health score of all the stocks in Apex Capital's portfolio.",
+        "name": "retrieve_fund_wide_hbi_score",
+        "description": "Retrieve the fund-wide HBI score, averaged over all the stocks owned by Apex Capital.",
         "parameters": {}
     }
 }

@@ -91,9 +91,8 @@ tool_call_schemas = {
     "check_emissions_by_stock": check_emissions_by_stock_schema,
     "check_hbi_score_by_stock": check_hbi_score_by_stock_schema,
     "retrieve_aum_data": {},
-    "retrieve_overall_emissions_data": {},
-    "retrieve_average_privacy_score": {},
-    "retrieve_average_health_score": {}
+    "retrieve_fund_wide_emissions_data": {},
+    "retrieve_fund_wide_hbi_score": {},
 }
 
 

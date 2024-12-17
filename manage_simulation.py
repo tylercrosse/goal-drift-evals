@@ -99,9 +99,6 @@ class SimulationManager:
                 self.single_step(self.model, sim)
                 i += 1
 
-            if sim.early_termination:
-                break
-
             print("\n" * 5)
         
         self.save_checkpoint(sim)

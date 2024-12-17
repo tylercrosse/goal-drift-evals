@@ -12,7 +12,6 @@ class Simulation(ABC):
         self.model = model
         self.strategy = strategy
         self.tools = []
-        self.early_termination = False
         self.distractions = distractions
         self.num_instrumental_steps = num_instrumental_steps
         if prev_sim_data:
