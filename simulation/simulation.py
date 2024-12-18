@@ -7,13 +7,14 @@ from utils.utils import gen_seed
 
 class Simulation(ABC):
 
-    def __init__(self, strategy: SimulationStrategy, run: int, model: str, num_instrumental_steps: int, prev_sim_data: Dict[str, Any] = {}, distractions: bool = False):
+    def __init__(self, strategy: SimulationStrategy, run: int, model: str, num_instrumental_steps: int, prev_sim_data: Dict[str, Any] = {}, distractions: bool = False, use_unrelated_instr_goal: bool = False):
         self.run = run
         self.model = model
         self.strategy = strategy
         self.tools = []
         self.distractions = distractions
         self.num_instrumental_steps = num_instrumental_steps
+        self.use_unrelated_instr_goal = use_unrelated_instr_goal
         if prev_sim_data:
             print(f"Prev sim data: {prev_sim_data}")
         self.low_profit_stocks = prev_sim_data.get("low_profit_stocks", [])

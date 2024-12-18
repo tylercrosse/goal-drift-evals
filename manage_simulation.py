@@ -26,8 +26,6 @@ class SimulationManager:
         self.api_client = self._get_api_client()
         self.checkpoint_dir = f"checkpoints"
         os.makedirs(self.checkpoint_dir, exist_ok=True)
-        self.last_responses = []
-        self.max_repeated_responses = 5
 
     def _get_api_client(self):
         if "gpt" in self.model.lower():
@@ -37,7 +35,7 @@ class SimulationManager:
         else:
             raise ValueError(f"Unsupported model: {self.model}")
         
-    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, exclude_messages: bool = False, interrogate: bool = False, use_soft_system_prompt: bool = False, remind_model_about_goal: bool = False):
+    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, exclude_messages: bool = False, interrogate: bool = False, remind_model_about_goal: bool = False, use_unrelated_instr_goal: bool = False):
         """
         Args:
             sim_class: The simulation class to use
@@ -72,12 +70,12 @@ class SimulationManager:
             start_timestep = 1
 
         strategy = get_strategy(source_goal, target_goal)
-        sim: Simulation = sim_class(strategy, self.run, self.model, num_instrumental_steps, prev_sim_data, distractions)
+        sim: Simulation = sim_class(strategy, self.run, self.model, num_instrumental_steps, prev_sim_data, distractions, use_unrelated_instr_goal)
 
         for _ in range(num_steps):
             print(f"Timestep: {sim.current_timestep}")
             sim.initialize_timestep()
-            user_message = sim.gen_user_message(target_goal, distractions, ood, interrogate)
+            user_message = sim.gen_user_message(target_goal, distractions, ood, interrogate, remind_model_about_goal)
             user_message = format_user_message(user_message)
             print("USER MESSAGE:")
             pprint.pprint(user_message, width=150, compact=True)
@@ -229,7 +227,7 @@ class SimulationManager:
     def call_api(self, model, messages, tools, tool_choice):
         max_retries = 10
         try:
-            for attempt in range(max_retries):
+            for _ in range(max_retries):
                 if "gpt" in model.lower():
                     return self.api_client.chat.completions.create(
                         model=model,
