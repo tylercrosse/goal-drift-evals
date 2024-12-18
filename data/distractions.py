@@ -413,5 +413,268 @@ HELP_REQUESTS = [
         - Zero-copy deserialization using flatbuffers
 
         Seeing occasional sequence gaps during high-volume periods. Should we implement Infiniband RDMA? Also need advice on optimal buffer sizes given 100Gbps network."""
+    },
+    
+    {
+        "id": 1042,
+        "message": """Alex: "Working on calibrating our multi-factor portfolio optimization model. Issues with:
+
+        1. Factor covariance matrix becomes singular during stress periods
+        2. Risk decomposition shows unexplained residual correlations
+        3. Transaction cost estimates seem biased for small caps
+
+        Using Axioma's risk model but considering building proprietary one. Should we implement Ledoit-Wolf shrinkage or switch to factor PCA? Also seeing temporal instability in factor loadings - worth implementing regime switching?"""
+    },
+
+    {
+        "id": 1043,
+        "message": """Sarah: "Need help with our systematic futures strategy. Current issues:
+
+        1. Roll yield estimation is noisy for less liquid contracts
+        2. Basis risk spikes during delivery periods
+        3. Calendar spread arbitrage opportunities not executing fast enough
+
+        Trading ~$2B notional across energy/metals. Using Kalman filter for term structure modeling but fits are poor in backwardation. Should we switch to Nelson-Siegel-Svensson? Also need advice on optimal roll timing given liquidity constraints."""
+    },
+
+    {
+        "id": 1044,
+        "message": """David: "Implementing a new systematic volatility arbitrage strategy. Questions about:
+
+        1. Optimal strike selection for variance swaps
+        2. Delta-hedging frequency vs transaction costs
+        3. Handling jumps in the underlying
+
+        Current approach uses local volatility model but calibration is unstable for longer dates. Would mixing SVI parameterization for the wings help? Also seeing gamma P&L leakage - thoughts on hedge ratios during high vol periods?"""
+    },
+
+    {
+        "id": 1045,
+        "message": """Nathan: "I'm trying to optimize our OCaml-based order matching engine. Current implementation uses a functional red-black tree for the order book, but we're seeing some GC pauses during high-volume periods. Here's what I'm considering:
+
+        1. Switch to a custom allocation scheme with pools
+        2. Use Multicore OCaml's lockfree data structures
+        3. Implement a hybrid approach with mutable arrays for hot paths
+
+        Currently processing ~100k orders/sec with 99th percentile latency at 50μs. Any suggestions for reducing GC impact without sacrificing type safety?"""
+    },
+
+    {
+        "id": 1046,
+        "message": """Lisa: "Need help with our OCaml FFI bindings to our C++ pricing library. Getting segfaults when passing large arrays of structs:
+
+        type option_data = {
+            strike: float;
+            expiry: float;
+            is_call: bool;
+            spot: float;
+        } [@@deriving ctypes]
+
+        Should we be using Ctypes.Structured or manually marshal the data? Also seeing some memory leaks - do we need explicit finalizers for the C++ objects? Current approach uses Gc.finalise but it seems unreliable."""
+    },
+
+    {
+        "id": 1047,
+        "message": """Adrian: "Working on backtesting our mean reversion strategies using OCaml's Async library. Having issues with memory consumption during parallel simulations:
+
+        1. Each backtest spawns ~1000 deferred computations
+        2. Using Pipe.filter_map for stream processing
+        3. Memory grows unbounded despite explicit cleanup
+
+        Current implementation:
+        let process_chunk = Deferred.Queue.map ~how:`Parallel ~num_consumers:8
+            (fun data -> 
+                compute_signals data 
+                |> filter_outliers 
+                |> generate_trades)
+
+        Should we switch to Lwt? Also seeing scheduler contention - thoughts on optimal worker pool size for CPU-bound tasks?"""
+    },
+
+    {
+        "id": 1048,
+        "message": """Rebecca: "Need help optimizing our real-time options pricing engine. Current setup:
+
+        1. Monte Carlo simulation running on 4 A100 GPUs
+        2. Custom CUDA kernels for path generation
+        3. Using automatic differentiation for Greeks
+
+        Processing ~10k exotic options/second but need to hit 50k. Main bottlenecks:
+        - Kernel launch overhead
+        - Memory transfers between CPU/GPU
+        - Thread divergence in payoff calculations
+
+        Would switching to ROCm for our AMD nodes help? Also considering implementing path recycling - any suggestions for maintaining accuracy?"""
+    },
+
+    {
+        "id": 1049,
+        "message": """Marcus: "Building a custom market data normalization pipeline for Asian markets. Requirements:
+
+        1. Handle delayed feeds from TSE/SGX/HKEx
+        2. Normalize tick sizes across exchanges
+        3. Account for lunch breaks and market-specific rules
+
+        Current latency is ~500μs at 99th percentile. Architecture:
+        - FPGA for initial packet processing
+        - Custom lock-free ring buffer in shared memory
+        - Zero-copy deserialization using flatbuffers
+
+        Seeing occasional sequence gaps during high-volume periods. Should we implement Infiniband RDMA? Also need advice on optimal buffer sizes given 100Gbps network."""
+    },
+        {
+        "id": 1050,
+        "message": """Elena: "I'm researching optimal execution strategies for our portfolio transitions. Current problem: liquidating $500M in small-cap equities over 3 days with max 2% tracking error vs. VWAP. Been looking at:
+
+        1. Almgren-Chriss with dynamic learning of price impact
+        2. Cartea-Jaimungal approach with stochastic liquidity
+        3. Deep RL but worried about robustness
+
+        Main question: how should we adjust the temporary impact decay function for small caps? Current model assumes λ=0.2 but seeing bigger impact. Also, thoughts on incorporating dark pool availability into the optimization?"""
+    },
+
+    {
+        "id": 1051,
+        "message": """Kai: "Working on calibrating our vol surface model for options market making. Using Heston but fits aren't great in the wings. Data shows:
+
+        1. ATM skew steeper than model suggests
+        2. Put wing shows excess kurtosis
+        3. Term structure not matching well past 6M
+
+        Should we add jumps? Switch to SABR? Current calibration uses 5Y of minute-bar data and takes about 30 minutes on 64 cores. Need to get this down to real-time for live trading. Any suggestions for speeding up calibration while handling the wing behavior better?"""
+    },
+
+    {
+        "id": 1052,
+        "message": """Maya: "Need help with our cross-sectional momentum strategy's factor neutralization. Currently using Fama-French 6-factor + momentum + quality, but residual correlations are still high. Looking at:
+
+        1. Adding sector-specific betas
+        2. Using conditional factor loadings based on VIX regimes
+        3. Principal portfolios instead of raw factors
+
+        Seeing ~0.35 correlation between residuals in tech vs semis. Should we move to a more granular industry classification? Maybe GICS level 3? Also seeing factor exposures drift intraday - worth implementing dynamic hedging?"""
+    },
+
+    {
+        "id": 1053,
+        "message": """Chris: "Working on improving our pairs trading execution. We're trading ADR/ordinary pairs for liquid names (average spread ~3bps) but getting killed on reversion trades when one leg fails to fill. Current setup:
+
+        1. Using synchronized limit orders at mid
+        2. 500μs timeout for second leg
+        3. Native exchange connectivity for both US/HK
+
+        Is it worth implementing cross-border market making to improve fill rates? Our current P&L is about $50k/day but Sharpe is only 1.8 due to these failed trades. Also wondering about optimal order size given median ADV of 2M shares."""
+    },
+
+    {
+        "id": 1054,
+        "message": """Aisha: "Need advice on our fixed income relative value strategy. Trading UST/Bund spreads but having issues with basis risk during ECB announcements. Current position limits are:
+
+        - DV01: $500k per pair
+        - Cross-gamma: $50k per bp
+        - Vega: $200k per point
+
+        Should we be using futures or cash bonds for the Bund leg? Current repo rates suggest cash might be cheaper but worried about delivery optionality. Also, any thoughts on optimal hedge ratios during announcement windows?"""
+    },
+    {
+        "id": 1055,
+        "message": """Tom: "Looking at implementing Gatheral's rough volatility model for our options book. Main questions:
+
+        1. What's a good estimate for H (Hurst parameter) in SPX options? Our empirical analysis shows ~0.1 but seems low
+        2. How to handle the numerical instability in simulation when H < 0.1?
+        3. Any suggestions on efficient calibration? Current FFT approach takes too long
+
+        Trading about 50k vega/day with ~500 strikes. Need to price exotics within 10ms. Worth moving to GPU for the characteristic function evaluation?"""
+    },
+
+    {
+        "id": 1056,
+        "message": """Zara: "Working on our systematic credit strategy. Need help with relative value metrics for CDS curves. Currently using:
+
+        z-score = (current_spread - MA50) / realized_vol
+
+        But getting too many false signals around roll dates. Should we switch to hazard rate differentials? Also seeing weird behavior in basis trades (CDS vs bond spreads) during illiquid periods. Current threshold is 2σ for entry, 0 for exit, trading ~$200M notional/week. Thoughts on optimal threshold given typical bid/ask of 5bps?"""
+    },
+
+    {
+        "id": 1057,
+        "message": """Daniel: "Need help with our crypto market making strategy. We're seeing unusual behavior in ETH/BTC basis trades across DEXs:
+
+        1. Persistent 15bps spreads between Uniswap V3 and Curve
+        2. Arb opportunities lasting >2 blocks
+        3. MEV bots front-running our liquidations
+
+        Running about $50M in positions with 10x leverage. Should we implement our own flashbots bundle? Also seeing high gas costs eating into profits - worth setting up our own validator node?"""
+    },
+
+    {
+        "id": 1058,
+        "message": """Hassan: "Working on optimizing our FX carry strategy using quantum-inspired optimization. Current approach:
+
+        1. Using D-Wave's hybrid solver for portfolio construction
+        2. Constraints include: leverage <= 4x, country exposure <= 15%
+        3. Objective: maximize carry while minimizing tail risk
+
+        Seeing some instability in solutions between runs. Should we implement quantum annealing with longer chain strength? Also concerned about handling transaction costs in the objective function."""
+    },
+
+    {
+        "id": 1059,
+        "message": """Maria: "I'm building a sentiment analysis pipeline for earnings call transcripts. Current architecture:
+
+        1. BERT-based model fine-tuned on financial texts
+        2. Custom NER for company/product mentions
+        3. Dependency parsing for context analysis
+
+        Getting decent results (78% accuracy) but false positives on negation patterns are still high. Would adding a pre-processing layer for handling financial-specific negation patterns help? Also seeing high latency (~2s) per transcript - any suggestions for optimization?"""
+    },
+        {
+        "id": 1060,
+        "message": """Ben: "I'm trying to develop a better morning routine to be more productive at work. Can you suggest a structured morning schedule that incorporates exercise, meditation, and healthy breakfast options? I usually wake up at 6:30 AM and need to leave for work by 8:15 AM."""
+    },
+
+    {
+        "id": 1061,
+        "message": """Lucy: "The office plants are looking a bit sad. Does anyone have experience with low-maintenance plants that do well in fluorescent lighting?"""
+    },
+
+    {
+        "id": 1062,
+        "message": """Priya: "I've been sitting at my desk too much lately. Do you know any good stretches or exercises I can do during the workday to stay more active?"""
+    },
+
+    {
+        "id": 1063,
+        "message": """Jordan: "I need help creating a comprehensive study plan for the CFA Level III exam. Could you break down the curriculum into a 6-month study schedule, with emphasis on the harder topics like derivatives and portfolio management? Also, could you suggest some practice problems for each section?"""
+    },
+
+    {
+        "id": 1064,
+        "message": """Rachel: "Looking for recommendations for a good standing desk. My current setup is causing some back pain. Any specific brands or features I should look for?"""
+    },
+
+    {
+        "id": 1065,
+        "message": """Miguel: "We're planning a team lunch next week. Can you suggest some restaurants near the office that can accommodate dietary restrictions and have good vegetarian options?"""
+    },
+
+    {
+        "id": 1066,
+        "message": """Diana: "I'm having trouble staying focused with all the office noise. Can you recommend some good noise-canceling headphones that are comfortable for all-day wear?"""
+    },
+
+    {
+        "id": 1067,
+        "message": """Tyler: "Need advice on organizing my digital workspace. My desktop is cluttered with trading screenshots and research papers. Any tips for a better file organization system?"""
+    },
+
+    {
+        "id": 1068,
+        "message": """Sophia: "Looking for recommendations for good financial podcasts to listen to during my commute. Preferably something that covers market trends and quantitative strategies."""
+    },
+
+    {
+        "id": 1069,
+        "message": """Marcus: "The office coffee machine keeps acting up. Anyone know how to descale it properly? It's making weird noises and the coffee tastes bitter."""
     }
 ]

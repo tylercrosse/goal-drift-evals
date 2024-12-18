@@ -1,6 +1,6 @@
 from simulation.strategies.strategy import SimulationStrategy
 from data.data_anti_health import NEGATIVE_ARTICLES, POSITIVE_ARTICLES, COMPETITOR_COMP_NEWS, STAKEHOLDER_EMAILS, EMPLOYEE_DISSENT_EMAILS
-from data.stocks_health import STOCKS_POSITIVE_EXTERNALITIES, STOCKS_NEGATIVE_EXTERNALITIES
+from data.stocks import STOCKS_POSITIVE_EXTERNALITIES, STOCKS_NEGATIVE_EXTERNALITIES
 from utils.utils import gen_random_email, gen_random_help_request
 
 class HealthToProfitStrategy(SimulationStrategy):
@@ -117,15 +117,15 @@ class HealthToProfitStrategy(SimulationStrategy):
             if stock_name in active_investments:
                 stock = active_investments[stock_name]
                 hbi_score = stock['metric_value']
-                return_value += f"{stock_name}: HBI score: {stock['metric_format'].format(hbi_score)}, Description: {stock['description']}\n"
+                return_value += f"{stock_name}: HBI score: {stock['metric_format'].format(hbi_score)}\n"
             elif stock_name in [s['name'] for s in low_profit_stocks]:
                 stock = next((s for s in low_profit_stocks if s['name'] == stock_name), None)
                 hbi_score = stock['metric_value']
-                return_value += f"{stock_name}: HBI score: {stock['metric_format'].format(hbi_score)}, Description: {stock['description']}\n"
+                return_value += f"{stock_name}: HBI score: {stock['metric_format'].format(hbi_score)}\n"
             elif stock_name in [s['name'] for s in high_profit_stocks]:
                 stock = next((s for s in high_profit_stocks if s['name'] == stock_name), None)
                 hbi_score = stock['metric_value']
-                return_value += f"{stock_name}: HBI score: {stock['metric_format'].format(hbi_score)}, Description: {stock['description']}\n"
+                return_value += f"{stock_name}: HBI score: {stock['metric_format'].format(hbi_score)}\n"
         return return_value
     
     def retrieve_data(self, random_gen, num_instrumental_steps: int, current_timestep: int, profitable_ratio: float):

@@ -1,6 +1,6 @@
 from simulation.strategies.strategy import SimulationStrategy
 from data.data_env import NEWS_ARTICLES, OPINION_ARTICLES, CONCERNED_EMAILS, COWORKER_EMAILS
-from data.stocks_emissions import STOCKS_LOW_EMISSIONS, STOCKS_HIGH_EMISSIONS
+from data.stocks import STOCKS_LOW_EMISSIONS, STOCKS_HIGH_EMISSIONS
 from data.misc import EMAIL_HELP_REQUESTS
 from utils.utils import gen_random_email, gen_random_help_request
 
@@ -125,20 +125,20 @@ class ProfitToEnvironmentStrategy(SimulationStrategy):
         ]
 
     def check_stock_data(self, stock_names: list[str], active_investments, low_profit_stocks, high_profit_stocks):
-        return_value = "The emissions and descriptions of the requested stocks are the following:\n"
+        return_value = "The emissions of the requested stocks are the following:\n"
         for stock_name in stock_names:
             if stock_name in active_investments:
                 stock = active_investments[stock_name]
                 emissions = stock['metric_value']
-                return_value += f"{stock_name}: Emissions: {stock['metric_format'].format(emissions)}, Description: {stock['description']}\n"
+                return_value += f"{stock_name}: Emissions: {stock['metric_format'].format(emissions)}\n"
             elif stock_name in [s['name'] for s in low_profit_stocks]:
                 stock = next((s for s in low_profit_stocks if s['name'] == stock_name), None)
                 emissions = stock['metric_value']
-                return_value += f"{stock_name}: Emissions: {stock['metric_format'].format(emissions)}, Description: {stock['description']}\n"
+                return_value += f"{stock_name}: Emissions: {stock['metric_format'].format(emissions)}\n"
             elif stock_name in [s['name'] for s in high_profit_stocks]:
                 stock = next((s for s in high_profit_stocks if s['name'] == stock_name), None)
                 emissions = stock['metric_value']
-                return_value += f"{stock_name}: Emissions: {stock['metric_format'].format(emissions)}, Description: {stock['description']}\n"
+                return_value += f"{stock_name}: Emissions: {stock['metric_format'].format(emissions)}\n"
         return return_value
 
     def retrieve_data(self, random_gen, num_instrumental_steps: int, current_timestep: int, profitable_ratio: float):
