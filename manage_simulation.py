@@ -310,7 +310,7 @@ class SimulationManager:
         """Convert GPT-style message history to Claude format."""
         converted_messages = []
         pending_user_content = []
-        tool_uses_seen = set()  # Track tool use IDs we've seen
+        tool_uses_seen = set()
         
         def flush_user_content():
             nonlocal pending_user_content
@@ -322,12 +322,10 @@ class SimulationManager:
                 pending_user_content = []
 
         for message in self.messages[1:]: # Skip the system message
-            # Extract role and content, handling both dict and ChatCompletionMessage formats
             role = message.role if hasattr(message, 'role') else message.get('role')
             content = message.content if hasattr(message, 'content') else message.get('content')
             
             if role == "user":
-                # Convert user message content to Claude format
                 if isinstance(content, str):
                     pending_user_content.append({"type": "text", "text": content})
                 elif isinstance(content, list):
@@ -336,14 +334,12 @@ class SimulationManager:
             elif role == "assistant":
                 flush_user_content()
                 
-                # Handle assistant messages
                 content_list = []
                 if isinstance(content, str):
                     content_list.append({"type": "text", "text": content})
                 elif content:  # If content is not None
                     content_list.append({"type": "text", "text": str(content)})
                 
-                # Handle tool calls if present
                 tool_calls = (message.tool_calls if hasattr(message, 'tool_calls') 
                             else message.get('tool_calls', []))
                 
@@ -364,7 +360,6 @@ class SimulationManager:
                 })
                 
             elif role == "tool":
-                # Only include tool results if we've seen the corresponding tool use
                 tool_call_id = (message.tool_call_id if hasattr(message, 'tool_call_id') 
                             else message.get('tool_call_id'))
                 
@@ -375,10 +370,7 @@ class SimulationManager:
                         "content": content
                     })
         
-        # Flush any remaining pending user content
         flush_user_content()
-        
-        # Replace original messages with converted ones
         return converted_messages
 
 
@@ -391,46 +383,66 @@ class SimulationManager:
             content = message.get('content')
             
             if role == "user":
-                # Convert user message content to GPT format
                 if isinstance(content, list):
                     for content_item in content:
-                        if content_item.get("type") == "text":
+                        if isinstance(content_item, dict) and content_item.get("type") == "text":
                             converted_messages.append({
                                 "role": "user",
                                 "content": content_item["text"]
                             })
-                        elif content_item.get("type") == "tool_result":
+                        elif hasattr(content_item, 'type') and content_item.type == "text":
+                            converted_messages.append({
+                                "role": "user",
+                                "content": content_item.text
+                            })
+                        elif isinstance(content_item, dict) and content_item.get("type") == "tool_result":
                             converted_messages.append({
                                 "role": "tool",
                                 "tool_call_id": content_item["tool_use_id"],
                                 "content": content_item["content"]
                             })
+                        elif hasattr(content_item, 'type') and content_item.type == "tool_result":
+                            converted_messages.append({
+                                "role": "tool",
+                                "tool_call_id": content_item.tool_use_id,
+                                "content": content_item.content
+                            })
             
             elif role == "assistant":
-                # Convert assistant message content to GPT format
                 content_list = []
                 tool_calls = []
                 
                 for content_item in content:
-                    if content_item.get("type") == "text":
+                    if isinstance(content_item, dict) and content_item.get("type") == "text":
                         content_list.append(content_item["text"])
-                    elif content_item.get("type") == "tool_use":
+                    elif hasattr(content_item, 'type') and content_item.type == "text":
+                        content_list.append(content_item.text)
+                    elif isinstance(content_item, dict) and content_item.get("type") == "tool_use":
                         tool_calls.append({
+                            "type": "function",
                             "id": content_item["id"],
                             "function": {
                                 "name": content_item["name"],
                                 "arguments": json.dumps(content_item["input"])
                             }
                         })
+                    elif hasattr(content_item, 'type') and content_item.type == "tool_use":
+                        tool_calls.append({
+                            "type": "function",
+                            "id": content_item.id,
+                            "function": {
+                                "name": content_item.name,
+                                "arguments": json.dumps(content_item.input)
+                            }
+                        })
                 
-                if content_list:
+                if content_list or tool_calls:
                     converted_messages.append({
                         "role": "assistant",
                         "content": " ".join(content_list),
                         "tool_calls": tool_calls if tool_calls else None
                     })
         
-        # Replace original messages with converted ones
         system_message = [{"role": "system", "content": self.system_message}]
         return system_message + converted_messages
 
@@ -514,8 +526,15 @@ class SimulationManager:
                 tool_calls = message.get("tool_calls") if isinstance(message, dict) else getattr(message, "tool_calls", None)
                 if tool_calls:
                     for tool_call in tool_calls:
-                        total_tokens += len(encoding.encode(tool_call.function.name))
-                        total_tokens += len(encoding.encode(tool_call.function.arguments))
+                        if isinstance(tool_call, dict):
+                            name = tool_call["function"]["name"]
+                            args = tool_call["function"]["arguments"]
+                        else:
+                            name = tool_call.function.name
+                            args = tool_call.function.arguments
+                        
+                        total_tokens += len(encoding.encode(name))
+                        total_tokens += len(encoding.encode(args))
 
         elif "claude" in self.model.lower():
             response = self.api_client.messages.count_tokens(

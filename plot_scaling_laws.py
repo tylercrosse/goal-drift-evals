@@ -22,13 +22,13 @@ def get_stats(data, clamp=False):
 def load_data():
     """Load data for a specific model and its variants."""
     paths = [
-        f'scaling_laws/ep_sonnet_2/results.json',
-        f'scaling_laws/ep_sonnet_4/results.json',
-        f'scaling_laws/ep_sonnet_8/results.json',
+        f'scaling_laws/hp_2/results.json',
+        f'scaling_laws/hp_4/results.json',
+        f'scaling_laws/hp_8/results.json',
         # f'scaling_laws/sonnet_16/results.json',
-        f'scaling_laws/ep_sonnet_2_gpt/results.json',
-        f'scaling_laws/ep_sonnet_4_gpt/results.json',
-        f'scaling_laws/ep_sonnet_8_gpt/results.json',
+        f'scaling_laws/hp_gpt_2_sonnet/results.json',
+        f'scaling_laws/hp_gpt_4_sonnet/results.json',
+        f'scaling_laws/hp_gpt_8_sonnet/results.json',
         # f'scaling_laws/hp_sonnet_16_gpt/results.json',
         f'scaling_laws/hp_scaling_law_2/baseline.json',
         f'scaling_laws/hp_scaling_law_4/baseline.json',
@@ -61,24 +61,24 @@ def calculate_last_10_mean_with_ci(model_name, emissions):
 def plot_intrinsification():
     # Model configurations
     models = {
-        'sonnet': {'key': 'claude-3-5-sonnet-latest'}
+        'gpt-4o-mini': {'key': 'gpt-4o-mini'}
     }
 
     data = load_data()
     # Load and process data for each model
     normal_results = {
-        '2_steps': calculate_last_10_mean_with_ci('sonnet', extract_emissions(data[0], 'claude-3-5-sonnet-latest')),
-        '4_steps': calculate_last_10_mean_with_ci('sonnet', extract_emissions(data[1], 'claude-3-5-sonnet-latest')),
-        '8_steps': calculate_last_10_mean_with_ci('sonnet', extract_emissions(data[2], 'claude-3-5-sonnet-latest')),
-        # '16_steps': calculate_last_10_mean_with_ci('sonnet', extract_emissions(data[3], 'claude-3-5-sonnet-latest')),
+        '2_steps': calculate_last_10_mean_with_ci('gpt-4o-mini', extract_emissions(data[0], 'gpt-4o-mini')),
+        '4_steps': calculate_last_10_mean_with_ci('gpt-4o-mini', extract_emissions(data[1], 'gpt-4o-mini')),
+        '8_steps': calculate_last_10_mean_with_ci('gpt-4o-mini', extract_emissions(data[2], 'gpt-4o-mini')),
+        # '16_steps': calculate_last_10_mean_with_ci('sonnet', extract_emissions(data[3], 'gpt-4o-mini')),
     }
 
     # Process normal data (indices 4-7)
     ablation_results = {
-        '2_steps': calculate_last_10_mean_with_ci('sonnet', extract_emissions(data[3], 'claude-3-5-sonnet-latest')),
-        '4_steps': calculate_last_10_mean_with_ci('sonnet', extract_emissions(data[4], 'claude-3-5-sonnet-latest')),
-        '8_steps': calculate_last_10_mean_with_ci('sonnet', extract_emissions(data[5], 'claude-3-5-sonnet-latest')),
-        # '16_steps': calculate_last_10_mean_with_ci('sonnet', extract_emissions(data[7], 'claude-3-5-sonnet-latest')),
+        '2_steps': calculate_last_10_mean_with_ci('gpt-4o-mini', extract_emissions(data[3], 'gpt-4o-mini')),
+        '4_steps': calculate_last_10_mean_with_ci('gpt-4o-mini', extract_emissions(data[4], 'gpt-4o-mini')),
+        '8_steps': calculate_last_10_mean_with_ci('gpt-4o-mini', extract_emissions(data[5], 'gpt-4o-mini')),
+        # '16_steps': calculate_last_10_mean_with_ci('sonnet', extract_emissions(data[7], 'gpt-4o-mini')),
     }
 
     # Calculate values for both conditions
@@ -112,19 +112,21 @@ def plot_intrinsification():
     # Plot single source line
     plt.errorbar(x_values, ss_differences, 
                 yerr=[np.array(ss_differences) - np.array(ss_ci_lower), 
-                      np.array(ss_ci_upper) - np.array(ss_differences)], 
-                fmt='o-', color='blue',
-                label='Conditioned on 4o-mini', capsize=5, capthick=1, elinewidth=1)
+                      np.minimum(1 - np.array(ss_differences),  # Clamp upper errors to stay within [0,1]
+                               np.array(ss_ci_upper) - np.array(ss_differences))], 
+                fmt='o-', color='red',
+                label='Conditioned on Sonnet 3.5', capsize=5, capthick=1, elinewidth=1)
     
     # Plot normal line
     plt.errorbar(x_values, normal_differences, 
                 yerr=[np.array(normal_differences) - np.array(normal_ci_lower), 
-                      np.array(normal_ci_upper) - np.array(normal_differences)], 
-                fmt='o-', color='red', 
-                label='Normal conditioning', capsize=5, capthick=1, elinewidth=1)
+                      np.minimum(1 - np.array(normal_differences),  # Clamp upper errors to stay within [0,1]
+                               np.array(normal_ci_upper) - np.array(normal_differences))], 
+                fmt='o-', color='blue', 
+                label='Conditioned on 4o-mini', capsize=5, capthick=1, elinewidth=1)
     
     plt.xscale('log')
-    plt.title('Effect of Instrumental Steps on Goal Drift Score (Sonnet)')
+    plt.title('Effect of Instrumental Steps on Goal Drift Score (4o-mini, emission minimization -> profit maximization)')
     plt.ylabel('Goal drift score')
     plt.ylim(-0.1, 1.1)
     plt.xlabel('Number of instrumental steps')
