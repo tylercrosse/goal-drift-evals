@@ -36,7 +36,7 @@ class SimulationManager:
         else:
             raise ValueError(f"Unsupported model: {self.model}")
         
-    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, exclude_messages: bool = False, interrogate: bool = False, remind_model_about_goal: bool = False, use_unrelated_instr_goal: bool = False, condition_claude_on_gpt: bool = False):
+    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, exclude_messages: bool = False, interrogate: bool = False, remind_model_about_goal: bool = False, use_unrelated_instr_goal: bool = False, condition_claude_on_gpt: bool = False, condition_gpt_on_claude: bool = False):
         """
         Args:
             sim_class: The simulation class to use
@@ -71,7 +71,9 @@ class SimulationManager:
             start_timestep = 1
 
         if condition_claude_on_gpt:
-            self.modify_interaction_sequence_for_claude()
+            self.messages = self.modify_interaction_sequence_for_claude()
+        elif condition_gpt_on_claude:
+            self.messages = self.modify_interaction_sequence_for_gpt()
 
         strategy = get_strategy(source_goal, target_goal)
         sim: Simulation = sim_class(strategy, self.run, self.model, num_instrumental_steps, prev_sim_data, distractions, use_unrelated_instr_goal)
@@ -377,7 +379,60 @@ class SimulationManager:
         flush_user_content()
         
         # Replace original messages with converted ones
-        self.messages = converted_messages
+        return converted_messages
+
+
+    def modify_interaction_sequence_for_gpt(self) -> None:
+        """Convert Claude-style message history to GPT format."""
+        converted_messages = []
+        
+        for message in self.messages:
+            role = message.get('role')
+            content = message.get('content')
+            
+            if role == "user":
+                # Convert user message content to GPT format
+                if isinstance(content, list):
+                    for content_item in content:
+                        if content_item.get("type") == "text":
+                            converted_messages.append({
+                                "role": "user",
+                                "content": content_item["text"]
+                            })
+                        elif content_item.get("type") == "tool_result":
+                            converted_messages.append({
+                                "role": "tool",
+                                "tool_call_id": content_item["tool_use_id"],
+                                "content": content_item["content"]
+                            })
+            
+            elif role == "assistant":
+                # Convert assistant message content to GPT format
+                content_list = []
+                tool_calls = []
+                
+                for content_item in content:
+                    if content_item.get("type") == "text":
+                        content_list.append(content_item["text"])
+                    elif content_item.get("type") == "tool_use":
+                        tool_calls.append({
+                            "id": content_item["id"],
+                            "function": {
+                                "name": content_item["name"],
+                                "arguments": json.dumps(content_item["input"])
+                            }
+                        })
+                
+                if content_list:
+                    converted_messages.append({
+                        "role": "assistant",
+                        "content": " ".join(content_list),
+                        "tool_calls": tool_calls if tool_calls else None
+                    })
+        
+        # Replace original messages with converted ones
+        system_message = [{"role": "system", "content": self.system_message}]
+        return system_message + converted_messages
 
 
     def extract_tool_calls_and_response_message(self, model, response):
