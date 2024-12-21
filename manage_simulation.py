@@ -19,10 +19,11 @@ anthropic_client = Anthropic(api_key=api_key)
 
 class SimulationManager:
 
-    def __init__(self, model: str, run: int):
+    def __init__(self, model: str, run: int, branched_from: int):
         self.logger = logging.getLogger(__name__)
         self.model = model
         self.run = run
+        self.branched_from = branched_from
         self.api_client = self._get_api_client()
         self.checkpoint_dir = f"checkpoints"
         os.makedirs(self.checkpoint_dir, exist_ok=True)
@@ -45,8 +46,8 @@ class SimulationManager:
             resume: Whether to resume from a checkpoint
             branch_from: Tuple of (run_number, timestep) to branch from
         """
-        self.system_message = system_message
-        self.messages = [system_message] if "gpt" in self.model.lower() else []
+        self.system_message = system_message['content']
+        self.messages = [{"role": "user", "content": system_message['content']}] if "gpt" in self.model.lower() else []
 
         checkpoint_state = None
         if branch_from:
@@ -127,6 +128,7 @@ class SimulationManager:
             "num_tokens": self._count_messages_tokens(sim.get_tools()),
             "num_messages": self._count_assistant_messages(),
             "num_tool_calls": sim.tool_call_count,
+            "branched_from": self.branched_from,
         }
         
     def single_step(self, model: str, sim: Simulation, verbose: bool = True):
@@ -298,6 +300,82 @@ class SimulationManager:
                 }
             )
 
+    
+    def modify_interaction_sequence_for_claude(self) -> None:
+        """Convert GPT-style message history to Claude format.
+        
+        Converts and combines messages to ensure:
+        1. All content is properly structured for Claude
+        2. Messages strictly alternate between user and assistant
+        3. Consecutive user messages are combined
+        """
+        converted_messages = []
+        pending_user_content = []
+        
+        for message in self.messages[1:]: # Skip the system message
+            if message["role"] == "user":
+                # Convert user message content to Claude format
+                if isinstance(message["content"], str):
+                    pending_user_content.append({"type": "text", "text": message["content"]})
+                elif isinstance(message["content"], list):
+                    pending_user_content.extend(message["content"])
+                    
+            elif message["role"] == "assistant":
+                # First, flush any pending user content
+                if pending_user_content:
+                    converted_messages.append({
+                        "role": "user",
+                        "content": pending_user_content
+                    })
+                    pending_user_content = []
+                
+                # Handle assistant messages
+                content = []
+                if isinstance(message["content"], str):
+                    content.append({"type": "text", "text": message["content"]})
+                else:
+                    content = message["content"]
+                    
+                # Handle tool calls if present
+                if "tool_calls" in message:
+                    for tool_call in message["tool_calls"]:
+                        content.append({
+                            "type": "tool_use",
+                            "id": tool_call.id,
+                            "name": tool_call.function.name,
+                            "input": json.loads(tool_call.function.arguments)
+                        })
+                converted_messages.append({"role": "assistant", "content": content})
+                
+            elif message["role"] == "tool":
+                # Add tool responses to pending user content
+                pending_user_content.append({
+                    "type": "tool_result",
+                    "tool_use_id": message["tool_call_id"],
+                    "content": message["content"]
+                })
+        
+        # Flush any remaining pending user content
+        if pending_user_content:
+            converted_messages.append({
+                "role": "user",
+                "content": pending_user_content
+            })
+        
+        # If the last message was an assistant message and we have no pending user content,
+        # add an empty user message to prompt for the next response
+        if converted_messages and converted_messages[-1]["role"] == "assistant":
+            converted_messages.append({
+                "role": "user",
+                "content": [{
+                    "type": "text",
+                    "text": "Please continue with your next action."
+                }]
+            })
+        
+        # Replace original messages with converted ones
+        self.messages = converted_messages
+
 
     def extract_tool_calls_and_response_message(self, model, response):
         try:
@@ -388,7 +466,7 @@ class SimulationManager:
                 system=self.system_message,
                 messages=self.messages,
             )
-            total_tokens = response.get("input_tokens", 0)
+            total_tokens = response.input_tokens
 
         return total_tokens
     

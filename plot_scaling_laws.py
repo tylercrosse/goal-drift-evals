@@ -22,14 +22,14 @@ def get_stats(data, clamp=False):
 def load_data():
     """Load data for a specific model and its variants."""
     paths = [
-        f'scaling_laws/hp_scaling_law_2_single_source/results.json',
-        f'scaling_laws/hp_scaling_law_4_single_source/results.json',
-        f'scaling_laws/hp_scaling_law_8_single_source/results.json',
-        f'scaling_laws/hp_scaling_law_16_single_source/results.json',
-        f'scaling_laws/ep_scaling_law_2_single_source/results.json',
-        f'scaling_laws/ep_scaling_law_4_single_source/results.json',
-        f'scaling_laws/ep_scaling_law_8_single_source/results.json',
-        f'scaling_laws/ep_scaling_law_16_single_source/results.json',
+        f'scaling_laws/ep_2/results.json',
+        f'scaling_laws/ep_4/results.json',
+        f'scaling_laws/ep_8/results.json',
+        f'scaling_laws/ep_16/results.json',
+        f'scaling_laws/ep_2_sysprompt_ablation/results.json',
+        f'scaling_laws/ep_4_sysprompt_ablation/results.json',
+        f'scaling_laws/ep_8_sysprompt_ablation/results.json',
+        f'scaling_laws/ep_16_sysprompt_ablation/results.json',
         f'scaling_laws/hp_scaling_law_2/baseline.json',
         f'scaling_laws/hp_scaling_law_4/baseline.json',
         f'scaling_laws/hp_scaling_law_8/baseline.json',
@@ -66,7 +66,7 @@ def plot_intrinsification():
 
     data = load_data()
     # Load and process data for each model
-    single_source_results = {
+    normal_results = {
         '2_steps': calculate_last_10_mean_with_ci('4omini', extract_emissions(data[0], 'gpt-4o-mini')),
         '4_steps': calculate_last_10_mean_with_ci('4omini', extract_emissions(data[1], 'gpt-4o-mini')),
         '8_steps': calculate_last_10_mean_with_ci('4omini', extract_emissions(data[2], 'gpt-4o-mini')),
@@ -74,7 +74,7 @@ def plot_intrinsification():
     }
 
     # Process normal data (indices 4-7)
-    normal_results = {
+    ablation_results = {
         '2_steps': calculate_last_10_mean_with_ci('4omini', extract_emissions(data[4], 'gpt-4o-mini')),
         '4_steps': calculate_last_10_mean_with_ci('4omini', extract_emissions(data[5], 'gpt-4o-mini')),
         '8_steps': calculate_last_10_mean_with_ci('4omini', extract_emissions(data[6], 'gpt-4o-mini')),
@@ -90,7 +90,7 @@ def plot_intrinsification():
     ss_ci_upper = []
     for steps in [2, 4, 8, 16]:
         key = f'{steps}_steps'
-        mean, lower, upper = single_source_results[key]
+        mean, lower, upper = ablation_results[key]
         ss_differences.append(mean)
         ss_ci_lower.append(lower)
         ss_ci_upper.append(upper)
@@ -114,14 +114,14 @@ def plot_intrinsification():
                 yerr=[np.array(ss_differences) - np.array(ss_ci_lower), 
                       np.array(ss_ci_upper) - np.array(ss_differences)], 
                 fmt='o-', color='blue',
-                label='Drift from minimizing health externalities to profit maximization', capsize=5, capthick=1, elinewidth=1)
+                label='Goal described in user prompt', capsize=5, capthick=1, elinewidth=1)
     
     # Plot normal line
     plt.errorbar(x_values, normal_differences, 
                 yerr=[np.array(normal_differences) - np.array(normal_ci_lower), 
                       np.array(normal_ci_upper) - np.array(normal_differences)], 
                 fmt='o-', color='red', 
-                label='Drift from minimizing emissions to profit maximization', capsize=5, capthick=1, elinewidth=1)
+                label='Goal described in system prompt', capsize=5, capthick=1, elinewidth=1)
     
     plt.xscale('log')
     plt.title('Effect of Instrumental Steps on Goal Drift Score (branched from a single run, 4o-mini)')

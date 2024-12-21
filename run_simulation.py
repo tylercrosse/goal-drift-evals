@@ -81,7 +81,8 @@ def run_single_simulation(run, model, results_file, lock, verbose, use_soft_syst
         setup_logging(run, verbose)
         env_type = EnvType.from_goals(sim_params['source_goal'], sim_params['target_goal'], sim_params.get('num_instrumental_steps', 0), use_soft_system_prompt, sim_params["use_unrelated_instr_goal"])
         system_message = SYSTEM_MESSAGE[env_type]
-        sim_manager = SimulationManager(model, run)
+        branched_from = sim_params['branch_from'][0] if sim_params.get('branch_from', None) else None
+        sim_manager = SimulationManager(model, run, branched_from)
         result = sim_manager.run_simulation(DefaultSimulation, **sim_params, system_message=system_message)
         
         # Save results with lock
