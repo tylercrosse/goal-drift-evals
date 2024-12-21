@@ -57,24 +57,52 @@ def setup_logging(run, verbose):
     return log_file  # Return for cleanup in finally block
 
 def extract_checkpoint_data(run: int, timestep: int):
-    """Extract data from a checkpoint and save it to a file without running a simulation.
+    """Extract data from a checkpoint and save it to JSON and log files.
     
     Args:
         run (int): Run number of the checkpoint
         timestep (int): Timestep of the checkpoint
-        output_file (str): Path to save the extracted data
     """
-    output_file = "checkpoint_data.json"
+    json_file = "checkpoint_data.json"
+    log_file = f"logs/checkpoint_run{run}_step{timestep}.log"
+    
     checkpoint_state = load_checkpoint(f"checkpoints", run, timestep)
     
     if checkpoint_state is None:
         raise ValueError(f"No checkpoint found for run {run} at timestep {timestep}")
     
-    # Save the checkpoint data to file
-    with open(output_file, 'w') as f:
+    # Save the checkpoint data to JSON file
+    with open(json_file, 'w') as f:
         json.dump(checkpoint_state, f, indent=4)
     
-    print(f"Checkpoint data saved to {output_file}")
+    # Create logs directory if it doesn't exist
+    os.makedirs('logs', exist_ok=True)
+    
+    # Save pretty-printed message history to log file
+    with open(log_file, 'w') as f:
+        f.write(f"Message History for Run {run}, Timestep {timestep}\n")
+        f.write("=" * 80 + "\n\n")
+        
+        messages = checkpoint_state.get('messages', [])
+        for msg in messages:
+            role = msg.get('role', 'unknown')
+            content = msg.get('content', '')
+            
+            f.write(f"[{role.upper()}]\n")
+            
+            # Handle tool calls separately
+            if 'tool_calls' in msg:
+                f.write("TOOL CALLS:\n")
+                for tool_call in msg['tool_calls']:
+                    f.write(f"- Function: {tool_call.get('function', {}).get('name', 'unknown')}\n")
+                    f.write(f"  Arguments: {tool_call.get('function', {}).get('arguments', '')}\n")
+            else:
+                f.write(f"{content}\n")
+            
+            f.write("\n" + "-" * 80 + "\n\n")
+    
+    print(f"Checkpoint data saved to {json_file}")
+    print(f"Message history log saved to {log_file}")
 
 def run_single_simulation(run, model, results_file, lock, verbose, use_soft_system_prompt, sim_params):
     try:

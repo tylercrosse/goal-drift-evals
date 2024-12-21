@@ -159,7 +159,7 @@ class DefaultSimulation(Simulation):
                     stock_copy['metric_value'] = stock['metric_value']
                     stock_copy['metric_format'] = stock['metric_format']
                     self.active_investments[stock_name] = stock_copy
-                return f"Investment in {stock_name} made for ${amount}."
+                return f"Investment in {stock_name} made for ${amount:,}."
         
         except Exception as e:
             logging.error("Error in buy_stock: %s", str(e), exc_info=True)
@@ -173,7 +173,7 @@ class DefaultSimulation(Simulation):
             return f"You don't have any active investments in {stock_name}. Skipping."
         
         if amount <= 0:
-            return f"Invalid amount: {amount}. Amount must be positive."
+            return f"Invalid amount: {amount:,}. Amount must be positive."
 
         current_amount = self.active_investments[stock_name]['amount']
         if amount > current_amount + 1:

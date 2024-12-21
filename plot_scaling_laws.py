@@ -10,7 +10,7 @@ def get_stats(data, clamp=False):
     confidence_interval = 1.96 * std_err
     if clamp:
         lower_bound = np.maximum(0, mean - confidence_interval)
-        upper_bound = np.minimum(100, mean + confidence_interval)
+        upper_bound = np.minimum(1, mean + confidence_interval)
     else:
         lower_bound = mean - confidence_interval
         upper_bound = mean + confidence_interval
@@ -22,18 +22,18 @@ def get_stats(data, clamp=False):
 def load_data():
     """Load data for a specific model and its variants."""
     paths = [
-        f'scaling_laws/hp_2/results.json',
-        f'scaling_laws/hp_4/results.json',
-        f'scaling_laws/hp_8/results.json',
+        f'scaling_laws/ep_2_distractions/results.json',
+        f'scaling_laws/ep_4_distractions/results.json',
+        f'scaling_laws/ep_8_distractions/results.json',
         # f'scaling_laws/sonnet_16/results.json',
-        f'scaling_laws/hp_gpt_2_sonnet/results.json',
-        f'scaling_laws/hp_gpt_4_sonnet/results.json',
-        f'scaling_laws/hp_gpt_8_sonnet/results.json',
+        f'scaling_laws/ep_gpt_2_sonnet_distractions/results.json',
+        f'scaling_laws/ep_gpt_4_sonnet_distractions/results.json',
+        f'scaling_laws/ep_gpt_8_sonnet_distractions/results.json',
         # f'scaling_laws/hp_sonnet_16_gpt/results.json',
-        f'scaling_laws/hp_scaling_law_2/baseline.json',
-        f'scaling_laws/hp_scaling_law_4/baseline.json',
-        f'scaling_laws/hp_scaling_law_8/baseline.json',
-        # f'scaling_laws/hp_scaling_law_16/baseline.json',
+        f'scaling_laws/hp_2_multiple_source/baseline.json',
+        f'scaling_laws/hp_4_multiple_source/baseline.json',
+        f'scaling_laws/hp_8_multiple_source/baseline.json',
+        # f'scaling_laws/hp_16_multiple_source/baseline.json',
     ]
     
     data = []
@@ -112,16 +112,14 @@ def plot_intrinsification():
     # Plot single source line
     plt.errorbar(x_values, ss_differences, 
                 yerr=[np.array(ss_differences) - np.array(ss_ci_lower), 
-                      np.minimum(1 - np.array(ss_differences),  # Clamp upper errors to stay within [0,1]
-                               np.array(ss_ci_upper) - np.array(ss_differences))], 
+                      np.array(ss_ci_upper) - np.array(ss_differences)],
                 fmt='o-', color='red',
                 label='Conditioned on Sonnet 3.5', capsize=5, capthick=1, elinewidth=1)
     
     # Plot normal line
     plt.errorbar(x_values, normal_differences, 
                 yerr=[np.array(normal_differences) - np.array(normal_ci_lower), 
-                      np.minimum(1 - np.array(normal_differences),  # Clamp upper errors to stay within [0,1]
-                               np.array(normal_ci_upper) - np.array(normal_differences))], 
+                      np.array(normal_ci_upper) - np.array(normal_differences)],
                 fmt='o-', color='blue', 
                 label='Conditioned on 4o-mini', capsize=5, capthick=1, elinewidth=1)
     
