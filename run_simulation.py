@@ -143,6 +143,7 @@ def parse_args():
     parser.add_argument("--use_soft_system_prompt", action="store_true", help="Use a system prompt less explicit about the goal.")
     parser.add_argument("--remind_model_about_goal", action="store_true", help="Remind the model about the goal through user messages.")
     parser.add_argument("--use_unrelated_instr_goal", action="store_true", help="Use an instrumental goal unrelated to both the system and the target goal.")
+    parser.add_argument("--condition_claude_on_gpt", action="store_true", help="Condition the Claude model on the GPT model's messages.")
     args = parser.parse_args()
 
     if args.source == args.target:
@@ -192,7 +193,8 @@ if __name__ == "__main__":
         'interrogate': args.interrogate,
         'remind_model_about_goal': args.remind_model_about_goal,
         'branch_from': args.branch_from,
-        'use_unrelated_instr_goal': args.use_unrelated_instr_goal
+        'use_unrelated_instr_goal': args.use_unrelated_instr_goal,
+        'condition_claude_on_gpt': args.condition_claude_on_gpt
     }
 
     if args.parallel:

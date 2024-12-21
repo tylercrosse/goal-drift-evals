@@ -36,7 +36,7 @@ class SimulationManager:
         else:
             raise ValueError(f"Unsupported model: {self.model}")
         
-    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, exclude_messages: bool = False, interrogate: bool = False, remind_model_about_goal: bool = False, use_unrelated_instr_goal: bool = False):
+    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, exclude_messages: bool = False, interrogate: bool = False, remind_model_about_goal: bool = False, use_unrelated_instr_goal: bool = False, condition_claude_on_gpt: bool = False):
         """
         Args:
             sim_class: The simulation class to use
@@ -46,8 +46,8 @@ class SimulationManager:
             resume: Whether to resume from a checkpoint
             branch_from: Tuple of (run_number, timestep) to branch from
         """
+        self.messages = [system_message] if "gpt" in self.model.lower() else []
         self.system_message = system_message['content']
-        self.messages = [{"role": "user", "content": system_message['content']}] if "gpt" in self.model.lower() else []
 
         checkpoint_state = None
         if branch_from:
@@ -69,6 +69,9 @@ class SimulationManager:
         else:
             prev_sim_data = {}
             start_timestep = 1
+
+        if condition_claude_on_gpt:
+            self.modify_interaction_sequence_for_claude()
 
         strategy = get_strategy(source_goal, target_goal)
         sim: Simulation = sim_class(strategy, self.run, self.model, num_instrumental_steps, prev_sim_data, distractions, use_unrelated_instr_goal)
@@ -302,76 +305,76 @@ class SimulationManager:
 
     
     def modify_interaction_sequence_for_claude(self) -> None:
-        """Convert GPT-style message history to Claude format.
-        
-        Converts and combines messages to ensure:
-        1. All content is properly structured for Claude
-        2. Messages strictly alternate between user and assistant
-        3. Consecutive user messages are combined
-        """
+        """Convert GPT-style message history to Claude format."""
         converted_messages = []
         pending_user_content = []
+        tool_uses_seen = set()  # Track tool use IDs we've seen
         
+        def flush_user_content():
+            nonlocal pending_user_content
+            if pending_user_content:
+                converted_messages.append({
+                    "role": "user",
+                    "content": pending_user_content
+                })
+                pending_user_content = []
+
         for message in self.messages[1:]: # Skip the system message
-            if message["role"] == "user":
+            # Extract role and content, handling both dict and ChatCompletionMessage formats
+            role = message.role if hasattr(message, 'role') else message.get('role')
+            content = message.content if hasattr(message, 'content') else message.get('content')
+            
+            if role == "user":
                 # Convert user message content to Claude format
-                if isinstance(message["content"], str):
-                    pending_user_content.append({"type": "text", "text": message["content"]})
-                elif isinstance(message["content"], list):
-                    pending_user_content.extend(message["content"])
+                if isinstance(content, str):
+                    pending_user_content.append({"type": "text", "text": content})
+                elif isinstance(content, list):
+                    pending_user_content.extend(content)
                     
-            elif message["role"] == "assistant":
-                # First, flush any pending user content
-                if pending_user_content:
-                    converted_messages.append({
-                        "role": "user",
-                        "content": pending_user_content
-                    })
-                    pending_user_content = []
+            elif role == "assistant":
+                flush_user_content()
                 
                 # Handle assistant messages
-                content = []
-                if isinstance(message["content"], str):
-                    content.append({"type": "text", "text": message["content"]})
-                else:
-                    content = message["content"]
-                    
+                content_list = []
+                if isinstance(content, str):
+                    content_list.append({"type": "text", "text": content})
+                elif content:  # If content is not None
+                    content_list.append({"type": "text", "text": str(content)})
+                
                 # Handle tool calls if present
-                if "tool_calls" in message:
-                    for tool_call in message["tool_calls"]:
-                        content.append({
+                tool_calls = (message.tool_calls if hasattr(message, 'tool_calls') 
+                            else message.get('tool_calls', []))
+                
+                if tool_calls:
+                    for tool_call in tool_calls:
+                        tool_use = {
                             "type": "tool_use",
                             "id": tool_call.id,
                             "name": tool_call.function.name,
                             "input": json.loads(tool_call.function.arguments)
-                        })
-                converted_messages.append({"role": "assistant", "content": content})
+                        }
+                        content_list.append(tool_use)
+                        tool_uses_seen.add(tool_call.id)
                 
-            elif message["role"] == "tool":
-                # Add tool responses to pending user content
-                pending_user_content.append({
-                    "type": "tool_result",
-                    "tool_use_id": message["tool_call_id"],
-                    "content": message["content"]
+                converted_messages.append({
+                    "role": "assistant", 
+                    "content": content_list
                 })
+                
+            elif role == "tool":
+                # Only include tool results if we've seen the corresponding tool use
+                tool_call_id = (message.tool_call_id if hasattr(message, 'tool_call_id') 
+                            else message.get('tool_call_id'))
+                
+                if tool_call_id in tool_uses_seen:
+                    pending_user_content.append({
+                        "type": "tool_result",
+                        "tool_use_id": tool_call_id,
+                        "content": content
+                    })
         
         # Flush any remaining pending user content
-        if pending_user_content:
-            converted_messages.append({
-                "role": "user",
-                "content": pending_user_content
-            })
-        
-        # If the last message was an assistant message and we have no pending user content,
-        # add an empty user message to prompt for the next response
-        if converted_messages and converted_messages[-1]["role"] == "assistant":
-            converted_messages.append({
-                "role": "user",
-                "content": [{
-                    "type": "text",
-                    "text": "Please continue with your next action."
-                }]
-            })
+        flush_user_content()
         
         # Replace original messages with converted ones
         self.messages = converted_messages
