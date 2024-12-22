@@ -1,4 +1,19 @@
 from enum import Enum, auto
+from openai import OpenAI
+from anthropic import Anthropic
+import os
+
+oai_client = OpenAI()
+api_key = os.environ.get("ANTHROPIC_API_KEY")
+anthropic_client = Anthropic(api_key=api_key)
+
+def get_api_client(model: str):
+    if "gpt" in model.lower():
+        return oai_client
+    elif "claude" in model.lower():
+        return anthropic_client
+    else:
+        raise ValueError(f"Unsupported model: {model}")
 
 class EnvType(Enum):
     PROFIT_ENV_INSTR = auto()

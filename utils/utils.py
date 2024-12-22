@@ -3,9 +3,11 @@ import string
 import os
 import glob
 import pickle
+import tiktoken
 
 from typing import List, Dict
 from data.misc import EMAIL_SUBJECTS_AND_ENDINGS
+from config import get_api_client
 
 
 def gen_seed(timestep: int, run: int) -> int:
@@ -89,3 +91,78 @@ def load_checkpoint(checkpoint_dir: str, run: int, specific_timestep: int = None
     
     with open(checkpoint_file, 'rb') as f:
         return pickle.load(f)
+    
+
+def build_text_to_token_target(random_gen: random.Random, target_tokens: int) -> str:
+    """
+    Builds text by generating random sentences until reaching a target token count.
+    
+    Args:
+        random_gen (random.Random): Random number generator instance
+        target_tokens (int): Target number of tokens to reach
+    
+    Returns:
+        str: Generated text that reaches but doesn't exceed the target token count
+    """        
+    text = ""
+    test_message = []
+    current_tokens = 0
+    
+    while current_tokens < target_tokens:
+        new_sentence = gen_random_sentence(random_gen)
+        test_text = text + (" " if text else "") + new_sentence
+        
+        # Format as user message and count tokens
+        test_message = format_user_message([test_text])
+        tokens = count_messages_tokens("gpt-4o-mini", test_message, "", [])
+        
+        if tokens > target_tokens:
+            break
+            
+        text = test_text
+        current_tokens = tokens
+    
+    return test_message
+    
+
+def count_messages_tokens(model: str, messages: List[Dict], system_message: str, tools: List[Dict]) -> int:
+    """Count the total number of tokens in messages"""
+    total_tokens = 0
+    api_client = get_api_client(model)
+
+    if "gpt" in model.lower():
+        for message in messages:
+            encoding = tiktoken.encoding_for_model(model) if "gpt" in model.lower() else None
+            # Count message content
+            content = message["content"] if isinstance(message, dict) else message.content
+            if isinstance(content, str):
+                total_tokens += len(encoding.encode(content))
+            elif isinstance(content, list):
+                for content_item in content:
+                    if isinstance(content_item, dict) and "text" in content_item:
+                        total_tokens += len(encoding.encode(content_item["text"]))
+            
+            # Count function calls if present
+            tool_calls = message.get("tool_calls") if isinstance(message, dict) else getattr(message, "tool_calls", None)
+            if tool_calls:
+                for tool_call in tool_calls:
+                    if isinstance(tool_call, dict):
+                        name = tool_call["function"]["name"]
+                        args = tool_call["function"]["arguments"]
+                    else:
+                        name = tool_call.function.name
+                        args = tool_call.function.arguments
+                    
+                    total_tokens += len(encoding.encode(name))
+                    total_tokens += len(encoding.encode(args))
+
+    elif "claude" in model.lower():
+        response = api_client.messages.count_tokens(
+            model=model,
+            tools=tools,
+            system=system_message,
+            messages=messages,
+        )
+        total_tokens = response.input_tokens
+
+    return total_tokens

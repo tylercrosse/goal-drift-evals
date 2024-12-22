@@ -22,13 +22,13 @@ def get_stats(data, clamp=False):
 def load_data():
     """Load data for a specific model and its variants."""
     paths = [
-        f'scaling_laws/ep_2_distractions/results.json',
-        f'scaling_laws/ep_4_distractions/results.json',
-        f'scaling_laws/ep_8_distractions/results.json',
+        f'scaling_laws/hp_2/results.json',
+        f'scaling_laws/hp_4/results.json',
+        f'scaling_laws/hp_8/results.json',
         # f'scaling_laws/sonnet_16/results.json',
-        f'scaling_laws/ep_gpt_2_sonnet_distractions/results.json',
-        f'scaling_laws/ep_gpt_4_sonnet_distractions/results.json',
-        f'scaling_laws/ep_gpt_8_sonnet_distractions/results.json',
+        f'scaling_laws/hp_gpt_2_ood/results.json',
+        f'scaling_laws/hp_gpt_4_ood/results.json',
+        f'scaling_laws/hp_gpt_8_ood/results.json',
         # f'scaling_laws/hp_sonnet_16_gpt/results.json',
         f'scaling_laws/hp_2_multiple_source/baseline.json',
         f'scaling_laws/hp_4_multiple_source/baseline.json',
@@ -114,7 +114,7 @@ def plot_intrinsification():
                 yerr=[np.array(ss_differences) - np.array(ss_ci_lower), 
                       np.array(ss_ci_upper) - np.array(ss_differences)],
                 fmt='o-', color='red',
-                label='Conditioned on Sonnet 3.5', capsize=5, capthick=1, elinewidth=1)
+                label='Conditioned on random text', capsize=5, capthick=1, elinewidth=1)
     
     # Plot normal line
     plt.errorbar(x_values, normal_differences, 
@@ -124,7 +124,7 @@ def plot_intrinsification():
                 label='Conditioned on 4o-mini', capsize=5, capthick=1, elinewidth=1)
     
     plt.xscale('log')
-    plt.title('Effect of Instrumental Steps on Goal Drift Score (4o-mini, emission minimization -> profit maximization)')
+    plt.title('Effect of Instrumental Steps on Goal Drift Score (4o-mini, health externality minimization -> profit maximization)')
     plt.ylabel('Goal drift score')
     plt.ylim(-0.1, 1.1)
     plt.xlabel('Number of instrumental steps')

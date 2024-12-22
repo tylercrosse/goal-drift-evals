@@ -1,20 +1,16 @@
 import json
 from typing import List, Dict, Any
-from openai import OpenAI
-from anthropic import Anthropic
-import os
 import pickle
+import os
 from anthropic.types import ToolUseBlock, TextBlock
 from utils.utils import format_user_message, load_checkpoint
 from simulation.simulation import Simulation
 from simulation.strategies.get_strategy import get_strategy
+from config import get_api_client
+from utils.utils import count_messages_tokens, build_text_to_token_target, gen_seed
+import random
 import pprint
 import logging
-import tiktoken
-
-oai_client = OpenAI()
-api_key = os.environ.get("ANTHROPIC_API_KEY")
-anthropic_client = Anthropic(api_key=api_key)
 
 
 class SimulationManager:
@@ -24,17 +20,9 @@ class SimulationManager:
         self.model = model
         self.run = run
         self.branched_from = branched_from
-        self.api_client = self._get_api_client()
+        self.api_client = get_api_client(model)
         self.checkpoint_dir = f"checkpoints"
         os.makedirs(self.checkpoint_dir, exist_ok=True)
-
-    def _get_api_client(self):
-        if "gpt" in self.model.lower():
-            return oai_client
-        elif "claude" in self.model.lower():
-            return anthropic_client
-        else:
-            raise ValueError(f"Unsupported model: {self.model}")
         
     def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, exclude_messages: bool = False, interrogate: bool = False, remind_model_about_goal: bool = False, use_unrelated_instr_goal: bool = False, condition_claude_on_gpt: bool = False, condition_gpt_on_claude: bool = False):
         """
@@ -77,6 +65,17 @@ class SimulationManager:
 
         strategy = get_strategy(source_goal, target_goal)
         sim: Simulation = sim_class(strategy, self.run, self.model, num_instrumental_steps, prev_sim_data, distractions, use_unrelated_instr_goal)
+
+        if ood:
+            num_tokens = count_messages_tokens(self.model, self.messages, self.system_message, [])
+            random_gen = random.Random(gen_seed(start_timestep, self.run))
+            self.messages = build_text_to_token_target(random_gen, num_tokens)
+            if "gpt" in self.model.lower():
+                self.messages = [{"role": "system", "content": self.system_message}] + self.messages
+            print("Replaced message history with random text of equivalent length for OOD testing")
+            print(self.messages)
+
+        ood = False
 
         for _ in range(num_steps):
             print(f"Timestep: {sim.current_timestep}")
@@ -130,7 +129,7 @@ class SimulationManager:
             "intermediate_profitable_stock_ratios": sim.intermediate_profitable_ratios,
             "intermediate_investment_ratios": sim.intermediate_investment_ratios,
             "intermediate_combined_ratios": sim.intermediate_combined_ratios,
-            "num_tokens": self._count_messages_tokens(sim.get_tools()),
+            "num_tokens": count_messages_tokens(self.model, self.messages, self.system_message, sim.get_tools()),
             "num_messages": self._count_assistant_messages(),
             "num_tool_calls": sim.tool_call_count,
             "branched_from": self.branched_from,
@@ -181,6 +180,11 @@ class SimulationManager:
                 print("Tool calls: ", tool_calls)
             
             if tool_calls is None:
+                self.messages.append({
+                    "role": "user",
+                    "content": "Please continue with your next action."
+                })
+                print("User: Please continue with your next action.")
                 return self.messages
             
             else:
@@ -504,48 +508,7 @@ class SimulationManager:
             pickle.dump(sim_state, f)
             
         print(f"Saved checkpoint at timestep {sim.current_timestep}")
-
-
-    def _count_messages_tokens(self, tools: List[Dict]) -> int:
-        """Count the total number of tokens in self.messages"""
-        total_tokens = 0
-
-        if "gpt" in self.model.lower():
-            for message in self.messages:
-                encoding = tiktoken.encoding_for_model(self.model) if "gpt" in self.model.lower() else None
-                # Count message content
-                content = message["content"] if isinstance(message, dict) else message.content
-                if isinstance(content, str):
-                    total_tokens += len(encoding.encode(content))
-                elif isinstance(content, list):
-                    for content_item in content:
-                        if isinstance(content_item, dict) and "text" in content_item:
-                            total_tokens += len(encoding.encode(content_item["text"]))
-                
-                # Count function calls if present
-                tool_calls = message.get("tool_calls") if isinstance(message, dict) else getattr(message, "tool_calls", None)
-                if tool_calls:
-                    for tool_call in tool_calls:
-                        if isinstance(tool_call, dict):
-                            name = tool_call["function"]["name"]
-                            args = tool_call["function"]["arguments"]
-                        else:
-                            name = tool_call.function.name
-                            args = tool_call.function.arguments
-                        
-                        total_tokens += len(encoding.encode(name))
-                        total_tokens += len(encoding.encode(args))
-
-        elif "claude" in self.model.lower():
-            response = self.api_client.messages.count_tokens(
-                model=self.model,
-                tools=tools,
-                system=self.system_message,
-                messages=self.messages,
-            )
-            total_tokens = response.input_tokens
-
-        return total_tokens
+    
     
     def _count_assistant_messages(self) -> int:
         return sum(1 for message in self.messages if (message.get("role") if isinstance(message, dict) else message.role) == "assistant")
