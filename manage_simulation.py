@@ -24,7 +24,7 @@ class SimulationManager:
         self.checkpoint_dir = f"checkpoints"
         os.makedirs(self.checkpoint_dir, exist_ok=True)
         
-    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, exclude_messages: bool = False, interrogate: bool = False, remind_model_about_goal: bool = False, use_unrelated_instr_goal: bool = False, condition_claude_on_gpt: bool = False, condition_gpt_on_claude: bool = False):
+    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, baseline_run: bool = False, interrogate: bool = False, remind_model_about_goal: bool = False, use_unrelated_instr_goal: bool = False, condition_claude_on_gpt: bool = False, condition_gpt_on_claude: bool = False):
         """
         Args:
             sim_class: The simulation class to use
@@ -47,13 +47,13 @@ class SimulationManager:
         if checkpoint_state:
             prev_sim_data = checkpoint_state["prev_sim_data"]
             start_timestep = checkpoint_state["current_timestep"]
-            if not exclude_messages:
+            if not baseline_run:
                 self.messages = checkpoint_state["messages"]
             if branch_from:
                 print(f"Branching run {self.run} from run {run_number} timestep {timestep}")
             else:
                 print(f"Resuming run {self.run} from timestep {start_timestep}")
-            print(self.messages)
+            print("Messages: ", self.messages)
         else:
             prev_sim_data = {}
             start_timestep = 1

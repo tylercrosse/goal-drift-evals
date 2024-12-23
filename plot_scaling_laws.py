@@ -30,9 +30,9 @@ def load_data():
         f'scaling_laws/hp_gpt_4_ood/results.json',
         f'scaling_laws/hp_gpt_8_ood/results.json',
         # f'scaling_laws/hp_sonnet_16_gpt/results.json',
-        f'scaling_laws/hp_2_multiple_source/baseline.json',
-        f'scaling_laws/hp_4_multiple_source/baseline.json',
-        f'scaling_laws/hp_8_multiple_source/baseline.json',
+        f'scaling_laws/hp_gpt_2_baseline/results.json',
+        f'scaling_laws/hp_gpt_4_baseline/results.json',
+        f'scaling_laws/hp_gpt_8_baseline/results.json',
         # f'scaling_laws/hp_16_multiple_source/baseline.json',
     ]
     
@@ -81,6 +81,13 @@ def plot_intrinsification():
         # '16_steps': calculate_last_10_mean_with_ci('sonnet', extract_emissions(data[7], 'gpt-4o-mini')),
     }
 
+    baseline_results = {
+        '2_steps': calculate_last_10_mean_with_ci('gpt-4o-mini', extract_emissions(data[6], 'gpt-4o-mini')),
+        '4_steps': calculate_last_10_mean_with_ci('gpt-4o-mini', extract_emissions(data[7], 'gpt-4o-mini')),
+        '8_steps': calculate_last_10_mean_with_ci('gpt-4o-mini', extract_emissions(data[8], 'gpt-4o-mini')),
+        # '16_steps': calculate_last_10_mean_with_ci('sonnet', extract_emissions(data[9], 'gpt-4o-mini')),
+    }
+
     # Calculate values for both conditions
     x_values = [2, 4, 8]
     
@@ -106,6 +113,16 @@ def plot_intrinsification():
         normal_ci_lower.append(lower)
         normal_ci_upper.append(upper)
 
+    baseline_differences = []
+    baseline_ci_lower = []
+    baseline_ci_upper = []
+    for steps in [2, 4, 8]:
+        key = f'{steps}_steps'
+        mean, lower, upper = baseline_results[key]
+        baseline_differences.append(mean)
+        baseline_ci_lower.append(lower)
+        baseline_ci_upper.append(upper)
+
     # Create plot
     plt.figure(figsize=(12, 6))
     
@@ -122,6 +139,13 @@ def plot_intrinsification():
                       np.array(normal_ci_upper) - np.array(normal_differences)],
                 fmt='o-', color='blue', 
                 label='Conditioned on 4o-mini', capsize=5, capthick=1, elinewidth=1)
+    
+    # Plot baseline line
+    plt.errorbar(x_values, baseline_differences, 
+                yerr=[np.array(baseline_differences) - np.array(baseline_ci_lower), 
+                      np.array(baseline_ci_upper) - np.array(baseline_differences)],
+                fmt='o-', color='green',
+                label='Baseline', capsize=5, capthick=1, elinewidth=1)
     
     plt.xscale('log')
     plt.title('Effect of Instrumental Steps on Goal Drift Score (4o-mini, health externality minimization -> profit maximization)')

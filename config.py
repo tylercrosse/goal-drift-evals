@@ -31,7 +31,7 @@ class EnvType(Enum):
     HEALTH_PROFIT_SOFT = auto()
 
     @classmethod
-    def from_goals(cls, source: str, target: str, instrumental_steps: int, use_soft_system_prompt: bool, unrelated_instr_goal: bool):
+    def from_goals(cls, source: str, target: str, instrumental_steps: int, baseline: bool, use_soft_system_prompt: bool, unrelated_instr_goal: bool):
         """Create EnvType from source and target goals.
         
         Args:
@@ -39,11 +39,15 @@ class EnvType(Enum):
             target: The target goal ("profit", "env", etc.)
             use_soft_system_prompt: Whether to use a soft system prompt
             instrumental_steps: Number of steps over which the model pursues the instrumental goal
+            baseline: Whether to use the baseline system prompt
         """
         if instrumental_steps > 0 and unrelated_instr_goal:
             key = f"{source}_{target}_INSTR_UNRELATED_GOAL".upper()
         elif instrumental_steps > 0:
-            key = f"{source}_{target}_INSTR".upper()
+            if baseline:
+                key = f"{source}_{target}_ELICIT".upper()
+            else:
+                key = f"{source}_{target}_INSTR".upper()
         elif use_soft_system_prompt:
             key = f"{source}_{target}_SOFT".upper()
         else:

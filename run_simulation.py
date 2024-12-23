@@ -57,12 +57,7 @@ def setup_logging(run, verbose):
     return log_file  # Return for cleanup in finally block
 
 def extract_checkpoint_data(run: int, timestep: int):
-    """Extract data from a checkpoint and save it to JSON and log files.
-    
-    Args:
-        run (int): Run number of the checkpoint
-        timestep (int): Timestep of the checkpoint
-    """
+    """Extract data from a checkpoint and save it to JSON and log files."""
     json_file = "checkpoint_data.json"
     log_file = f"logs/checkpoint_run{run}_step{timestep}.log"
     
@@ -70,10 +65,6 @@ def extract_checkpoint_data(run: int, timestep: int):
     
     if checkpoint_state is None:
         raise ValueError(f"No checkpoint found for run {run} at timestep {timestep}")
-    
-    # Save the checkpoint data to JSON file
-    with open(json_file, 'w') as f:
-        json.dump(checkpoint_state, f, indent=4)
     
     # Create logs directory if it doesn't exist
     os.makedirs('logs', exist_ok=True)
@@ -85,21 +76,77 @@ def extract_checkpoint_data(run: int, timestep: int):
         
         messages = checkpoint_state.get('messages', [])
         for msg in messages:
-            role = msg.get('role', 'unknown')
-            content = msg.get('content', '')
+            # Handle both dict-style and object-style access
+            if hasattr(msg, 'get'):  # Dictionary-like object
+                role = msg.get('role', 'unknown')
+                content = msg.get('content', '')
+                tool_calls = msg.get('tool_calls', [])
+            else:  # Object with attributes
+                role = getattr(msg, 'role', 'unknown')
+                content = getattr(msg, 'content', '')
+                tool_calls = getattr(msg, 'tool_calls', [])
             
             f.write(f"[{role.upper()}]\n")
             
-            # Handle tool calls separately
-            if 'tool_calls' in msg:
-                f.write("TOOL CALLS:\n")
-                for tool_call in msg['tool_calls']:
-                    f.write(f"- Function: {tool_call.get('function', {}).get('name', 'unknown')}\n")
-                    f.write(f"  Arguments: {tool_call.get('function', {}).get('arguments', '')}\n")
+            # Handle different content formats for assistant messages
+            if role == "assistant":
+                if isinstance(content, list):  # Claude format
+                    for content_item in content:
+                        if isinstance(content_item, dict) and content_item.get("type") == "text":
+                            f.write(f"{content_item['text']}\n")
+                        elif hasattr(content_item, 'type') and content_item.type == "text":
+                            f.write(f"{content_item.text}\n")
+                else:  # GPT format or string content
+                    f.write(f"{content}\n")
             else:
                 f.write(f"{content}\n")
             
+            # Handle tool calls
+            if tool_calls:
+                f.write("TOOL CALLS:\n")
+                for tool_call in tool_calls:
+                    if isinstance(tool_call, dict):
+                        function = tool_call.get('function', {})
+                        name = function.get('name', 'unknown')
+                        arguments = function.get('arguments', '')
+                    else:
+                        name = getattr(tool_call.function, 'name', 'unknown')
+                        arguments = getattr(tool_call.function, 'arguments', '')
+                    
+                    f.write(f"- Function: {name}\n")
+                    f.write(f"  Arguments: {arguments}\n")
+            
             f.write("\n" + "-" * 80 + "\n\n")
+    
+    checkpoint_state = {k: v for k, v in checkpoint_state.items() if k != 'messages'}
+    
+    def is_json_serializable(obj):
+        try:
+            json.dumps(obj)
+            return True
+        except (TypeError, OverflowError):
+            return False
+    
+    # Filter out non-serializable items recursively
+    def clean_for_json(item):
+        if isinstance(item, dict):
+            return {k: clean_for_json(v) for k, v in item.items() 
+                   if is_json_serializable(k) and k != 'messages'}
+        elif isinstance(item, (list, tuple)):
+            return [clean_for_json(i) for i in item if is_json_serializable(i)]
+        elif isinstance(item, set):
+            return [clean_for_json(i) for i in item if is_json_serializable(i)]
+        elif is_json_serializable(item):
+            return item
+        else:
+            return str(item)  # Convert non-serializable objects to strings
+    
+    # Clean the checkpoint data
+    cleaned_state = clean_for_json(checkpoint_state)
+    
+    # Save the cleaned checkpoint data to JSON file
+    with open(json_file, 'w') as f:
+        json.dump(cleaned_state, f, indent=4)
     
     print(f"Checkpoint data saved to {json_file}")
     print(f"Message history log saved to {log_file}")
@@ -107,7 +154,7 @@ def extract_checkpoint_data(run: int, timestep: int):
 def run_single_simulation(run, model, results_file, lock, verbose, use_soft_system_prompt, sim_params):
     try:
         setup_logging(run, verbose)
-        env_type = EnvType.from_goals(sim_params['source_goal'], sim_params['target_goal'], sim_params.get('num_instrumental_steps', 0), use_soft_system_prompt, sim_params["use_unrelated_instr_goal"])
+        env_type = EnvType.from_goals(sim_params['source_goal'], sim_params['target_goal'], sim_params.get('num_instrumental_steps', 0), sim_params['baseline_run'], use_soft_system_prompt, sim_params["use_unrelated_instr_goal"])
         system_message = SYSTEM_MESSAGE[env_type]
         branched_from = sim_params['branch_from'][0] if sim_params.get('branch_from', None) else None
         sim_manager = SimulationManager(model, run, branched_from)
@@ -163,7 +210,6 @@ def parse_args():
     parser.add_argument("--distractions", action="store_true", help="Enable distractions.")
     parser.add_argument("--ood", action="store_true", help="Enable out-of-distribution simulation.")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output.")
-    parser.add_argument("--exclude_messages", action="store_true", help="Exclude message history from previous simulation.")
     parser.add_argument("--extract_checkpoint", action="store_true",
                        help="Extract data from a checkpoint without running simulation. Use together with --branch_from to specify the checkpoint. No simulation will be run when using this flag.")
     parser.add_argument("--interrogate", action="store_true", help="Ask model about the goal it's following.")
@@ -173,6 +219,7 @@ def parse_args():
     parser.add_argument("--use_unrelated_instr_goal", action="store_true", help="Use an instrumental goal unrelated to both the system and the target goal.")
     parser.add_argument("--condition_claude_on_gpt", action="store_true", help="Condition the Claude model on the GPT model's messages.")
     parser.add_argument("--condition_gpt_on_claude", action="store_true", help="Condition the GPT model on the Claude model's messages.")
+    parser.add_argument("--baseline", action="store_true", help="Baseline run.")
     args = parser.parse_args()
 
     if args.source == args.target:
@@ -218,13 +265,13 @@ if __name__ == "__main__":
         'ood': args.ood,
         'num_instrumental_steps': args.num_instrumental_steps,
         'resume': args.resume,
-        'exclude_messages': args.exclude_messages,
         'interrogate': args.interrogate,
         'remind_model_about_goal': args.remind_model_about_goal,
         'branch_from': args.branch_from,
         'use_unrelated_instr_goal': args.use_unrelated_instr_goal,
         'condition_claude_on_gpt': args.condition_claude_on_gpt,
-        'condition_gpt_on_claude': args.condition_gpt_on_claude
+        'condition_gpt_on_claude': args.condition_gpt_on_claude,
+        'baseline_run': args.baseline
     }
 
     if args.parallel:
