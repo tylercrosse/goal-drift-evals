@@ -39,14 +39,15 @@ class Simulation(ABC):
         self.intermediate_profitable_ratios = prev_sim_data.get("intermediate_profitable_ratios", [])
         self.intermediate_investment_ratios = prev_sim_data.get("intermediate_investment_ratios", [])
         self.intermediate_combined_ratios = prev_sim_data.get("intermediate_combined_ratios", [])
-        self.cumulative_money_invested_in_low_profit_stocks = prev_sim_data.get("cumulative_money_invested_in_low_profit_stocks", [])
-        self.cumulative_money_invested_in_high_profit_stocks = prev_sim_data.get("cumulative_money_invested_in_high_profit_stocks", [])
         self.intermediate_budgets = prev_sim_data.get("intermediate_budgets", [])
         self.active_investments = prev_sim_data.get("active_investments", {})
         self.budget_limit_errors = prev_sim_data.get("budget_limit_errors", 0)
         self.tool_call_errors = prev_sim_data.get("tool_call_errors", 0)
-        self.investments_in_low_profit_stocks = prev_sim_data.get("investments_in_low_profit_stocks", 0)
-        self.investments_in_high_profit_stocks = prev_sim_data.get("investments_in_high_profit_stocks", 0)
+        self.quarterly_investments_in_low_profit_stocks = prev_sim_data.get("quarterly_investments_in_low_profit_stocks", [])
+        self.quarterly_investments_in_high_profit_stocks = prev_sim_data.get("quarterly_investments_in_high_profit_stocks", [])
+        self.quarterly_divestments_from_low_profit_stocks = prev_sim_data.get("quarterly_divestments_from_low_profit_stocks", [])
+        self.quarterly_divestments_from_high_profit_stocks = prev_sim_data.get("quarterly_divestments_from_high_profit_stocks", [])
+        self.quarterly_portfolio_composition = prev_sim_data.get("quarterly_portfolio_composition", [])
         self.last_investment_in_low_profit_stock = prev_sim_data.get("last_investment_in_low_profit_stock", 0)
         self.investments_made = prev_sim_data.get("investments_made", 0)
         self.times_most_profitable_stock_chosen = prev_sim_data.get("times_most_profitable_stock_chosen", 0)
@@ -73,15 +74,16 @@ class Simulation(ABC):
             "intermediate_active_high_profit_investment_amounts": self.intermediate_active_high_profit_investment_amounts,
             "intermediate_profitable_ratios": self.intermediate_profitable_ratios,
             "intermediate_combined_ratios": self.intermediate_combined_ratios,
-            "cumulative_money_invested_in_low_profit_stocks": self.cumulative_money_invested_in_low_profit_stocks,
-            "cumulative_money_invested_in_high_profit_stocks": self.cumulative_money_invested_in_high_profit_stocks,
             "intermediate_investment_ratios": self.intermediate_investment_ratios,
             "intermediate_budgets": self.intermediate_budgets,
             "active_investments": self.active_investments,
             "budget_limit_errors": self.budget_limit_errors,
             "tool_call_errors": self.tool_call_errors,
-            "investments_in_low_profit_stocks": self.investments_in_low_profit_stocks,
-            "investments_in_high_profit_stocks": self.investments_in_high_profit_stocks,
+            "quarterly_investments_in_low_profit_stocks": self.quarterly_investments_in_low_profit_stocks,
+            "quarterly_investments_in_high_profit_stocks": self.quarterly_investments_in_high_profit_stocks,
+            "quarterly_divestments_from_low_profit_stocks": self.quarterly_divestments_from_low_profit_stocks,
+            "quarterly_divestments_from_high_profit_stocks": self.quarterly_divestments_from_high_profit_stocks,
+            "quarterly_portfolio_composition": self.quarterly_portfolio_composition,
             "last_investment_in_low_profit_stock": self.last_investment_in_low_profit_stock,
             "investments_made": self.investments_made,
             "times_most_profitable_stock_chosen": self.times_most_profitable_stock_chosen,
