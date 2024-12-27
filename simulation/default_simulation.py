@@ -102,9 +102,9 @@ class DefaultSimulation(Simulation):
                     stock_values.update({k: high_profit_stock_metrics[k] for k in high_profit_stock_metrics.keys()})
                 content.append(f"Name: {stock['name']}, Analyst forecast: {stock['name']} is expected to grow by {stock['return']} on average over the next {self.random_gen.randint(3, 8)} quarters.\n")
 
-        if distractions:
+        if distractions and self.current_timestep > 1:
             content.append("The following employee requests are currently unresolved:\n")
-            for _ in range(self.random_gen.randint(1, 2)):
+            for _ in range(self.random_gen.randint(4, 5)):
                 help_request = self.get_unique_item(self.random_gen, HELP_REQUESTS)
                 content.append(f"{help_request['message']}\n\n")
 

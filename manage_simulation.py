@@ -8,6 +8,7 @@ from simulation.simulation import Simulation
 from simulation.strategies.get_strategy import get_strategy
 from config import get_api_client
 from utils.utils import count_messages_tokens, build_text_to_token_target, gen_seed
+from copy import deepcopy
 import random
 import pprint
 import logging
@@ -102,6 +103,8 @@ class SimulationManager:
                     continue
                 self.single_step(self.model, sim)
                 i += 1
+            
+            # self.messages = self.consecutive_message_reducer(self.messages)
 
             print("\n" * 5)
         
@@ -148,30 +151,30 @@ class SimulationManager:
             Tuple containing the updated simulation instance and messages.
         """
         try:
-            if "claude" in model.lower():
-                self.modify_messages_for_claude()
-            
+            messages = deepcopy(self.messages)
             response = self.call_api(
                 model=model,
-                messages=self.messages,
+                messages=messages,
                 tools=sim.tools,
                 tool_choice="auto",
             )
 
-            # if "claude" in model.lower():
-            #     input_tokens = response.usage.input_tokens
-            #     output_tokens = response.usage.output_tokens
-            #     input_tokens_cache_read = getattr(response.usage, 'cache_read_input_tokens', '---')
-            #     input_tokens_cache_create = getattr(response.usage, 'cache_creation_input_tokens', '---')
-            #     print(f"User input tokens: {input_tokens}")
-            #     print(f"Output tokens: {output_tokens}")
-            #     print(f"Input tokens (cache read): {input_tokens_cache_read}")
-            #     print(f"Input tokens (cache write): {input_tokens_cache_create}")
+            if "claude" in model.lower():
+                input_tokens = response.usage.input_tokens
+                output_tokens = response.usage.output_tokens
+                input_tokens_cache_read = getattr(response.usage, 'cache_read_input_tokens', '---')
+                input_tokens_cache_create = getattr(response.usage, 'cache_creation_input_tokens', '---')
+                print('\n')
+                print(f"User input tokens: {input_tokens}")
+                print(f"Output tokens: {output_tokens}")
+                print(f"Input tokens (cache read): {input_tokens_cache_read}")
+                print(f"Input tokens (cache write): {input_tokens_cache_create}")
 
-            #     total_input_tokens = input_tokens + (int(input_tokens_cache_read) if input_tokens_cache_read != '---' else 0)
-            #     percentage_cached = (int(input_tokens_cache_read) / total_input_tokens * 100 if input_tokens_cache_read != '---' and total_input_tokens > 0 else 0)
+                total_input_tokens = input_tokens + (int(input_tokens_cache_read) if input_tokens_cache_read != '---' else 0)
+                percentage_cached = (int(input_tokens_cache_read) / total_input_tokens * 100 if input_tokens_cache_read != '---' and total_input_tokens > 0 else 0)
 
-            #     print(f"{percentage_cached:.1f}% of input prompt cached ({total_input_tokens} tokens)")
+                print(f"{percentage_cached:.1f}% of input prompt cached ({total_input_tokens} tokens)")
+                print('\n')
             
             tool_calls, response_message_content = self.extract_tool_calls_and_response_message(model, response)
             
@@ -247,7 +250,8 @@ class SimulationManager:
                         tool_choice=tool_choice,
                     )
                 elif "claude" in model.lower():
-                    messages = self.add_prompt_caching(messages)
+                    messages = self.modify_messages_for_claude(messages)
+                    messages, tools = self.add_prompt_caching(messages, tools)
                     return self.api_client.messages.create(
                         model=model,
                         messages=messages,
@@ -259,10 +263,7 @@ class SimulationManager:
                                 "text": self.system_message,
                                 "cache_control": {"type": "ephemeral"}
                             }
-                        ],
-                        extra_headers={
-                            "anthropic-beta": "prompt-caching-2024-07-31"
-                        }
+                        ]
                     )
                 else:
                     raise ValueError(f"Unsupported model: {model}")
@@ -272,9 +273,9 @@ class SimulationManager:
             raise
         
 
-    def modify_messages_for_claude(self) -> None:
+    def modify_messages_for_claude(self, messages: List[Dict]) -> None:
         user_messages_content = []
-        for message in reversed(self.messages):
+        for message in reversed(messages):
             if message["role"] == "user" and isinstance(message["content"], str):
                 user_messages_content.append(
                     {
@@ -282,34 +283,24 @@ class SimulationManager:
                         "text": message["content"]
                     }
                 )
-                self.messages.remove(message)
+                messages.remove(message)
             elif message["role"] == "user" and isinstance(message["content"], List):
                 user_messages_content += message["content"]
-                self.messages.remove(message)
+                messages.remove(message)
             else:
                 break
         
         if user_messages_content:
-            self.messages.append(
+            messages.append(
                 {
                     "role": "user",
                     "content": list(reversed(user_messages_content))
                 }
             )
-        else:
-            self.messages.append(
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "No tools were called. Please make correct tool calls in order to continue."
-                        }
-                    ]
-                }
-            )
 
-    
+        return messages
+
+
     def modify_interaction_sequence_for_claude(self) -> None:
         """Convert GPT-style message history to Claude format."""
         converted_messages = []
@@ -472,26 +463,26 @@ class SimulationManager:
             raise
 
 
-    def add_prompt_caching(self, messages: List[Dict]) -> List[Dict]:
+    def add_prompt_caching(self, messages: List[Dict], tools: List[Dict]) -> List[Dict]:
         result = []
         user_turns_processed = 0
+        if tools:
+            tools[-1]["cache_control"] = {"type": "ephemeral"}
+
         for turn in reversed(messages):
-            if turn["role"] == "user" and turn["content"][0].get("text", None) and user_turns_processed < 2:
-                result.append({
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": turn["content"][0]["text"],
-                            "cache_control": {"type": "ephemeral"}
-                        }
-                    ]
-                })
+            if turn["role"] == "user" and user_turns_processed < 2:
+                if isinstance(turn["content"], str):
+                    turn["content"] = [{"type": "text", "text": turn["content"], "cache_control": {"type": "ephemeral"}}]
+                elif isinstance(turn["content"], list) and len(turn["content"]) > 0:
+                    turn["content"][-1]["cache_control"] = {"type": "ephemeral"}
+                result.append(turn)
                 user_turns_processed += 1
             else:
                 result.append(turn)
 
-        return list(reversed(result))
+        print("Result: ", result)
+
+        return list(reversed(result)), tools
 
     def save_checkpoint(self, sim: Simulation):
         """Save the final state of the simulation"""
