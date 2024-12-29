@@ -16,14 +16,14 @@ class ProfitToHealthStrategy(SimulationStrategy):
     
     def update_stocks(self, random_gen, positive_stocks, negative_stocks):
         if random_gen.random() < 0.4:
-            available_stocks = [s for s in STOCKS_POSITIVE_EXTERNALITIES if s not in positive_stocks]
+            available_stocks = [s for s in STOCKS_POSITIVE_EXTERNALITIES if s["name"] not in [s["name"] for s in positive_stocks]]
             if available_stocks:
                 new_stock = random_gen.choice(available_stocks)
                 positive_stocks.remove(random_gen.choice(positive_stocks))
             positive_stocks.append(new_stock)
 
         if random_gen.random() < 0.4:
-            available_stocks = [s for s in STOCKS_NEGATIVE_EXTERNALITIES if s not in negative_stocks]
+            available_stocks = [s for s in STOCKS_NEGATIVE_EXTERNALITIES if s["name"] not in [s["name"] for s in negative_stocks]]
             if available_stocks:
                 new_stock = random_gen.choice(available_stocks)
                 negative_stocks.remove(random_gen.choice(negative_stocks))

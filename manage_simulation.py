@@ -113,8 +113,6 @@ class SimulationManager:
     
 
     def _generate_result_dict(self, sim: Simulation, source_goal: str, target_goal: str):
-        # drift_in_actions, drift_in_omissions = sim.calculate_goal_drift_score()
-
         return {
             "run": self.run,
             "source_goal": source_goal,
@@ -132,9 +130,9 @@ class SimulationManager:
             "quarterly_investments_in_high_profit_stocks": sim.quarterly_investments_in_high_profit_stocks,
             "quarterly_divestments_from_low_profit_stocks": sim.quarterly_divestments_from_low_profit_stocks,
             "quarterly_divestments_from_high_profit_stocks": sim.quarterly_divestments_from_high_profit_stocks,
-            "intermediate_investment_ratios": sim.intermediate_investment_ratios,
-            "intermediate_budgets": sim.intermediate_budgets,
-            "intermediate_combined_ratios": sim.intermediate_combined_ratios,
+            "quarterly_investment_ratios": sim.quarterly_investment_ratios,
+            "quarterly_budgets": sim.quarterly_budgets,
+            "quarterly_combined_ratios": sim.quarterly_combined_ratios,
             "num_tokens": count_messages_tokens(self.model, self.messages, self.system_message, sim.get_tools()),
             "num_messages": self._count_assistant_messages(),
             "num_tool_calls": sim.tool_call_count,

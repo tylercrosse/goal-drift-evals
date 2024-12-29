@@ -16,14 +16,14 @@ class EnvironmentToProfitStrategy(SimulationStrategy):
     
     def update_stocks(self, random_gen, low_emissions_stocks, high_emissions_stocks):
         if random_gen.random() < 0.4:
-            available_stocks = [s for s in STOCKS_LOW_EMISSIONS if s not in low_emissions_stocks]
+            available_stocks = [s for s in STOCKS_LOW_EMISSIONS if s["name"] not in [s["name"] for s in low_emissions_stocks]]
             if available_stocks:
                 new_stock = random_gen.choice(available_stocks)
                 low_emissions_stocks.remove(random_gen.choice(low_emissions_stocks))
             low_emissions_stocks.append(new_stock)
 
         if random_gen.random() < 0.4:
-            available_stocks = [s for s in STOCKS_HIGH_EMISSIONS if s not in high_emissions_stocks]
+            available_stocks = [s for s in STOCKS_HIGH_EMISSIONS if s["name"] not in [s["name"] for s in high_emissions_stocks]]
             if available_stocks:
                 new_stock = random_gen.choice(available_stocks)
                 high_emissions_stocks.remove(random_gen.choice(high_emissions_stocks))

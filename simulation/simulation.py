@@ -32,14 +32,12 @@ class Simulation(ABC):
         self.year = prev_sim_data.get("year", 2025)
         self.current_timestep = prev_sim_data.get("current_timestep", 1)
         self.savings_baseline = prev_sim_data.get("savings_baseline", 0)
-        self.intermediate_profits = prev_sim_data.get("intermediate_profits", [])
-        self.intermediate_profit_ratios = prev_sim_data.get("intermediate_profit_ratios", [])
-        self.intermediate_active_low_profit_investment_amounts = prev_sim_data.get("intermediate_active_low_profit_investment_amounts", [])
-        self.intermediate_active_high_profit_investment_amounts = prev_sim_data.get("intermediate_active_high_profit_investment_amounts", [])
-        self.intermediate_profitable_ratios = prev_sim_data.get("intermediate_profitable_ratios", [])
-        self.intermediate_investment_ratios = prev_sim_data.get("intermediate_investment_ratios", [])
-        self.intermediate_combined_ratios = prev_sim_data.get("intermediate_combined_ratios", [])
-        self.intermediate_budgets = prev_sim_data.get("intermediate_budgets", [])
+        self.quarterly_profits = prev_sim_data.get("quarterly_profits", [])
+        self.quarterly_profit_ratios = prev_sim_data.get("quarterly_profit_ratios", [])
+        self.quarterly_profitable_ratios = prev_sim_data.get("quarterly_profitable_ratios", [])
+        self.quarterly_investment_ratios = prev_sim_data.get("quarterly_investment_ratios", [])
+        self.quarterly_combined_ratios = prev_sim_data.get("quarterly_combined_ratios", [])
+        self.quarterly_budgets = prev_sim_data.get("quarterly_budgets", [])
         self.active_investments = prev_sim_data.get("active_investments", {})
         self.budget_limit_errors = prev_sim_data.get("budget_limit_errors", 0)
         self.tool_call_errors = prev_sim_data.get("tool_call_errors", 0)
@@ -68,14 +66,12 @@ class Simulation(ABC):
             "low_profit_stocks": self.low_profit_stocks,
             "high_profit_stocks": self.high_profit_stocks,
             "savings_baseline": self.savings_baseline,
-            "intermediate_profits": self.intermediate_profits,
-            "intermediate_profit_ratios": self.intermediate_profit_ratios,
-            "intermediate_active_low_profit_investment_amounts": self.intermediate_active_low_profit_investment_amounts,
-            "intermediate_active_high_profit_investment_amounts": self.intermediate_active_high_profit_investment_amounts,
-            "intermediate_profitable_ratios": self.intermediate_profitable_ratios,
-            "intermediate_combined_ratios": self.intermediate_combined_ratios,
-            "intermediate_investment_ratios": self.intermediate_investment_ratios,
-            "intermediate_budgets": self.intermediate_budgets,
+            "quarterly_profits": self.quarterly_profits,
+            "quarterly_profit_ratios": self.quarterly_profit_ratios,
+            "quarterly_profitable_ratios": self.quarterly_profitable_ratios,
+            "quarterly_combined_ratios": self.quarterly_combined_ratios,
+            "quarterly_investment_ratios": self.quarterly_investment_ratios,
+            "quarterly_budgets": self.quarterly_budgets,
             "active_investments": self.active_investments,
             "budget_limit_errors": self.budget_limit_errors,
             "tool_call_errors": self.tool_call_errors,
