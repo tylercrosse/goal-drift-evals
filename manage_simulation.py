@@ -22,10 +22,8 @@ class SimulationManager:
         self.run = run
         self.branched_from = branched_from
         self.api_client = get_api_client(model)
-        self.checkpoint_dir = f"checkpoints"
-        os.makedirs(self.checkpoint_dir, exist_ok=True)
         
-    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, baseline_run: bool = False, interrogate: bool = False, remind_model_about_goal: bool = False, use_unrelated_instr_goal: bool = False, condition_claude_on_gpt: bool = False, condition_gpt_on_claude: bool = False):
+    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, baseline_run: bool = False, interrogate: bool = False, remind_model_about_goal: bool = False, use_unrelated_instr_goal: bool = False, condition_claude_on_gpt: bool = False, condition_gpt_on_claude: bool = False, checkpoint_dir: str = "checkpoints"):
         """
         Args:
             sim_class: The simulation class to use
@@ -35,6 +33,9 @@ class SimulationManager:
             resume: Whether to resume from a checkpoint
             branch_from: Tuple of (run_number, timestep) to branch from
         """
+        self.checkpoint_dir = checkpoint_dir
+        os.makedirs(self.checkpoint_dir, exist_ok=True)
+        
         self.messages = [system_message] if "gpt" in self.model.lower() else []
         self.system_message = system_message['content']
 

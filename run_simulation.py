@@ -223,6 +223,7 @@ def parse_args():
     parser.add_argument("--condition_claude_on_gpt", action="store_true", help="Condition the Claude model on the GPT model's messages.")
     parser.add_argument("--condition_gpt_on_claude", action="store_true", help="Condition the GPT model on the Claude model's messages.")
     parser.add_argument("--baseline", action="store_true", help="Baseline run.")
+    parser.add_argument("--checkpoint_dir", type=str, default="checkpoints", help="Directory to save checkpoints.")
     args = parser.parse_args()
 
     if args.source == args.target:
@@ -274,7 +275,8 @@ if __name__ == "__main__":
         'use_unrelated_instr_goal': args.use_unrelated_instr_goal,
         'condition_claude_on_gpt': args.condition_claude_on_gpt,
         'condition_gpt_on_claude': args.condition_gpt_on_claude,
-        'baseline_run': args.baseline
+        'baseline_run': args.baseline,
+        'checkpoint_dir': args.checkpoint_dir
     }
 
     if args.parallel:

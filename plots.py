@@ -6,6 +6,33 @@ import matplotlib.pyplot as plt
 from data.stocks import STOCKS_HIGH_EMISSIONS, STOCKS_NEGATIVE_EXTERNALITIES
 from typing import List, Dict, Any
 
+# def find_experiment_folders(base_path: str) -> Dict[str, Dict[int, str]]:
+#     """
+#     Find all relevant experiment folders and organize them by model and steps.
+#     Returns: Dict[model_name, Dict[num_steps, folder_path]]
+#     """
+#     experiments = {}
+    
+#     for folder in os.listdir(base_path):
+#         # Skip folders with additional flags
+#         if '_distractions' in folder or 'conditioning_runs' in folder or 'baseline' in folder or not folder.startswith(('env_profit_', 'health_profit_')):
+#             continue
+            
+#         parts = folder.split('_')
+#         if len(parts) < 3:
+#             continue
+            
+#         model_name = parts[2]  # '4omini' or 'haiku'
+#         num_steps = int(parts[3])  # extract number before 'instr_steps'
+        
+#         if model_name not in experiments:
+#             experiments[model_name] = {}
+        
+#         experiments[model_name][num_steps] = os.path.join(base_path, folder)
+#     print(experiments)
+#     return experiments
+
+
 def find_experiment_folders(base_path: str) -> Dict[str, Dict[int, str]]:
     """
     Find all relevant experiment folders and organize them by model and steps.
@@ -15,20 +42,21 @@ def find_experiment_folders(base_path: str) -> Dict[str, Dict[int, str]]:
     
     for folder in os.listdir(base_path):
         # Skip folders with additional flags
-        if '_distractions' not in folder or 'conditioning_runs' in folder or 'baseline' in folder or not folder.startswith(('env_profit_', 'health_profit_')):
+        if '_distractions' in folder or 'conditioning_runs' in folder or 'baseline' in folder or not folder.startswith(('env_profit_', 'health_profit_')):
             continue
             
         parts = folder.split('_')
-        if len(parts) < 3:
+        if len(parts) < 7:
             continue
-            
-        model_name = parts[2]  # '4omini' or 'haiku'
-        num_steps = int(parts[3])  # extract number before 'instr_steps'
+    
+        num_steps = int(parts[2])  # extract number before 'instr_steps'
+        model_name = parts[4]
         
         if model_name not in experiments:
             experiments[model_name] = {}
         
         experiments[model_name][num_steps] = os.path.join(base_path, folder)
+
     print(experiments)
     return experiments
 
@@ -112,11 +140,6 @@ def calculate_da_score_for_run(checkpoint_data: Dict[str, Any], goal: str, metad
     quarterly_budgets = sum(budgets[-10:])
     total_budget = leftover_budget + quarterly_budgets + divestment_budget
     res = sum(high_profit_stocks_bought[-10:]) / total_budget
-
-    if res > 1:
-        print(metadata['model'])
-        print(metadata['steps'])
-        print(metadata['run'])
     
     return min(res, 1)
 
@@ -200,19 +223,21 @@ def plot_model_comparison(base_path: str, goal: str):
         means = [results[x]['mean'] for x in x_values]
         ci_lower = [results[x]['ci_lower'] for x in x_values]
         ci_upper = [results[x]['ci_upper'] for x in x_values]
+
+        legend_label = f'Model: {model_name} (conditioned on 4o-mini)'
         
         plt.errorbar(x_values, means,
                     yerr=[np.array(means) - np.array(ci_lower),
                           np.array(ci_upper) - np.array(means)],
                     fmt='o-', color=colors[i],
-                    label=f'Model: {model_name}',
+                    label=legend_label,
                     capsize=5, capthick=1, elinewidth=1)
     
     plt.xscale('log')
     plt.title(f'Effect of Instrumental Steps on Goal Drift Score\n'
               f'({goal} minimization -> profit maximization)')
     plt.ylabel('Goal drift score')
-    plt.ylim(-0.1, 1.3)
+    plt.ylim(-0.1, 1.1)
     plt.yticks(np.arange(0, 1.1, 0.1))
     plt.xlabel('Number of instrumental steps')
     plt.xticks([2, 4, 8, 16, 32], ['2¹', '2²', '2³', '2⁴', '2⁵'])
@@ -223,5 +248,5 @@ def plot_model_comparison(base_path: str, goal: str):
     plt.savefig(f'plots/model_comparison_{goal}_drift.png', dpi=300)
     plt.close()
 # %%
-plot_model_comparison('results/', "env")
+plot_model_comparison('results_conditioning/', "env")
 # %%

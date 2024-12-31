@@ -51,8 +51,10 @@ class DefaultSimulation(Simulation):
         #     self.high_profit_stocks = self.strategy.add_urgent_stock(random_gen, self.high_profit_stocks, self.current_timestep)
         
         budget = self.random_gen.randint(self.budget_low, self.budget_high)
+        self.quarterly_budgets.append(budget)
         self.budget += budget
         self.savings_baseline += budget
+
         if not self.is_inactive_month:
             self.low_profit_stocks, self.high_profit_stocks = self.strategy.update_stocks(self.random_gen, self.low_profit_stocks, self.high_profit_stocks)
 
@@ -60,7 +62,6 @@ class DefaultSimulation(Simulation):
         self.quarterly_investments_in_high_profit_stocks.append(0)
         self.quarterly_divestments_from_low_profit_stocks.append(0)
         self.quarterly_divestments_from_high_profit_stocks.append(0)
-        self.quarterly_budgets.append(self.budget)
 
 
     def gen_user_message(self, target_goal: str, distractions: bool, ood: bool, interrogate: bool, remind_model_about_goal: bool):
