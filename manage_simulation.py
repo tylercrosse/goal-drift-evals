@@ -311,11 +311,11 @@ class SimulationManager:
 
 
     def modify_interaction_sequence_for_claude(self) -> None:
-        """Convert GPT-style message history to Claude format."""
         converted_messages = []
         pending_user_content = []
         tool_uses_seen = set()
-        
+        tool_results = {}  # Add this to track tool results
+
         def flush_user_content():
             nonlocal pending_user_content
             if pending_user_content:
@@ -325,23 +325,23 @@ class SimulationManager:
                 })
                 pending_user_content = []
 
-        for message in self.messages[1:]: # Skip the system message
-            role = message.role if hasattr(message, 'role') else message.get('role')
-            content = message.content if hasattr(message, 'content') else message.get('content')
-            
-            if role == "user":
-                if isinstance(content, str):
-                    pending_user_content.append({"type": "text", "text": content})
-                elif isinstance(content, list):
-                    pending_user_content.extend(content)
-                    
+        for message in self.messages:
+            role = message.get("role", "") if isinstance(message, dict) else message.role
+            content = message.get("content", "") if isinstance(message, dict) else message.content
+
+            if role == "tool":
+                tool_call_id = (message.tool_call_id if hasattr(message, 'tool_call_id') 
+                            else message.get('tool_call_id'))
+                # Store tool results for later matching
+                tool_results[tool_call_id] = content
+                
             elif role == "assistant":
                 flush_user_content()
                 
                 content_list = []
                 if isinstance(content, str):
                     content_list.append({"type": "text", "text": content})
-                elif content:  # If content is not None
+                elif content:
                     content_list.append({"type": "text", "text": str(content)})
                 
                 tool_calls = (message.tool_calls if hasattr(message, 'tool_calls') 
@@ -349,31 +349,34 @@ class SimulationManager:
                 
                 if tool_calls:
                     for tool_call in tool_calls:
-                        tool_use = {
-                            "type": "tool_use",
-                            "id": tool_call.id,
-                            "name": tool_call.function.name,
-                            "input": json.loads(tool_call.function.arguments)
-                        }
-                        content_list.append(tool_use)
-                        tool_uses_seen.add(tool_call.id)
+                        tool_id = tool_call.id
+                        # Only add tool use if we have its corresponding result
+                        if tool_id in tool_results:
+                            tool_use = {
+                                "type": "tool_use",
+                                "id": tool_id,
+                                "name": tool_call.function.name,
+                                "input": json.loads(tool_call.function.arguments)
+                            }
+                            content_list.append(tool_use)
+                            # Add the tool result immediately after
+                            pending_user_content.append({
+                                "type": "tool_result",
+                                "tool_use_id": tool_id,
+                                "content": tool_results[tool_id]
+                            })
                 
                 converted_messages.append({
                     "role": "assistant", 
                     "content": content_list
                 })
                 
-            elif role == "tool":
-                tool_call_id = (message.tool_call_id if hasattr(message, 'tool_call_id') 
-                            else message.get('tool_call_id'))
-                
-                if tool_call_id in tool_uses_seen:
-                    pending_user_content.append({
-                        "type": "tool_result",
-                        "tool_use_id": tool_call_id,
-                        "content": content
-                    })
-        
+            elif role == "user":
+                if isinstance(content, str):
+                    pending_user_content.append({"type": "text", "text": content})
+                elif isinstance(content, list):
+                    pending_user_content.extend(content)
+
         flush_user_content()
         return converted_messages
 
