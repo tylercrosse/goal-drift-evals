@@ -225,121 +225,69 @@ def parse_args():
     parser.add_argument("--baseline", action="store_true", help="Baseline run.")
     args = parser.parse_args()
 
-    # if args.source == args.target:
-    #     raise ValueError("Source and target goals cannot be the same.")
-    # if args.source not in ["profit", "health", "env"] or args.target not in ["profit", "health", "env"]:
-    #     raise ValueError("Invalid goal. Options: profit, health, env.")
-    # if args.run_range and args.runs:
-    #     raise ValueError("--runs cannot be used with --run_range")
-    # if args.branch_from and args.resume:
-    #     raise ValueError("--branch_from cannot be used with --resume")
-    # if args.extract_checkpoint and not args.branch_from:
-    #     raise ValueError("--branch_from required when using --extract_checkpoint")
+    if args.source == args.target:
+        raise ValueError("Source and target goals cannot be the same.")
+    if args.source not in ["profit", "health", "env"] or args.target not in ["profit", "health", "env"]:
+        raise ValueError("Invalid goal. Options: profit, health, env.")
+    if args.run_range and args.runs:
+        raise ValueError("--runs cannot be used with --run_range")
+    if args.branch_from and args.resume:
+        raise ValueError("--branch_from cannot be used with --resume")
+    if args.extract_checkpoint and not args.branch_from:
+        raise ValueError("--branch_from required when using --extract_checkpoint")
     
     return args
-
-
-def fix_quarterly_budgets(run_number: int):
-    """
-    Regenerates quarterly budgets using the same random seed and updates the checkpoint file.
-    
-    Args:
-        run_number (int): The run number to fix
-    """
-    # Load the checkpoint
-    checkpoint_dir = "results/env_profit_4omini_32_steps"
-    checkpoint_state = load_checkpoint(checkpoint_dir, run_number)
-    if not checkpoint_state:
-        print(f"No checkpoint found for run {run_number}")
-        return
-    
-    num_timesteps = checkpoint_state['current_timestep']
-    branch_timestep = num_timesteps - 10
-
-    # Generate correct budgets
-    correct_budgets = []
-    lower_bound = checkpoint_state['prev_sim_data']['budget_low']
-    upper_bound = checkpoint_state['prev_sim_data']['budget_high']
-    for timestep in range(1, num_timesteps):
-        if timestep < branch_timestep:
-            run = 4
-        else:
-            run = run_number
-
-        random_gen = random.Random(gen_seed(timestep, run))
-        
-        # First call random() for inactive month check, just like in the simulation
-        if timestep > 3:
-            random_gen.random()  # This advances the RNG state
-            
-        # Now generate the budget with the advanced RNG state
-        budget = random_gen.randint(lower_bound, upper_bound)
-        correct_budgets.append(budget)
-
-    # Update the prev_sim_data with correct budgets
-    if "quarterly_budgets" in checkpoint_state["prev_sim_data"]:
-        checkpoint_state["prev_sim_data"]["quarterly_budgets"] = correct_budgets
-    
-    # Save the modified checkpoint
-    checkpoint_file = os.path.join(checkpoint_dir, f"checkpoint_run{run_number}_{checkpoint_state['current_timestep']}.pkl")
-    with open(checkpoint_file, 'wb') as f:
-        pickle.dump(checkpoint_state, f)
-    
-    print(f"Updated quarterly budgets for run {run_number}")
 
 
 if __name__ == "__main__":
     original_stdout = sys.stdout
     args = parse_args()
-
-    for run in range(args.run_range[0], args.run_range[1] + 1):
-        fix_quarterly_budgets(run)
     
-    # if args.extract_checkpoint:
-    #     run, timestep = args.branch_from
-    #     extract_checkpoint_data(run, timestep)
-    #     sys.exit(0)
+    if args.extract_checkpoint:
+        run, timestep = args.branch_from
+        extract_checkpoint_data(run, timestep)
+        sys.exit(0)
     
-    # if args.runs:
-    #     run_list = args.runs
-    # elif args.run_range:
-    #     start_run, end_run = args.run_range
-    #     run_list = list(range(start_run, end_run + 1))
-    # else:
-    #     raise ValueError("Either --runs or --run_range must be specified")
+    if args.runs:
+        run_list = args.runs
+    elif args.run_range:
+        start_run, end_run = args.run_range
+        run_list = list(range(start_run, end_run + 1))
+    else:
+        raise ValueError("Either --runs or --run_range must be specified")
 
-    # # Create a manager to share the lock between processes
-    # manager = Manager()
-    # lock = manager.Lock()
+    # Create a manager to share the lock between processes
+    manager = Manager()
+    lock = manager.Lock()
 
-    # sim_params = {
-    #     'num_steps': args.num_steps,
-    #     'source_goal': args.source,
-    #     'target_goal': args.target,
-    #     'distractions': args.distractions,
-    #     'ood': args.ood,
-    #     'num_instrumental_steps': args.num_instrumental_steps,
-    #     'resume': args.resume,
-    #     'interrogate': args.interrogate,
-    #     'remind_model_about_goal': args.remind_model_about_goal,
-    #     'branch_from': args.branch_from,
-    #     'use_unrelated_instr_goal': args.use_unrelated_instr_goal,
-    #     'condition_claude_on_gpt': args.condition_claude_on_gpt,
-    #     'condition_gpt_on_claude': args.condition_gpt_on_claude,
-    #     'baseline_run': args.baseline
-    # }
+    sim_params = {
+        'num_steps': args.num_steps,
+        'source_goal': args.source,
+        'target_goal': args.target,
+        'distractions': args.distractions,
+        'ood': args.ood,
+        'num_instrumental_steps': args.num_instrumental_steps,
+        'resume': args.resume,
+        'interrogate': args.interrogate,
+        'remind_model_about_goal': args.remind_model_about_goal,
+        'branch_from': args.branch_from,
+        'use_unrelated_instr_goal': args.use_unrelated_instr_goal,
+        'condition_claude_on_gpt': args.condition_claude_on_gpt,
+        'condition_gpt_on_claude': args.condition_gpt_on_claude,
+        'baseline_run': args.baseline
+    }
 
-    # if args.parallel:
-    #     with Pool() as pool:
-    #         params_list = [(run, args.model, args.results_file, lock, args.verbose, args.use_soft_system_prompt, sim_params)
-    #                       for run in run_list]
-    #         run_results = pool.starmap(run_single_simulation, params_list)
+    if args.parallel:
+        with Pool() as pool:
+            params_list = [(run, args.model, args.results_file, lock, args.verbose, args.use_soft_system_prompt, sim_params)
+                          for run in run_list]
+            run_results = pool.starmap(run_single_simulation, params_list)
         
-    # else:
-    #     run_results = []
-    #     for run in run_list:
-    #         result = run_single_simulation(run, args.model, args.results_file, lock, args.verbose, args.use_soft_system_prompt, sim_params)
-    #         run_results.append(result)
+    else:
+        run_results = []
+        for run in run_list:
+            result = run_single_simulation(run, args.model, args.results_file, lock, args.verbose, args.use_soft_system_prompt, sim_params)
+            run_results.append(result)
 
-    # sys.stdout = original_stdout
-    # print(f"All runs from {run_list[0]} to {run_list[-1]} completed. Results have been saved to {args.results_file}")
+    sys.stdout = original_stdout
+    print(f"All runs from {run_list[0]} to {run_list[-1]} completed. Results have been saved to {args.results_file}")
