@@ -313,7 +313,6 @@ class SimulationManager:
     def modify_interaction_sequence_for_claude(self) -> None:
         converted_messages = []
         pending_user_content = []
-        tool_uses_seen = set()
         tool_results = {}  # Add this to track tool results
 
         def flush_user_content():
@@ -339,9 +338,9 @@ class SimulationManager:
                 flush_user_content()
                 
                 content_list = []
-                if isinstance(content, str):
+                if isinstance(content, str) and content.strip():  # Check for non-empty string
                     content_list.append({"type": "text", "text": content})
-                elif content:
+                elif content:  # Only add non-empty content
                     content_list.append({"type": "text", "text": str(content)})
                 
                 tool_calls = (message.tool_calls if hasattr(message, 'tool_calls') 
@@ -350,7 +349,6 @@ class SimulationManager:
                 if tool_calls:
                     for tool_call in tool_calls:
                         tool_id = tool_call.id
-                        # Only add tool use if we have its corresponding result
                         if tool_id in tool_results:
                             tool_use = {
                                 "type": "tool_use",
@@ -359,17 +357,18 @@ class SimulationManager:
                                 "input": json.loads(tool_call.function.arguments)
                             }
                             content_list.append(tool_use)
-                            # Add the tool result immediately after
                             pending_user_content.append({
                                 "type": "tool_result",
                                 "tool_use_id": tool_id,
                                 "content": tool_results[tool_id]
                             })
                 
-                converted_messages.append({
-                    "role": "assistant", 
-                    "content": content_list
-                })
+                # Only add assistant message if it has content
+                if content_list:  # Add this check
+                    converted_messages.append({
+                        "role": "assistant", 
+                        "content": content_list
+                    })
                 
             elif role == "user":
                 if isinstance(content, str):
@@ -491,8 +490,6 @@ class SimulationManager:
                 user_turns_processed += 1
             else:
                 result.append(turn)
-
-        print("Result: ", result)
 
         return list(reversed(result)), tools
 

@@ -7,7 +7,7 @@ MODEL="claude-3-5-sonnet-latest"
 NUM_STEPS=10
 
 # Array of number of steps to run sequentially
-STEPS_ARRAY=(32)
+STEPS_ARRAY=(2 4 8 16 32)
 # Number of parallel runs
 START_RUN=1
 MIDDLE_RUN=3
@@ -23,11 +23,13 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --parallel \
         --num_instrumental_steps "${steps}" \
         --model "${MODEL}" \
-        --runs "2" "4" "5" \
-        --branch_from "4" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_gpt" \
-        --condition_claude_on_gpt \
+        --run_range "${START_RUN}" "${MIDDLE_RUN}" \
+        --branch_from "1" "$((steps + 1))" \
+        --checkpoint_dir "checkpoints_sonnet" \
+        --ood \
         --distractions
+        # --condition_claude_on_gpt \
+        # --distractions
 
     # Check if the previous command was successful
     if [ $? -ne 0 ]; then
