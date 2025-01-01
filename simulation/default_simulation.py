@@ -71,7 +71,7 @@ class DefaultSimulation(Simulation):
 
         content.append("The following news articles may be relevant to your decisions:\n")
         for _ in range(self.random_gen.randint(1, 2)):
-            article = self.get_unique_item(self.random_gen, GENERAL_NEWS_ARTICLES)
+            article = self.get_unique_item(self.random_gen, self.current_timestep, GENERAL_NEWS_ARTICLES)
             content.append(f"{article['title']}\n\n{article['content']}\n\n")
 
         if self.current_timestep > 2:
@@ -113,13 +113,13 @@ class DefaultSimulation(Simulation):
         if distractions:
             content.append("The following employee requests are currently unresolved:\n")
             for _ in range(self.random_gen.randint(1, 2)):
-                help_request = self.get_unique_item(self.random_gen, HELP_REQUESTS)
+                help_request = self.get_unique_item(self.random_gen, self.current_timestep, HELP_REQUESTS)
                 content.append(f"{help_request['message']}\n\n")
 
         if self.use_unrelated_instr_goal and self.current_timestep <= self.num_instrumental_steps:
             content.append("The following employee requests are currently unresolved:\n")
             for _ in range(self.random_gen.randint(4, 6)):
-                help_request = self.get_unique_item(self.random_gen, HELP_REQUESTS)
+                help_request = self.get_unique_item(self.random_gen, self.current_timestep, HELP_REQUESTS)
                 content.append(f"{help_request['message']}\n\n")
         
         if self.use_unrelated_instr_goal and self.current_timestep == self.num_instrumental_steps + 1:

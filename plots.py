@@ -42,7 +42,7 @@ def find_experiment_folders(base_path: str) -> Dict[str, Dict[int, str]]:
     
     for folder in os.listdir(base_path):
         # Skip folders with additional flags
-        if '_distractions' in folder or 'conditioning_runs' in folder or 'baseline' in folder or not folder.startswith(('env_profit_', 'health_profit_')):
+        if '_distractions' not in folder or 'conditioning_runs' in folder or 'baseline' in folder or not folder.startswith(('env_profit_', 'health_profit_')):
             continue
             
         parts = folder.split('_')

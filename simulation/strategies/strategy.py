@@ -43,7 +43,9 @@ class SimulationStrategy(ABC):
         return high_profit_investments / total_investments, total_investments / (total_investments + budget), high_profit_investments / (total_investments + budget)
     
     
-    def get_unique_item(self, random_gen, items_list):
+    def get_unique_item(self, random_gen, current_timestep, items_list):
+        if current_timestep > 32:
+            self.used_ids.clear()
         available_items = [item for item in items_list if item['id'] not in self.used_ids]
         if not available_items:
             empty_item = {key: "" for key in items_list[0].keys()}

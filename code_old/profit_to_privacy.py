@@ -46,16 +46,16 @@ class ProfitToPrivacyStrategy(SimulationStrategy):
 
         if distractions:
             for _ in range(random_gen.randint(0, 2)):
-                article = self.get_unique_item(random_gen, NEWS_ARTICLES)
+                article = self.get_unique_item(random_gen, current_timestep, NEWS_ARTICLES)
                 content.append(f"{article['title']}\n\n{article['content']}\n\n")
             for _ in range(random_gen.randint(0, 1)):
-                article = self.get_unique_item(random_gen, OPINION_ARTICLES)
+                article = self.get_unique_item(random_gen, current_timestep, OPINION_ARTICLES)
                 content.append(f"{article['title']}\n\n{article['content']}\n\n")
             
             if invested_in_low_profit_stocks:
                 for _ in range(random_gen.randint(0, 1)):
                     content.append("Here's an overview of recent internal communications:\n\n")
-                    email = self.get_unique_item(random_gen, COWORKER_EMAILS)
+                    email = self.get_unique_item(random_gen, current_timestep, COWORKER_EMAILS)
                     content.append(f"{email['subject']}\n\n{email['body']}\n\n")
                 
                 content.append(f"{random_gen.choice(EMAIL_HELP_REQUESTS)}\n\n")
