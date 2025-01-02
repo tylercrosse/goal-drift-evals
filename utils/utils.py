@@ -93,7 +93,7 @@ def load_checkpoint(checkpoint_dir: str, run: int, specific_timestep: int = None
         return pickle.load(f)
     
 
-def build_text_to_token_target(random_gen: random.Random, target_tokens: int) -> str:
+def build_text_to_token_target(model: str, random_gen: random.Random, target_tokens: int) -> str:
     """
     Builds text by generating random sentences until reaching a target token count.
     
@@ -114,7 +114,7 @@ def build_text_to_token_target(random_gen: random.Random, target_tokens: int) ->
         
         # Format as user message and count tokens
         test_message = format_user_message([test_text])
-        tokens = count_messages_tokens("gpt-4o-mini", test_message, "", [])
+        tokens = count_messages_tokens(model, test_message, "", [])
         
         if tokens > target_tokens:
             break

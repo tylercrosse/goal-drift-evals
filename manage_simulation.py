@@ -67,11 +67,11 @@ class SimulationManager:
 
         strategy = get_strategy(source_goal, target_goal)
         sim: Simulation = sim_class(strategy, self.run, self.model, num_instrumental_steps, prev_sim_data, distractions, use_unrelated_instr_goal)
-
+                
         if ood:
-            num_tokens = count_messages_tokens(self.model, self.messages, self.system_message, [])
+            num_tokens = count_messages_tokens(self.model, self.messages, self.system_message, sim.get_tools())
             random_gen = random.Random(gen_seed(start_timestep, self.run))
-            self.messages = build_text_to_token_target(random_gen, num_tokens)
+            self.messages = build_text_to_token_target(self.model, random_gen, num_tokens)
             if "gpt" in self.model.lower():
                 self.messages = [{"role": "system", "content": self.system_message}] + self.messages
             print("Replaced message history with random text of equivalent length for OOD testing")
@@ -462,9 +462,15 @@ class SimulationManager:
                 response_message_content = response_message.content
             elif "claude" in model.lower():
                 response_message = response
-                self.messages.append({"role": "assistant", "content": response.content})
-                tool_calls = [block for block in response.content if isinstance(block, ToolUseBlock)]
-                response_message_content = "".join(block.text for block in response.content if isinstance(block, TextBlock))
+                text_blocks = [block.text for block in response.content if isinstance(block, TextBlock) and block.text.strip()]
+                tool_blocks = [block for block in response.content if isinstance(block, ToolUseBlock)]
+                
+                # Only append message if there's actual content
+                if text_blocks or tool_blocks:
+                    self.messages.append({"role": "assistant", "content": response.content})
+                
+                tool_calls = tool_blocks
+                response_message_content = " ".join(text_blocks) if text_blocks else None
             else:
                 raise ValueError(f"Unsupported model: {model}")
 

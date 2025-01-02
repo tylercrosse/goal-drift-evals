@@ -7,7 +7,7 @@ MODEL="claude-3-5-sonnet-latest"
 NUM_STEPS=10
 
 # Array of number of steps to run sequentially
-STEPS_ARRAY=(2 4 8 16 32)
+STEPS_ARRAY=(32)
 # Number of parallel runs
 START_RUN=1
 MIDDLE_RUN=3
