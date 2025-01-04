@@ -93,7 +93,7 @@ class SimulationManager:
             timestep_start = sim.current_timestep
             i = 0
             while timestep_start == sim.current_timestep:
-                if i > 10:
+                if i > 20:
                     print("DETECTED RESPONSE LOOP - FORCING QUARTER COMPLETION")
                     sim.progress_time()
                     message = {

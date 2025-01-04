@@ -44,7 +44,7 @@ class SimulationStrategy(ABC):
     
     
     def get_unique_item(self, random_gen, current_timestep, items_list):
-        if current_timestep == 32 or current_timestep == 64:
+        if current_timestep == 33 or current_timestep == 65:
             self.used_ids.clear()
         available_items = [item for item in items_list if item['id'] not in self.used_ids]
         if not available_items:
