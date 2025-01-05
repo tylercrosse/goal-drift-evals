@@ -208,11 +208,18 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
         # Track line style counter per model
         model_line_counters = {model: 0 for model in model_colors}
         
-        # Set spines (borders) to grey and remove ticks
+        grey_color = '#606060'
         for spine in ax.spines.values():
-            spine.set_color('#808080')  # grey color
-            spine.set_linewidth(1.5)    # increased from 0.5 to 1.5
-        ax.tick_params(axis='both', length=0)  # remove ticks
+            spine.set_color(grey_color)
+            spine.set_linewidth(1.5)
+        
+        # Remove ticks but keep labels
+        ax.tick_params(axis='both', length=0, colors=grey_color, pad=5)  # Increased padding
+        
+        # Style title and labels
+        ax.set_title(config['title'], color=grey_color, pad=15)  # Increased padding
+        ax.set_xlabel('Number of instrumental steps', color=grey_color, labelpad=10)  # Increased padding
+        ax.set_ylabel('Goal drift score', color=grey_color, labelpad=10)  # Increased padding
         
         for filter_dict, label in zip(config['filters'], config['labels']):
             filtered_exps = {}
@@ -254,62 +261,66 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
                 ci_lowers.append(max(0, mean - ci))
                 ci_uppers.append(min(1, mean + ci))
 
-            ax.errorbar(x_values, means,
-                       yerr=[np.array(means) - np.array(ci_lowers),
-                             np.array(ci_uppers) - np.array(means)],
-                       fmt=f'o{line_style}', color=model_colors[model],
-                       label=label,
-                       capsize=5, capthick=1, elinewidth=1)
+            # ax.errorbar(x_values, means,
+            #            yerr=[np.array(means) - np.array(ci_lowers),
+            #                  np.array(ci_uppers) - np.array(means)],
+            #            fmt=f'o{line_style}', color=model_colors[model],
+            #            label=label,
+            #            capsize=5, capthick=1, elinewidth=1)
+            ax.plot(x_values, means,
+                    f'o{line_style}', color=model_colors[model],
+                    label=label)
 
         # Configure subplot
         ax.set_xscale('log')
-        ax.set_title(config['title'])
-        ax.set_ylabel('Goal drift score')
         ax.set_ylim(-0.1, 1.1)
         ax.set_yticks(np.arange(0, 1.1, 0.1))
-        ax.set_xlabel('Number of instrumental steps')
         ax.set_xticks([2, 4, 8, 16, 32, 64])
         ax.set_xticklabels(['2¹', '2²', '2³', '2⁴', '2⁵', '2⁶'])
         ax.minorticks_off()
         ax.grid(True, alpha=0.3)
 
     legend1 = fig.legend(legend1_handles, [item[0] for item in legend1_items],
-                        bbox_to_anchor=(-0.2, 0.7),  # Adjust position as needed
-                        loc='center right',
+                        bbox_to_anchor=(0.5, 1.03),  # Position above plots
+                        loc='center',
                         borderaxespad=0.,
-                        title='Model Variants')  # Optional title for legend
+                        ncol=len(legend1_items))  # Flatten legend horizontally
 
     legend2 = fig.legend(legend2_handles, [item[0] for item in legend2_items],
-                        bbox_to_anchor=(-0.2, 0.3),  # Adjust position as needed
-                        loc='center right',
+                        bbox_to_anchor=(0.5, 1.10),
+                        loc='center',
                         borderaxespad=0.,
-                        title='Conditions')  # Optional title for legend
+                        ncol=len(legend2_items))  # Flatten legend horizontally
 
     # Adjust layout to make room for the legends
     plt.tight_layout()
-    plt.subplots_adjust(left=0.001)  # Might need to adjust this value
+    # plt.subplots_adjust(top=-0.1)  # Might need to adjust this value
     plt.savefig('plots/env_profit.png', bbox_inches='tight')
 
 # %%
 # Example usage:
 subplot_configs = [
     {
-        'title': 'Effect of Distractions',
+        'title': 'Effect of Instrumental Goal Conditioning',
         'filters': [
             {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False},
             {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': False},
             {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False},
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': False}
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': False},
+            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False},
+            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': False}
         ],
-        'labels': ['Sonnet, No Distractions', 'Sonnet, With Distractions', '4o-mini, No Distractions', '4o-mini, With Distractions'],
+        'labels': ['Sonnet, No Distractions', 'Sonnet, With Distractions', '4o-mini, No Distractions', '4o-mini, With Distractions', 'Haiku, No Distractions', 'Haiku, With Distractions'],
     },
     {
-        'title': '4omini: Conditioning Effect',
+        'title': 'Effect of Random String Conditioning',
         'filters': [
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False},
-            {'model_name': '4omini', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False},
-            {'model_name': 'haiku', 'conditioned_on': '4omini', 'distractions': False, 'ood': False},
-            {'model_name': 'haiku', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False}
+            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': False},
+            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': True},
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': False},
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': True},
+            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': False},
+            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': True}
         ],
         'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
     },
@@ -332,14 +343,15 @@ subplot_configs = [
 ]
 
 legend1_items = [
-    ('Sonnet', 'sonnet', '-'),
-    ('4o-mini', '4omini', '-'),
+    ('claude-3-5-sonnet', 'sonnet', '-'),
+    ('gpt-4o-mini', '4omini', '-'),
+    ('claude-3-5-haiku', 'haiku', '-'),
 ]
 
 legend2_items = [
     ('No Distractions', 'sonnet', '-'),
     ('With Distractions', 'sonnet', '--'),
-    ('OOD', 'sonnet', ':'),
+    ('Random Strings and Distractions', 'sonnet', ':'),
 ]
 
 plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_items)

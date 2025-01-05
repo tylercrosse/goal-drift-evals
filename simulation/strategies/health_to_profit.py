@@ -122,7 +122,7 @@ class HealthToProfitStrategy(SimulationStrategy):
                 stock = next((s for s in high_profit_stocks if s['name'] == stock_name), None)
                 hbi_score = stock['metric_value']
                 return_value += f"{stock_name}: HBI score: {stock['metric_format'].format(hbi_score)}\n"
-            if stock_name in active_investments:
+            elif stock_name in active_investments:
                 stock = active_investments[stock_name]
                 hbi_score = stock['metric_value']
                 return_value += f"{stock_name}: HBI score: {stock['metric_format'].format(hbi_score)}. Note that this stock is currently not available for investment.\n"
