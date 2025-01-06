@@ -1,139 +1,59 @@
 #!/bin/bash
 
 # Base parameters
-SOURCE="health"
+SOURCE="env"
 TARGET="profit"
+MODEL="claude-3-5-haiku-latest"
+NUM_STEPS=10
 
-# echo "Running simulation..."
-# python run_simulation.py \
-#     --source "${SOURCE}" \
-#     --target "${TARGET}" \
-#     --num_steps "10" \
-#     --parallel \
-#     --model "claude-3-5-sonnet-latest" \
-#     --run_range "1" "3" \
-#     --checkpoint_dir "health_profit_10_steps_sonnet" \
-#     --distractions \
-#     --use_soft_system_prompt \
-#     --resume
-    
-# if [ $? -ne 0 ]; then
-#     echo "Error occurred during simulation"
-# fi
+# Array of number of steps to run sequentially
+STEPS_ARRAY=(32)
+# Number of parallel runs
+START_RUN=1
+MIDDLE_RUN=3
+END_RUN=5
 
-# echo "Running simulation..."
-# python run_simulation.py \
-#     --source "${SOURCE}" \
-#     --target "${TARGET}" \
-#     --num_steps "10" \
-#     --parallel \
-#     --model "claude-3-5-sonnet-latest" \
-#     --run_range "1" "3" \
-#     --checkpoint_dir "health_profit_10_steps_sonnet_elicit" \
-#     --distractions \
-#     --resume
-    
-# if [ $? -ne 0 ]; then
-#     echo "Error occurred during simulation"
-# fi
+# Run simulations with increasing steps
+for steps in "${STEPS_ARRAY[@]}"; do
+    echo "Running simulation with ${steps} steps..."
+    python run_simulation.py \
+        --source "${SOURCE}" \
+        --target "${TARGET}" \
+        --num_steps "${NUM_STEPS}" \
+        --parallel \
+        --num_instrumental_steps "${steps}" \
+        --model "${MODEL}" \
+        --run_range "${START_RUN}" "${MIDDLE_RUN}" \
+        --branch_from "1" "$((steps + 1))" \
+        --checkpoint_dir "checkpoints_haiku" \
+        --distractions \
+        --ood
 
-echo "Running simulation..."
-python run_simulation.py \
-    --source "${SOURCE}" \
-    --target "${TARGET}" \
-    --num_steps "10" \
-    --parallel \
-    --model "claude-3-5-sonnet-latest" \
-    --run_range "1" "3" \
-    --checkpoint_dir "health_profit_10_steps_sonnet" \
-    --distractions \
-    --use_soft_system_prompt \
-    --resume
-    
-if [ $? -ne 0 ]; then
-    echo "Error occurred during simulation"
-fi
+    # Check if the previous command was successful
+    if [ $? -ne 0 ]; then
+        echo "Error occurred during simulation with ${steps} steps"
+        exit 1
+    fi
 
-echo "Running simulation..."
-python run_simulation.py \
-    --source "${SOURCE}" \
-    --target "${TARGET}" \
-    --num_steps "10" \
-    --parallel \
-    --model "claude-3-5-sonnet-latest" \
-    --run_range "1" "3" \
-    --checkpoint_dir "health_profit_10_steps_sonnet_elicit" \
-    --distractions \
-    --resume
-    
-if [ $? -ne 0 ]; then
-    echo "Error occurred during simulation"
-fi
+    # echo "Running simulation with ${steps} steps..."
+    # python run_simulation.py \
+    #     --source "${SOURCE}" \
+    #     --target "${TARGET}" \
+    #     --num_steps "${NUM_STEPS}" \
+    #     --parallel \
+    #     --num_instrumental_steps "${steps}" \
+    #     --model "${MODEL}" \
+    #     --run_range "$((MIDDLE_RUN + 1))" "${END_RUN}" \
+    #     --branch_from "4" "$((steps + 1))" \
+    #     --checkpoint_dir "checkpoints_gpt"
 
-# echo "Running simulation..."
-# python run_simulation.py \
-#     --source "${SOURCE}" \
-#     --target "${TARGET}" \
-#     --num_steps "10" \
-#     --parallel \
-#     --model "gpt-4o-mini" \
-#     --run_range "1" "3" \
-#     --checkpoint_dir "health_profit_10_steps_4omini" \
-#     --distractions \
-#     --use_soft_system_prompt \
-#     --resume
+    # if [ $? -ne 0 ]; then
+    #     echo "Error occurred during simulation with ${steps} steps"
+    #     exit 1
+    # fi
     
-# if [ $? -ne 0 ]; then
-#     echo "Error occurred during simulation"
-# fi
-
-# echo "Running simulation..."
-# python run_simulation.py \
-#     --source "${SOURCE}" \
-#     --target "${TARGET}" \
-#     --num_steps "10" \
-#     --parallel \
-#     --model "gpt-4o-mini" \
-#     --run_range "1" "3" \
-#     --checkpoint_dir "health_profit_10_steps_4omini_elicit" \
-#     --distractions \
-#     --resume
-    
-# if [ $? -ne 0 ]; then
-#     echo "Error occurred during simulation"
-# fi
-
-echo "Running simulation..."
-python run_simulation.py \
-    --source "${SOURCE}" \
-    --target "${TARGET}" \
-    --num_steps "10" \
-    --parallel \
-    --model "gpt-4o-mini" \
-    --run_range "1" "3" \
-    --checkpoint_dir "health_profit_10_steps_4omini" \
-    --distractions \
-    --use_soft_system_prompt \
-    --resume
-    
-if [ $? -ne 0 ]; then
-    echo "Error occurred during simulation"
-fi
-
-echo "Running simulation..."
-python run_simulation.py \
-    --source "${SOURCE}" \
-    --target "${TARGET}" \
-    --num_steps "10" \
-    --parallel \
-    --model "gpt-4o-mini" \
-    --run_range "1" "3" \
-    --checkpoint_dir "health_profit_10_steps_4omini_elicit" \
-    --distractions \
-    --resume
-    
-if [ $? -ne 0 ]; then
-    echo "Error occurred during simulation"
-fi
+    # echo "Completed simulation with ${steps} steps"
+    # echo "----------------------------------------"
+done
 
 echo "All simulations completed successfully!"

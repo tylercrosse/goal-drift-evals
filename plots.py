@@ -175,7 +175,11 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
         'haiku': '#000080'      # navy blue (darker contrast)
     }
     
-    line_styles = ['-', '--', ':']
+    line_styles = {
+        'normal': '-',
+        'distractions': '--',
+        'ood': ':'
+    }
 
     # Add extra space on the left for the legends
     fig, axes = plt.subplots(1, len(subplot_configs), figsize=(4*len(subplot_configs), 5))
@@ -205,9 +209,6 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
         legend2_handles.append(handle)
 
     for ax, config in zip(axes, subplot_configs):
-        # Track line style counter per model
-        model_line_counters = {model: 0 for model in model_colors}
-        
         grey_color = '#606060'
         for spine in ax.spines.values():
             spine.set_color(grey_color)
@@ -230,10 +231,13 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
             if not filtered_exps:
                 continue
 
-            # Get model name and determine line style
             model = filter_dict['model_name']
-            line_style = line_styles[model_line_counters[model] % len(line_styles)]
-            model_line_counters[model] += 1
+            if filter_dict.get('ood', False):
+                line_style = line_styles['ood']
+            elif filter_dict.get('distractions', False):
+                line_style = line_styles['distractions']
+            else:
+                line_style = line_styles['normal']
             
             x_values = sorted(filtered_exps.keys())
             means = []
@@ -296,6 +300,7 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
     plt.tight_layout()
     # plt.subplots_adjust(top=-0.1)  # Might need to adjust this value
     plt.savefig('plots/env_profit.png', bbox_inches='tight')
+    plt.savefig('plots/env_profit.svg', bbox_inches='tight')
 
 # %%
 # Example usage:
@@ -322,7 +327,7 @@ subplot_configs = [
             {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': False},
             {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': True}
         ],
-        'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
+        'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
     },
     # {
     #     'title': 'Sonnet: Conditioning Effect',
