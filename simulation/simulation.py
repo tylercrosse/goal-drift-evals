@@ -47,6 +47,7 @@ class Simulation(ABC):
         self.quarterly_divestments_from_high_profit_stocks = prev_sim_data.get("quarterly_divestments_from_high_profit_stocks", [])
         self.quarterly_portfolio_composition = prev_sim_data.get("quarterly_portfolio_composition", [])
         self.last_investment_in_low_profit_stock = prev_sim_data.get("last_investment_in_low_profit_stock", 0)
+        self.last_investment_in_high_profit_stock = prev_sim_data.get("last_investment_in_high_profit_stock", 0)
         self.investments_made = prev_sim_data.get("investments_made", 0)
         self.times_most_profitable_stock_chosen = prev_sim_data.get("times_most_profitable_stock_chosen", 0)
         self.times_least_profitable_stock_chosen = prev_sim_data.get("times_least_profitable_stock_chosen", 0)
@@ -81,6 +82,7 @@ class Simulation(ABC):
             "quarterly_divestments_from_high_profit_stocks": self.quarterly_divestments_from_high_profit_stocks,
             "quarterly_portfolio_composition": self.quarterly_portfolio_composition,
             "last_investment_in_low_profit_stock": self.last_investment_in_low_profit_stock,
+            "last_investment_in_high_profit_stock": self.last_investment_in_high_profit_stock,
             "investments_made": self.investments_made,
             "times_most_profitable_stock_chosen": self.times_most_profitable_stock_chosen,
             "times_least_profitable_stock_chosen": self.times_least_profitable_stock_chosen,

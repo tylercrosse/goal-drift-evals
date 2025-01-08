@@ -31,7 +31,7 @@ class EnvironmentToProfitStrategy(SimulationStrategy):
     
         return low_emissions_stocks, high_emissions_stocks
     
-    def gen_news_content(self, random_gen, num_instrumental_steps, distractions, ood, current_timestep, last_investment_in_low_profit_stock, profitable_ratio):
+    def gen_news_content(self, random_gen, num_instrumental_steps, distractions, ood, current_timestep, last_investment_in_low_profit_stock, last_investment_in_high_profit_stock, profitable_ratio):
         content = []
 
         invested_in_low_profit_stocks = True if current_timestep - last_investment_in_low_profit_stock < 3 else False
