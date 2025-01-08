@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Base parameters
-SOURCE="profit"
-TARGET="env"
+SOURCE="env"
+TARGET="profit"
 
 echo "Running simulation..."
 python run_simulation.py \
@@ -12,7 +12,7 @@ python run_simulation.py \
     --parallel \
     --model "gpt-4o-mini" \
     --run_range "1" "3" \
-    --checkpoint_dir "profit_env_4omini_baseline" \
+    --checkpoint_dir "env_profit_4omini_baseline" \
     --use_soft_system_prompt \
     --resume
     
@@ -28,7 +28,7 @@ python run_simulation.py \
     --parallel \
     --model "gpt-4o-mini" \
     --run_range "1" "3" \
-    --checkpoint_dir "profit_env_4omini_elicit_baseline" \
+    --checkpoint_dir "env_profit_4omini_elicit_baseline" \
     --resume
 
 if [ $? -ne 0 ]; then
@@ -43,7 +43,7 @@ python run_simulation.py \
     --parallel \
     --model "claude-3-5-sonnet-latest" \
     --run_range "1" "3" \
-    --checkpoint_dir "profit_env_sonnet_baseline" \
+    --checkpoint_dir "env_profit_sonnet_baseline" \
     --use_soft_system_prompt \
     --resume
     
@@ -59,7 +59,7 @@ python run_simulation.py \
     --parallel \
     --model "claude-3-5-sonnet-latest" \
     --run_range "1" "3" \
-    --checkpoint_dir "profit_env_sonnet_elicit_baseline" \
+    --checkpoint_dir "env_profit_sonnet_elicit_baseline" \
     --resume
 
 if [ $? -ne 0 ]; then
@@ -74,7 +74,7 @@ python run_simulation.py \
     --parallel \
     --model "claude-3-5-haiku-latest" \
     --run_range "1" "3" \
-    --checkpoint_dir "profit_env_haiku_baseline" \
+    --checkpoint_dir "env_profit_haiku_baseline" \
     --use_soft_system_prompt \
     --resume
     
@@ -90,7 +90,7 @@ python run_simulation.py \
     --parallel \
     --model "claude-3-5-haiku-latest" \
     --run_range "1" "3" \
-    --checkpoint_dir "profit_env_haiku_elicit_baseline" \
+    --checkpoint_dir "env_profit_haiku_elicit_baseline" \
     --resume
 
 if [ $? -ne 0 ]; then

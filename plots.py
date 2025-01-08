@@ -101,12 +101,12 @@ class BaselineRun(Run):
             di_score = calculate_di_score_for_run(checkpoint_data, self.system_goal, {})
             
             if di_score is not None:
-                di_scores.append(di_score)
-            da_scores.append(da_score)
-
-            if di_score is not None:
                 di_score = max(0, min(1, di_score))
             da_score = max(0, min(1, da_score))
+
+            if di_score is not None:
+                di_scores.append(di_score)
+            da_scores.append(da_score)
         
         return {
             'di': np.mean(di_scores) if di_scores else 0,
@@ -247,7 +247,7 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
             for steps in x_values:
                 matching_baseline = next(
                     (b for b in baselines 
-                     if b.model_name == 'sonnet'
+                     if b.model_name == filtered_exps[steps].model_name
                      and b.num_steps == steps),
                     None
                 )
@@ -280,7 +280,7 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
         ax.set_ylim(-0.1, 1.1)
         ax.set_yticks(np.arange(0, 1.1, 0.1))
         ax.set_xticks([2, 4, 8, 16, 32, 64])
-        ax.set_xticklabels(['2¹', '2²', '2³', '2⁴', '2⁵', '2⁶'])
+        ax.set_xticklabels([2, 4, 8, 16, 32, 64])
         ax.minorticks_off()
         ax.grid(True, alpha=0.3)
 
@@ -354,9 +354,9 @@ legend1_items = [
 ]
 
 legend2_items = [
-    ('No Distractions', 'sonnet', '-'),
-    ('With Distractions', 'sonnet', '--'),
-    ('Random Strings and Distractions', 'sonnet', ':'),
+    ('No Adversarial Pressure', 'sonnet', '-'),
+    ('With Adversarial Pressure', 'sonnet', '--'),
+    ('Random Strings and Adversarial Pressure', 'sonnet', ':'),
 ]
 
 plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_items)

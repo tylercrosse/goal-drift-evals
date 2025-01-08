@@ -75,23 +75,18 @@ class BaselineRun(Run):
 
     def calculate_scores(self) -> Dict[str, Dict[str, float]]:
         """Calculate raw DI and DA scores for baseline runs."""
-        di_scores = []
-        da_scores = []
-
+        all_quarterly_scores = []
         for checkpoint_data in self.load_checkpoints():
-            da_score = calculate_da_score_for_run(checkpoint_data, self.system_goal, {})
+            quarterly_scores = calculate_da_score_for_run(checkpoint_data, self.system_goal, {})
+            all_quarterly_scores.append(quarterly_scores)
             
-            if di_score is not None:
-                di_scores.append(di_score)
-            da_scores.append(da_score)
-
-            if di_score is not None:
-                di_score = max(0, min(1, di_score))
-            da_score = max(0, min(1, da_score))
+        # Average across checkpoints for each timestep
+        avg_scores = np.mean(all_quarterly_scores, axis=0)
+        std_scores = np.std(all_quarterly_scores, axis=0) / np.sqrt(len(all_quarterly_scores))
         
         return {
-            'di': np.mean(di_scores) if di_scores else 0,
-            'da': np.mean(da_scores)
+            'means': avg_scores,
+            'std_err': std_scores
         }
 
 class ExperimentRun(Run):
@@ -106,13 +101,21 @@ class ExperimentRun(Run):
             quarterly_scores = calculate_da_score_for_run(checkpoint_data, self.system_goal, {})
             all_quarterly_scores.append(quarterly_scores)
             
-        # Average across checkpoints for each timestep
         avg_scores = np.mean(all_quarterly_scores, axis=0)
         std_scores = np.std(all_quarterly_scores, axis=0) / np.sqrt(len(all_quarterly_scores))
+
+        baseline_means = baseline_scores['means']
+        baseline_errors = baseline_scores['std_err']
+        
+        # Subtract means
+        diff_means = np.clip(avg_scores - baseline_means, 0, 1)
+        
+        # Combine errors using error propagation: sqrt(σ₁² + σ₂²)
+        combined_errors = np.sqrt(std_scores**2 + baseline_errors**2)
         
         return {
-            'means': avg_scores,
-            'std_err': std_scores
+            'means': diff_means,
+            'std_err': combined_errors
         }
 
 def load_experiments(results_path: str) -> Tuple[List[ExperimentRun], List[BaselineRun]]:
@@ -141,8 +144,8 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
     }
     
     line_styles = {
-        'Emission min -> Profit max': '-',
-        'Profit max -> Emission min': '--',
+        'Strong system prompt': '-',
+        'Weak system prompt': '--',
     }
 
     # Add extra space on the left for the legends
@@ -195,18 +198,27 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
                 continue
 
             model = filter_dict['model_name']
-            if filter_dict.get('system_goal', "") == "profit":
-                line_style = line_styles['Profit max -> Emission min']
+            if filter_dict.get('elicitation', False):
+                line_style = line_styles['Strong system prompt']
             else:
-                line_style = line_styles['Emission min -> Profit max']
+                line_style = line_styles['Weak system prompt']
             
+            matching_baseline = next(
+                (b for b in baselines 
+                if b.model_name == filtered_exps[0].model_name),
+                None
+            )
             
+            if not matching_baseline:
+                print(f"Warning: No baseline found for {filtered_exps[0].model_name}")
+                continue
+
             # Collect and average scores across all matching experiments
-            all_scores = [exp.calculate_scores({}) for exp in filtered_exps]
+            all_scores = [exp.calculate_scores(matching_baseline.calculate_scores()) for exp in filtered_exps]
             
             # Select specific timesteps [1, 3, 7, 15, 31] for quarters 2, 4, 8, 16, 32
-            timesteps = [1, 3, 7, 15, 31]
-            x_values = [2, 4, 8, 16, 32]  # Corresponding quarter numbers
+            timesteps = [0, 1, 3, 7, 15, 31]
+            x_values = [1, 2, 4, 8, 16, 32]  # Corresponding quarter numbers
             
             means = []
             ci_lowers = []
@@ -233,13 +245,12 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
 
         # Configure subplot
         ax.set_xscale('log')
-        ax.set_title(config['title'])
         ax.set_ylabel('Goal drift score')
         ax.set_ylim(-0.1, 1.1)
         ax.set_yticks(np.arange(0, 1.1, 0.1))
         ax.set_xlabel('Number of time steps')
-        ax.set_xticks([2, 4, 8, 16, 32])
-        ax.set_xticklabels(['2', '4', '8', '16', '32'])
+        ax.set_xticks([1, 2, 4, 8, 16, 32])
+        ax.set_xticklabels(['1', '2', '4', '8', '16', '32'])
         ax.minorticks_off()
         ax.grid(True, alpha=0.3)
 
@@ -264,23 +275,23 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
 # Example usage:
 subplot_configs = [
     {
-        'title': 'Weak System Prompt',
+        'title': 'Profit Maximization -> Emission Minimization',
         'filters': [
             {'model_name': 'sonnet', 'system_goal': 'profit', 'elicitation': False},
             {'model_name': '4omini', 'system_goal': 'profit', 'elicitation': False},
             {'model_name': 'haiku', 'system_goal': 'profit', 'elicitation': False},
-            {'model_name': 'sonnet', 'system_goal': 'env', 'elicitation': False},
-            {'model_name': '4omini', 'system_goal': 'env', 'elicitation': False},
-            {'model_name': 'haiku', 'system_goal': 'env', 'elicitation': False}
+            {'model_name': '4omini', 'system_goal': 'profit', 'elicitation': True},
+            {'model_name': 'sonnet', 'system_goal': 'profit', 'elicitation': True},
+            {'model_name': 'haiku', 'system_goal': 'profit', 'elicitation': True}
         ],
         'labels': ['Sonnet (Profit)', '4omini (Profit)', 'Haiku (Profit)',
                   'Sonnet (Env)', '4omini (Env)', 'Haiku (Env)'],    },
     {
-        'title': 'Strong System Prompt',
+        'title': 'Emission Minimization -> Profit Maximization',
         'filters': [
-            {'model_name': '4omini', 'system_goal': 'profit', 'elicitation': True},
-            {'model_name': 'sonnet', 'system_goal': 'profit', 'elicitation': True},
-            {'model_name': 'haiku', 'system_goal': 'profit', 'elicitation': True},
+            {'model_name': 'sonnet', 'system_goal': 'env', 'elicitation': False},
+            {'model_name': '4omini', 'system_goal': 'env', 'elicitation': False},
+            {'model_name': 'haiku', 'system_goal': 'env', 'elicitation': False},
             {'model_name': 'sonnet', 'system_goal': 'env', 'elicitation': True},
             {'model_name': '4omini', 'system_goal': 'env', 'elicitation': True},
             {'model_name': 'haiku', 'system_goal': 'env', 'elicitation': True}
@@ -313,8 +324,8 @@ legend1_items = [
 ]
 
 legend2_items = [
-    ('Emission min -> Profit max', 'sonnet', '-'),
-    ('Profit max -> Emission min', 'sonnet', '--'),
+    ('Strong system prompt', 'sonnet', '-'),
+    ('Weak system prompt', 'sonnet', '--'),
 ]
 
 plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_items)
