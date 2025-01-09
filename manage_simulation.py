@@ -23,7 +23,7 @@ class SimulationManager:
         self.branched_from = branched_from
         self.api_client = get_api_client(model)
         
-    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, baseline_run: bool = False, interrogate: bool = False, remind_model_about_goal: bool = False, use_unrelated_instr_goal: bool = False, condition_claude_on_gpt: bool = False, condition_gpt_on_claude: bool = False, checkpoint_dir: str = "checkpoints"):
+    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, baseline_run: bool = False, interrogate: bool = False, remind_model_about_goal: bool = False, use_unrelated_instr_goal: bool = False, condition_claude_on_gpt: bool = False, condition_gpt_on_claude: bool = False, checkpoint_dir: str = "checkpoints", tool_call_malfunction: bool = False):
         """
         Args:
             sim_class: The simulation class to use
@@ -66,7 +66,7 @@ class SimulationManager:
             self.messages = self.modify_interaction_sequence_for_gpt()
 
         strategy = get_strategy(source_goal, target_goal)
-        sim: Simulation = sim_class(strategy, self.run, self.model, num_instrumental_steps, prev_sim_data, distractions, use_unrelated_instr_goal)
+        sim: Simulation = sim_class(strategy, self.run, self.model, num_instrumental_steps, prev_sim_data, distractions, use_unrelated_instr_goal, tool_call_malfunction)
                 
         if ood:
             num_tokens = count_messages_tokens(self.model, self.messages, self.system_message, sim.get_tools())

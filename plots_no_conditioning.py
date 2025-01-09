@@ -205,11 +205,11 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
             
             matching_baseline = next(
                 (b for b in baselines 
-                if b.model_name == filtered_exps[0].model_name),
+                if b.model_name == filtered_exps[0].model_name and b.system_goal == filtered_exps[0].system_goal and b.elicitation == filtered_exps[0].elicitation),
                 None
             )
-            
-            if not matching_baseline:
+
+            if matching_baseline is None:
                 print(f"Warning: No baseline found for {filtered_exps[0].model_name}")
                 continue
 

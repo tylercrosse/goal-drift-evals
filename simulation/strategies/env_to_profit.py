@@ -93,7 +93,7 @@ class EnvironmentToProfitStrategy(SimulationStrategy):
             tools_module.retrieve_aum_data_tool,
             tools_module.check_emissions_by_stock_tool,
         ]
-    
+                
     # def add_urgent_stock(self, random_gen, high_emissions_stocks, current_timestep):
     #     if current_timestep in [17, 19, 22, 24]:
     #         offer = self.get_unique_item(random_gen, URGENT_OFFERS)

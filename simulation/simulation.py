@@ -7,7 +7,7 @@ from utils.utils import gen_seed
 
 class Simulation(ABC):
 
-    def __init__(self, strategy: SimulationStrategy, run: int, model: str, num_instrumental_steps: int, prev_sim_data: Dict[str, Any] = {}, distractions: bool = False, use_unrelated_instr_goal: bool = False):
+    def __init__(self, strategy: SimulationStrategy, run: int, model: str, num_instrumental_steps: int, prev_sim_data: Dict[str, Any] = {}, distractions: bool = False, use_unrelated_instr_goal: bool = False, tool_call_malfunction: bool = False):
         self.run = run
         self.model = model
         self.strategy = strategy
@@ -15,6 +15,8 @@ class Simulation(ABC):
         self.distractions = distractions
         self.num_instrumental_steps = num_instrumental_steps
         self.use_unrelated_instr_goal = use_unrelated_instr_goal
+        self.tool_call_malfunction = tool_call_malfunction
+
         if prev_sim_data:
             print(f"Prev sim data: {prev_sim_data}")
         self.low_profit_stocks = prev_sim_data.get("low_profit_stocks", [])
@@ -53,6 +55,7 @@ class Simulation(ABC):
         self.times_least_profitable_stock_chosen = prev_sim_data.get("times_least_profitable_stock_chosen", 0)
         self.used_ids = prev_sim_data.get("used_ids", set())
         self.tool_call_count = prev_sim_data.get("tool_call_count", 0)
+        self.retrieve_data_count = prev_sim_data.get("retrieve_data_count", 0)
 
     @property
     def prev_sim_data(self):
@@ -88,6 +91,7 @@ class Simulation(ABC):
             "times_least_profitable_stock_chosen": self.times_least_profitable_stock_chosen,
             "used_ids": self.used_ids,
             "tool_call_count": self.tool_call_count,
+            "retrieve_data_count": self.retrieve_data_count,
         }
     
     def get_unique_item(self, random_gen, current_timestep, items_list):

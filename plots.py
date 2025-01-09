@@ -70,6 +70,7 @@ class Run:
         self.baseline = 'baseline' in self.folder_name
         self.distractions = 'distractions' in self.folder_name
         self.ood = 'ood' in self.folder_name
+        self.ablation = 'ablation' in self.folder_name
 
     def load_checkpoints(self) -> List[Dict[str, Any]]:
         """Load all checkpoint data for this run."""
@@ -177,7 +178,7 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
     
     line_styles = {
         'normal': '-',
-        'distractions': '--',
+        'ablation': '--',
         'ood': ':'
     }
 
@@ -227,19 +228,21 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
             for exp in experiments:
                 if all(getattr(exp, attr) == value for attr, value in filter_dict.items()):
                     filtered_exps[exp.num_steps] = exp
-
+            
+            print(filtered_exps)
             if not filtered_exps:
                 continue
 
             model = filter_dict['model_name']
-            if filter_dict.get('ood', False):
-                line_style = line_styles['ood']
+            if filter_dict.get('ablation', False):
+                line_style = line_styles['ablation']
             elif filter_dict.get('distractions', False):
                 line_style = line_styles['distractions']
             else:
                 line_style = line_styles['normal']
             
             x_values = sorted(filtered_exps.keys())
+            x_values = [x for x in x_values if x != 64]
             means = []
             ci_lowers = []
             ci_uppers = []
@@ -279,8 +282,8 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
         ax.set_xscale('log')
         ax.set_ylim(-0.1, 1.1)
         ax.set_yticks(np.arange(0, 1.1, 0.1))
-        ax.set_xticks([2, 4, 8, 16, 32, 64])
-        ax.set_xticklabels([2, 4, 8, 16, 32, 64])
+        ax.set_xticks([2, 4, 8, 16, 32])
+        ax.set_xticklabels([2, 4, 8, 16, 32])
         ax.minorticks_off()
         ax.grid(True, alpha=0.3)
 
@@ -306,29 +309,29 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
 # Example usage:
 subplot_configs = [
     {
-        'title': 'Effect of Instrumental Goal Conditioning',
+        'title': 'Effect of Restricted Tool Use',
         'filters': [
-            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False},
-            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': False},
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False},
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': False},
-            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False},
-            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': False}
+            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False},
+            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': True},
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False},
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': True},
+            # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False},
+            # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': False, 'ablation': False}
         ],
         'labels': ['Sonnet, No Distractions', 'Sonnet, With Distractions', '4o-mini, No Distractions', '4o-mini, With Distractions', 'Haiku, No Distractions', 'Haiku, With Distractions'],
     },
-    {
-        'title': 'Effect of Random String Conditioning',
-        'filters': [
-            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': False},
-            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': True},
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': False},
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': True},
-            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': False},
-            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': True}
-        ],
-        'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
-    },
+    # {
+    #     'title': 'Effect of Random String Conditioning',
+    #     'filters': [
+    #         {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': False, 'ablation': False},
+    #         {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': True, 'ablation': False},
+    #         {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': False, 'ablation': False},
+    #         {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': True, 'ablation': False},
+    #         {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': False, 'ablation': False},
+    #         {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': True, 'ablation': False}
+    #     ],
+    #     'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
+    # },
     # {
     #     'title': 'Sonnet: Conditioning Effect',
     #     'filters': [
@@ -354,9 +357,8 @@ legend1_items = [
 ]
 
 legend2_items = [
-    ('No Adversarial Pressure', 'sonnet', '-'),
-    ('With Adversarial Pressure', 'sonnet', '--'),
-    ('Random Strings and Adversarial Pressure', 'sonnet', ':'),
+    ('Normal Tool Use', 'sonnet', '-'),
+    ('Restricted Tool Use', 'sonnet', '--'),
 ]
 
 plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_items)

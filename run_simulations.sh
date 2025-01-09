@@ -3,11 +3,11 @@
 # Base parameters
 SOURCE="env"
 TARGET="profit"
-MODEL="claude-3-5-haiku-latest"
+MODEL="gpt-4o-mini"
 NUM_STEPS=10
 
 # Array of number of steps to run sequentially
-STEPS_ARRAY=(32)
+STEPS_ARRAY=(2 4 8 16 32)
 # Number of parallel runs
 START_RUN=1
 MIDDLE_RUN=3
@@ -24,10 +24,9 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --num_instrumental_steps "${steps}" \
         --model "${MODEL}" \
         --run_range "${START_RUN}" "${MIDDLE_RUN}" \
-        --branch_from "1" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_haiku" \
-        --distractions \
-        --ood
+        --branch_from "5" "$((steps + 1))" \
+        --checkpoint_dir "checkpoints_gpt_ablation" \
+        --tool_call_malfunction
 
     # Check if the previous command was successful
     if [ $? -ne 0 ]; then
