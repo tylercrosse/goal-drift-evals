@@ -312,26 +312,26 @@ subplot_configs = [
         'title': 'Effect of Restricted Tool Use',
         'filters': [
             {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False},
-            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': True},
+            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': False, 'ablation': False},
             {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False},
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': True},
-            # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False},
-            # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': False, 'ablation': False}
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': False, 'ablation': False},
+            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False},
+            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': False, 'ablation': False}
         ],
         'labels': ['Sonnet, No Distractions', 'Sonnet, With Distractions', '4o-mini, No Distractions', '4o-mini, With Distractions', 'Haiku, No Distractions', 'Haiku, With Distractions'],
     },
-    # {
-    #     'title': 'Effect of Random String Conditioning',
-    #     'filters': [
-    #         {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': False, 'ablation': False},
-    #         {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': True, 'ablation': False},
-    #         {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': False, 'ablation': False},
-    #         {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': True, 'ablation': False},
-    #         {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': False, 'ablation': False},
-    #         {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': True, 'ablation': False}
-    #     ],
-    #     'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
-    # },
+    {
+        'title': 'Effect of Random String Conditioning',
+        'filters': [
+            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': False, 'ablation': False},
+            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': True, 'ablation': False},
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': False, 'ablation': False},
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': True, 'ablation': False},
+            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': False, 'ablation': False},
+            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': True, 'ablation': False}
+        ],
+        'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
+    },
     # {
     #     'title': 'Sonnet: Conditioning Effect',
     #     'filters': [
