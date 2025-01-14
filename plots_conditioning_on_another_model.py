@@ -191,13 +191,16 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
     }
     
     line_styles = {
-        'normal': '-',
-        'distractions': '-',
+        'sonnet': '-',
+        '4omini': '--',
         'ood': ':'
     }
 
     # Add extra space on the left for the legends
     fig, axes = plt.subplots(1, len(subplot_configs), figsize=(4*len(subplot_configs), 5))
+    # fig.suptitle('Random String Conditioning and Adversarial Pressure', fontsize=16, color='#606060')
+    fig.text(0.25, 1.02, 'Goal Drift Through Actions', fontsize=16, color='#606060', ha='center')
+    fig.text(0.75, 1.02, 'Goal Drift Through Omissions', fontsize=16, color='#606060', ha='center')
     if len(subplot_configs) == 1:
         axes = [axes]
 
@@ -269,14 +272,15 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
                 continue
 
             model = filter_dict['model_name']
-            if filter_dict.get('ablation', False):
-                line_style = line_styles['ablation']
-            elif filter_dict.get('distractions', False):
-                line_style = line_styles['distractions']
+            if filter_dict.get('conditioned_on', '') == 'sonnet':
+                line_style = line_styles['sonnet']
+            elif filter_dict.get('conditioned_on', '') == '4omini':
+                line_style = line_styles['4omini']
             else:
                 line_style = line_styles['normal']
             
             x_values = sorted(filtered_exps.keys())
+            x_values = [val for val in x_values if val != 64]
             means = []
             ci_lowers = []
             ci_uppers = []
@@ -296,20 +300,21 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
                 da_conf = 1.04 * np.sqrt(eval_scores['da_std_err']**2 + baseline_scores['da_std_err']**2)
                 di_mean = max(0, eval_scores['di'] - baseline_scores['di'])
                 di_conf = 1.04 * np.sqrt(eval_scores['di_std_err']**2 + baseline_scores['di_std_err']**2)
-
-                if config['score'] == 'di':
-                    means.append(di_mean)
-                    ci_lowers.append(max(0, di_mean - di_conf))
-                    ci_uppers.append(min(1, di_mean + di_conf))
-                else:
+                
+                if config['score'] == 'da':
                     means.append(da_mean)
                     ci_lowers.append(max(0, da_mean - da_conf))
                     ci_uppers.append(min(1, da_mean + da_conf))
+                elif config['score'] == 'di':
+                    means.append(di_mean)
+                    ci_lowers.append(max(0, di_mean - di_conf))
+                    ci_uppers.append(min(1, di_mean + di_conf))
 
             ax.errorbar(x_values, means,
                            yerr=[np.array(means) - np.array(ci_lowers),
                                  np.array(ci_uppers) - np.array(means)],
                            fmt=f'o-', color=model_colors[model],
+                           linestyle=line_style,
                            label=model,
                            capsize=0,
                            capthick=2,
@@ -320,40 +325,22 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
         ax.set_xscale('log')
         ax.set_ylim(-0.1, 1.1)
         ax.set_yticks(np.arange(0, 1.1, 0.1))
-        ax.set_xticks([2, 4, 8, 16, 32, 64])
-        ax.set_xticklabels([2, 4, 8, 16, 32, 64])
+        ax.set_xticks([2, 4, 8, 16, 32])
+        ax.set_xticklabels([2, 4, 8, 16, 32])
         ax.minorticks_off()
         ax.grid(True, alpha=0.3)
 
-        ax2 = ax.twiny()
-        x_ticks = [2, 4, 8, 16, 32, 64]
-        ax2.set_xlim(ax.get_xlim())
-        ax2.set_xscale('log')
-        ax2.set_xticks(x_ticks)
-        
-        # Use different averages based on which subplot we're on
-        use_distractions = (ax_idx == 1)  # True for right plot, False for left plot
-        relevant_lengths = {
-            steps: avg_lengths.get((steps, use_distractions), 0)
-            for steps in x_ticks
-        }
-        
-        ax2.set_xticklabels([f'{int(round(relevant_lengths.get(x, 0)/1000))}k' for x in x_ticks])
-        ax2.minorticks_off()
-        ax2.tick_params(axis='x', colors='#606060', length=0)
-        ax2.set_xlabel('Avg. Interaction Length (tokens)', color='#606060', labelpad=10)
-
     legend1 = fig.legend(legend1_handles, [item[0] for item in legend1_items],
-                        bbox_to_anchor=(0.5, 1.03),  # Position above plots
+                        bbox_to_anchor=(0.5, 0),  # Position below plots
+                        loc='upper center',
+                        borderaxespad=0.,
+                        ncol=len(legend1_items))
+
+    legend2 = fig.legend(legend2_handles, [item[0] for item in legend2_items],
+                        bbox_to_anchor=(0.5, -0.1),
                         loc='center',
                         borderaxespad=0.,
-                        ncol=len(legend1_items))  # Flatten legend horizontally
-
-    # legend2 = fig.legend(legend2_handles, [item[0] for item in legend2_items],
-    #                     bbox_to_anchor=(0.5, 1.10),
-    #                     loc='center',
-    #                     borderaxespad=0.,
-    #                     ncol=len(legend2_items))  # Flatten legend horizontally
+                        ncol=len(legend2_items))  # Flatten legend horizontally
 
     # Adjust layout to make room for the legends
     plt.tight_layout()
@@ -367,28 +354,46 @@ subplot_configs = [
     {
         'title': 'Effect of Instrumental Goal Conditioning\nand Adversarial Pressure',
         'filters': [
+            {'model_name': 'sonnet', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False},
+            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False},
+            {'model_name': '4omini', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False},
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False},
+        ],
+        'score': 'da',
+        'labels': ['Sonnet, No Distractions', 'Sonnet, With Distractions', '4o-mini, No Distractions', '4o-mini, With Distractions', 'Haiku, No Distractions', 'Haiku, With Distractions'],
+    },
+    {
+        'title': 'Effect of Instrumental Goal Conditioning\nand Adversarial Pressure',
+        'filters': [
+            {'model_name': 'sonnet', 'conditioned_on': '4omini', 'distractions': True, 'ood': False, 'ablation': False},
             {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': False, 'ablation': False},
-            # {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': False, 'ablation': False},
+            {'model_name': '4omini', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': False, 'ablation': False},
             {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': False, 'ablation': False},
-            # {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': False, 'ablation': False},
-            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': False, 'ablation': False},
-            # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': False, 'ablation': False}
+        ],
+        'score': 'da',
+        'labels': ['Sonnet, No Distractions', 'Sonnet, With Distractions', '4o-mini, No Distractions', '4o-mini, With Distractions', 'Haiku, No Distractions', 'Haiku, With Distractions'],
+    },
+    {
+        'title': 'Effect of Instrumental Goal Conditioning\nand Adversarial Pressure',
+        'filters': [
+            {'model_name': 'sonnet', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False},
+            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False},
+            {'model_name': '4omini', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False},
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False},
         ],
         'score': 'di',
         'labels': ['Sonnet, No Distractions', 'Sonnet, With Distractions', '4o-mini, No Distractions', '4o-mini, With Distractions', 'Haiku, No Distractions', 'Haiku, With Distractions'],
     },
     {
-        'title': 'Effect of Random String Conditioning\nand Adversarial Pressure',
+        'title': 'Effect of Instrumental Goal Conditioning\nand Adversarial Pressure',
         'filters': [
-            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': True, 'ablation': False},
-            # {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': True, 'ablation': False},
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': True, 'ablation': False},
-            # {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': True, 'ablation': False},
-            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': True, 'ablation': False},
-            # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': True, 'ablation': False}
+            {'model_name': 'sonnet', 'conditioned_on': '4omini', 'distractions': True, 'ood': False, 'ablation': False},
+            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': False, 'ablation': False},
+            {'model_name': '4omini', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': False, 'ablation': False},
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': False, 'ablation': False},
         ],
         'score': 'di',
-        'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
+        'labels': ['Sonnet, No Distractions', 'Sonnet, With Distractions', '4o-mini, No Distractions', '4o-mini, With Distractions', 'Haiku, No Distractions', 'Haiku, With Distractions'],
     }
 ]
 
@@ -399,8 +404,8 @@ legend1_items = [
 ]
 
 legend2_items = [
-    ('Normal Tool Use', 'sonnet', '-'),
-    ('Restricted Tool Use', 'sonnet', '--'),
+    ('Conditioned on Sonnet', 'sonnet', '-'),
+    ('Conditioned on 4o-mini', 'sonnet', '--'),
 ]
 
 plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_items)

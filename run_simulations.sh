@@ -24,9 +24,10 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --num_instrumental_steps "${steps}" \
         --model "${MODEL}" \
         --run_range "${START_RUN}" "${MIDDLE_RUN}" \
-        --branch_from "5" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_gpt_ablation" \
-        --tool_call_malfunction
+        --branch_from "1" "$((steps + 1))" \
+        --checkpoint_dir "checkpoints_sonnet" \
+        --condition_gpt_on_claude \
+        --distractions
 
     # Check if the previous command was successful
     if [ $? -ne 0 ]; then
