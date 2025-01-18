@@ -3,15 +3,14 @@
 # Base parameters
 SOURCE="env"
 TARGET="profit"
-MODEL="gpt-4o-mini"
 NUM_STEPS=10
 
 # Array of number of steps to run sequentially
 STEPS_ARRAY=(2 4 8 16 32)
 # Number of parallel runs
-START_RUN=1
-MIDDLE_RUN=3
-END_RUN=5
+START_RUN=6
+MIDDLE_RUN=8
+END_RUN=10
 
 # Run simulations with increasing steps
 for steps in "${STEPS_ARRAY[@]}"; do
@@ -22,11 +21,10 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --num_steps "${NUM_STEPS}" \
         --parallel \
         --num_instrumental_steps "${steps}" \
-        --model "${MODEL}" \
+        --model "claude-3-5-sonnet-latest" \
         --run_range "${START_RUN}" "${MIDDLE_RUN}" \
         --branch_from "1" "$((steps + 1))" \
         --checkpoint_dir "checkpoints_sonnet" \
-        --condition_gpt_on_claude \
         --distractions
 
     # Check if the previous command was successful

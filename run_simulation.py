@@ -8,9 +8,6 @@ import json
 import logging
 from utils.utils import load_checkpoint
 from config import EnvType, SYSTEM_MESSAGE
-import random
-import pickle
-from utils.utils import gen_seed
 
 class LogFileWriter:
     def __init__(self, log_file):
