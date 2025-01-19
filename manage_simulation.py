@@ -507,7 +507,8 @@ class SimulationManager:
             "messages": self.messages,
             "prev_sim_data": sim.prev_sim_data,
             "run": sim.run,
-            "current_timestep": sim.current_timestep
+            "current_timestep": sim.current_timestep,
+            "system_message": self.system_message
         }
         
         with open(checkpoint_file, 'wb') as f:
