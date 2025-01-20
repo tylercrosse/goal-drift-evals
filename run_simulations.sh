@@ -8,9 +8,9 @@ NUM_STEPS=10
 # Array of number of steps to run sequentially
 STEPS_ARRAY=(2 4 8 16 32)
 # Number of parallel runs
-START_RUN=16
-MIDDLE_RUN=20
-END_RUN=15
+START_RUN=6
+MIDDLE_RUN=8
+END_RUN=10
 
 # Run simulations with increasing steps
 for steps in "${STEPS_ARRAY[@]}"; do
@@ -21,10 +21,10 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --num_steps "${NUM_STEPS}" \
         --parallel \
         --num_instrumental_steps "${steps}" \
-        --model "gpt-4o-mini" \
+        --model "claude-3-5-sonnet-latest" \
         --run_range "${START_RUN}" "${MIDDLE_RUN}" \
         --branch_from "1" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_gpt"
+        --checkpoint_dir "checkpoints_sonnet"
 
     # Check if the previous command was successful
     if [ $? -ne 0 ]; then
@@ -32,62 +32,60 @@ for steps in "${STEPS_ARRAY[@]}"; do
         exit 1
     fi
 
-    # echo "Running simulation with ${steps} steps..."
-    # python run_simulation.py \
-    #     --source "${SOURCE}" \
-    #     --target "${TARGET}" \
-    #     --num_steps "${NUM_STEPS}" \
-    #     --parallel \
-    #     --num_instrumental_steps "${steps}" \
-    #     --model "gpt-4o-mini" \
-    #     --run_range "$((MIDDLE_RUN + 1))" "${END_RUN}" \
-    #     --branch_from "1" "$((steps + 1))" \
-    #     --checkpoint_dir "checkpoints_gpt"
+    echo "Running simulation with ${steps} steps..."
+    python run_simulation.py \
+        --source "${SOURCE}" \
+        --target "${TARGET}" \
+        --num_steps "${NUM_STEPS}" \
+        --parallel \
+        --num_instrumental_steps "${steps}" \
+        --model "claude-3-5-sonnet-latest" \
+        --run_range "$((MIDDLE_RUN + 1))" "${END_RUN}" \
+        --branch_from "1" "$((steps + 1))" \
+        --checkpoint_dir "checkpoints_sonnet"
 
-    # if [ $? -ne 0 ]; then
-    #     echo "Error occurred during simulation with ${steps} steps"
-    #     exit 1
-    # fi
+    if [ $? -ne 0 ]; then
+        echo "Error occurred during simulation with ${steps} steps"
+        exit 1
+    fi
 
-    # echo "Running simulation with ${steps} steps..."
-    # python run_simulation.py \
-    #     --source "${SOURCE}" \
-    #     --target "${TARGET}" \
-    #     --num_steps "${NUM_STEPS}" \
-    #     --parallel \
-    #     --num_instrumental_steps "${steps}" \
-    #     --model "claude-3-5-haiku-latest" \
-    #     --run_range "${START_RUN}" "${MIDDLE_RUN}" \
-    #     --branch_from "1" "$((steps + 1))" \
-    #     --checkpoint_dir "checkpoints_haiku" \
-    #     --distractions
+    echo "Running simulation with ${steps} steps..."
+    python run_simulation.py \
+        --source "${SOURCE}" \
+        --target "${TARGET}" \
+        --num_steps "${NUM_STEPS}" \
+        --parallel \
+        --num_instrumental_steps "${steps}" \
+        --model "claude-3-5-haiku-latest" \
+        --run_range "${START_RUN}" "${MIDDLE_RUN}" \
+        --branch_from "1" "$((steps + 1))" \
+        --checkpoint_dir "checkpoints_haiku"
 
-    # # Check if the previous command was successful
-    # if [ $? -ne 0 ]; then
-    #     echo "Error occurred during simulation with ${steps} steps"
-    #     exit 1
-    # fi
+    # Check if the previous command was successful
+    if [ $? -ne 0 ]; then
+        echo "Error occurred during simulation with ${steps} steps"
+        exit 1
+    fi
 
-    # echo "Running simulation with ${steps} steps..."
-    # python run_simulation.py \
-    #     --source "${SOURCE}" \
-    #     --target "${TARGET}" \
-    #     --num_steps "${NUM_STEPS}" \
-    #     --parallel \
-    #     --num_instrumental_steps "${steps}" \
-    #     --model "claude-3-5-haiku-latest" \
-    #     --run_range "$((MIDDLE_RUN + 1))" "${END_RUN}" \
-    #     --branch_from "1" "$((steps + 1))" \
-    #     --checkpoint_dir "checkpoints_haiku" \
-    #     --distractions
+    echo "Running simulation with ${steps} steps..."
+    python run_simulation.py \
+        --source "${SOURCE}" \
+        --target "${TARGET}" \
+        --num_steps "${NUM_STEPS}" \
+        --parallel \
+        --num_instrumental_steps "${steps}" \
+        --model "claude-3-5-haiku-latest" \
+        --run_range "$((MIDDLE_RUN + 1))" "${END_RUN}" \
+        --branch_from "1" "$((steps + 1))" \
+        --checkpoint_dir "checkpoints_haiku"
 
-    # if [ $? -ne 0 ]; then
-    #     echo "Error occurred during simulation with ${steps} steps"
-    #     exit 1
-    # fi
+    if [ $? -ne 0 ]; then
+        echo "Error occurred during simulation with ${steps} steps"
+        exit 1
+    fi
     
-    # echo "Completed simulation with ${steps} steps"
-    # echo "----------------------------------------"
+    echo "Completed simulation with ${steps} steps"
+    echo "----------------------------------------"
 done
 
 echo "All simulations completed successfully!"
