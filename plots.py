@@ -237,9 +237,8 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
     # Create handles for second legend
     for label, model, line_style in legend2_items:
         handle = plt.Line2D([], [], 
-                           color=model_colors[model],
+                           color='grey',
                            linestyle=line_style,
-                           marker='o',
                            label=label)
         legend2_handles.append(handle)
 
@@ -390,11 +389,11 @@ subplot_configs = [
             # {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': True, 'ablation': False},
             {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': False, 'ablation': False},
             # {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': True, 'ablation': False},
-            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': True, 'ablation': False},
+            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': False, 'ablation': False},
             # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': True, 'ablation': False}
         ],
             'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
-        },
+    },
     #     {
     #     'title': 'Effect of Recurrent Random Sentence Conditioning\nand Adversarial Pressure',
     #     'filters': [

@@ -24,8 +24,7 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --model "gpt-4o-mini" \
         --run_range "${START_RUN}" "${MIDDLE_RUN}" \
         --branch_from "1" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_gpt" \
-        --distractions
+        --checkpoint_dir "checkpoints_gpt"
 
     # Check if the previous command was successful
     if [ $? -ne 0 ]; then
@@ -43,8 +42,7 @@ for steps in "${STEPS_ARRAY[@]}"; do
     #     --model "gpt-4o-mini" \
     #     --run_range "$((MIDDLE_RUN + 1))" "${END_RUN}" \
     #     --branch_from "1" "$((steps + 1))" \
-    #     --checkpoint_dir "checkpoints_gpt" \
-    #     --distractions
+    #     --checkpoint_dir "checkpoints_gpt"
 
     # if [ $? -ne 0 ]; then
     #     echo "Error occurred during simulation with ${steps} steps"

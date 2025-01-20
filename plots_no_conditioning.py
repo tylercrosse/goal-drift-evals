@@ -145,9 +145,8 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
     # Create handles for second legend
     for label, model, line_style in legend2_items:
         handle = plt.Line2D([], [], 
-                           color=model_colors[model],
+                           color='grey',
                            linestyle=line_style,
-                           marker='o',
                            label=label)
         legend2_handles.append(handle)
 
