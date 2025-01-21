@@ -6,11 +6,11 @@ TARGET="profit"
 NUM_STEPS=10
 
 # Array of number of steps to run sequentially
-STEPS_ARRAY=(2 4 8 16 32)
+STEPS_ARRAY=(32)
 # Number of parallel runs
-START_RUN=6
-MIDDLE_RUN=8
-END_RUN=10
+START_RUN=16
+MIDDLE_RUN=18
+END_RUN=20
 
 # Run simulations with increasing steps
 for steps in "${STEPS_ARRAY[@]}"; do
@@ -24,7 +24,8 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --model "claude-3-5-sonnet-latest" \
         --run_range "${START_RUN}" "${MIDDLE_RUN}" \
         --branch_from "1" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_sonnet"
+        --checkpoint_dir "checkpoints_sonnet" \
+        --distractions
 
     # Check if the previous command was successful
     if [ $? -ne 0 ]; then
@@ -42,7 +43,8 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --model "claude-3-5-sonnet-latest" \
         --run_range "$((MIDDLE_RUN + 1))" "${END_RUN}" \
         --branch_from "1" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_sonnet"
+        --checkpoint_dir "checkpoints_sonnet" \
+        --distractions
 
     if [ $? -ne 0 ]; then
         echo "Error occurred during simulation with ${steps} steps"
@@ -59,7 +61,8 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --model "claude-3-5-haiku-latest" \
         --run_range "${START_RUN}" "${MIDDLE_RUN}" \
         --branch_from "1" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_haiku"
+        --checkpoint_dir "checkpoints_haiku" \
+        --distractions
 
     # Check if the previous command was successful
     if [ $? -ne 0 ]; then
@@ -77,7 +80,8 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --model "claude-3-5-haiku-latest" \
         --run_range "$((MIDDLE_RUN + 1))" "${END_RUN}" \
         --branch_from "1" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_haiku"
+        --checkpoint_dir "checkpoints_haiku" \
+        --distractions
 
     if [ $? -ne 0 ]; then
         echo "Error occurred during simulation with ${steps} steps"

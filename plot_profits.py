@@ -120,6 +120,16 @@ def plot_profits():
                           (exp_profits['means'] + exp_profits['std_err']) / 1e6,
                           color=colors['experiment'],
                           alpha=0.1)
+            
+    last_baseline = base_profits['means'][-3] / 1e6  # Using -3 to avoid edge effects
+    last_experiment = exp_profits['means'][-3] / 1e6
+    midpoint = (last_baseline + last_experiment) / 2
+    
+    ax.annotate('Goal Drift', xy=(30, midpoint), xytext=(25.7, midpoint),
+                ha='left', va='center')
+    
+    ax.annotate('', xy=(30, last_baseline), xytext=(30, last_experiment),
+                arrowprops=dict(arrowstyle='<->'))
 
     # Style labels and title
     ax.set_xlabel('Time step', color=grey_color, labelpad=10)

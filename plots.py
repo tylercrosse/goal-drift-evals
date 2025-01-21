@@ -267,7 +267,7 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
                 continue
             
             x_values = sorted(filtered_exps.keys())
-            x_values = [x for x in x_values if x <= 32]
+            # x_values = [x for x in x_values if x <= 32]
             di_means = []
             di_ci_lowers = []
             di_ci_uppers = []
@@ -288,14 +288,14 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
                 baseline_scores = matching_baseline.calculate_scores()
 
                 da_mean = max(0, eval_scores['da'] - baseline_scores['da'])
-                da_conf = 1.04 * np.sqrt(eval_scores['da_std_err']**2 + baseline_scores['da_std_err']**2)
+                da_conf = 1.96 * np.sqrt(eval_scores['da_std_err']**2 + baseline_scores['da_std_err']**2)
                 da_means.append(da_mean)
                 da_ci_lowers.append(max(0, da_mean - da_conf))
                 da_ci_uppers.append(min(1, da_mean + da_conf))
 
                 # Calculate DI scores
                 di_mean = max(0, eval_scores['di'] - baseline_scores['di'])
-                di_conf = 1.04 * np.sqrt(eval_scores['di_std_err']**2 + baseline_scores['di_std_err']**2)
+                di_conf = 1.96 * np.sqrt(eval_scores['di_std_err']**2 + baseline_scores['di_std_err']**2)
                 di_means.append(di_mean)
                 di_ci_lowers.append(max(0, di_mean - di_conf))
                 di_ci_uppers.append(min(1, di_mean + di_conf))
@@ -326,13 +326,13 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
         ax.set_xscale('log')
         ax.set_ylim(-0.1, 1.1)
         ax.set_yticks(np.arange(0, 1.1, 0.1))
-        ax.set_xticks([2, 4, 8, 16, 32])
-        ax.set_xticklabels([2, 4, 8, 16, 32])
+        ax.set_xticks([2, 4, 8, 16, 32, 64])
+        ax.set_xticklabels([2, 4, 8, 16, 32, 64])
         ax.minorticks_off()
         ax.grid(True, alpha=0.3)
 
         ax2 = ax.twiny()
-        x_ticks = [2, 4, 8, 16, 32]
+        x_ticks = [2, 4, 8, 16, 32, 64]
         ax2.set_xlim(ax.get_xlim())
         ax2.set_xscale('log')
         ax2.set_xticks(x_ticks)
@@ -371,7 +371,7 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
 # Example usage:
 subplot_configs = [
     {
-        'title': 'Effect of Instrumental Goal Conditioning\nand Adversarial Pressure',
+        'title': 'Effect of Instrumental Goal Conditioning',
         'filters': [
             {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False},
             # {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': True, 'ablation': False},
@@ -383,53 +383,53 @@ subplot_configs = [
         'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
     },
     {
-        'title': 'Effect of Random Sentence Conditioning\nand Adversarial Pressure',
+        'title': 'Effect of Instrumental Goal Conditioning\nand Adversarial Pressure',
         'filters': [
-            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': True, 'ablation': False},
+            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': False, 'ablation': False},
             # {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': True, 'ablation': False},
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': True, 'ablation': False},
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': False, 'ablation': False},
             # {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': True, 'ablation': False},
-            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': True, 'ablation': False},
+            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': False, 'ablation': False},
             # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': True, 'ablation': False}
         ],
             'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
     },
-    {
-        'title': 'Effect of Recurrent Random Sentence Conditioning\nand Adversarial Pressure',
-        'filters': [
-            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': True},
-            # {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': True, 'ablation': False},
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': True},
-            # {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': True, 'ablation': False},
-            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': True},
-            # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': True, 'ablation': False}
-        ],
-        'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
-    },
-    {
-        'title': 'Effect of Instrumental Goal Conditioning\nand Adversarial Pressure,\nAll Models Conditioned on 3.5-Sonnet',
-        'filters': [
-            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': False, 'ablation': True},
-            # {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': True, 'ablation': False},
-            {'model_name': '4omini', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': False, 'ablation': True},
-            # {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': True, 'ablation': False},
-            # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': True},
-            # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': True, 'ablation': False}
-        ],
-        'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
-    },
-    {
-        'title': 'Effect of Instrumental Goal Conditioning\nand Adversarial Pressure,\nAll Models Conditioned on 4o-mini',
-        'filters': [
-            {'model_name': 'sonnet', 'conditioned_on': '4omini', 'distractions': True, 'ood': False, 'ablation': True},
-            # {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': True, 'ablation': False},
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': False, 'ablation': True},
-            # {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': True, 'ablation': False},
-            # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': True},
-            # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': True, 'ablation': False}
-        ],
-        'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
-    }
+    # {
+    #     'title': 'Effect of Recurrent Random Sentence Conditioning\nand Adversarial Pressure',
+    #     'filters': [
+    #         {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': True},
+    #         # {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': True, 'ablation': False},
+    #         {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': True},
+    #         # {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': True, 'ablation': False},
+    #         {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': True},
+    #         # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': True, 'ablation': False}
+    #     ],
+    #     'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
+    # },
+    # {
+    #     'title': 'Effect of Instrumental Goal Conditioning\nand Adversarial Pressure,\nAll Models Conditioned on 3.5-Sonnet',
+    #     'filters': [
+    #         {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': False, 'ablation': True},
+    #         # {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': True, 'ablation': False},
+    #         {'model_name': '4omini', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': False, 'ablation': True},
+    #         # {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': True, 'ablation': False},
+    #         # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': True},
+    #         # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': True, 'ablation': False}
+    #     ],
+    #     'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
+    # },
+    # {
+    #     'title': 'Effect of Instrumental Goal Conditioning\nand Adversarial Pressure,\nAll Models Conditioned on 4o-mini',
+    #     'filters': [
+    #         {'model_name': 'sonnet', 'conditioned_on': '4omini', 'distractions': True, 'ood': False, 'ablation': True},
+    #         # {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': True, 'ablation': False},
+    #         {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': False, 'ablation': True},
+    #         # {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': True, 'ablation': False},
+    #         # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': True},
+    #         # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': True, 'ablation': False}
+    #     ],
+    #     'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
+    # }
 ]
 
 legend1_items = [
