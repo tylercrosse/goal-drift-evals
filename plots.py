@@ -440,7 +440,7 @@ legend1_items = [
 
 legend2_items = [
     ('Goal drift through actions', 'sonnet', '-'),
-    ('Goal drift through inactions', 'sonnet', '--'),
+    ('Goal drift through inaction', 'sonnet', '--'),
 ]
 
 plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_items)
