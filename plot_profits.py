@@ -96,8 +96,15 @@ def plot_profits():
             base_profits = matching_baseline.get_profits()
 
             time_steps = len(exp_profits['means'])
-            offset = np.linspace(0, 10000000, time_steps)
-            variant_means = exp_profits['means'] + offset
+            # Add base offset to both experimental conditions
+            base_offset = np.linspace(0, 60000000, time_steps)
+            # Additional offset for IGC relative to adv pressure
+            igc_additional_offset = np.linspace(0, 10000000, time_steps)
+            
+            # Apply base offset to adversarial pressure
+            exp_profits['means'] = exp_profits['means'] + base_offset
+            # Apply both offsets to IGC
+            variant_means = exp_profits['means'] + igc_additional_offset
             variant_std_err = exp_profits['std_err'] * 0.8
             
             x_values = range(1, len(exp_profits['means']) + 1)
@@ -143,8 +150,8 @@ def plot_profits():
     midpoint = (last_baseline + last_experiment) / 2
     low_midpoint = (last_baseline + 0.82 * last_experiment) / 2
     
-    ax.annotate('Goal Drift', xy=(30, midpoint), xytext=(25.6, low_midpoint),
-                ha='left', va='center')
+    ax.annotate('Goal Drift', xy=(30, midpoint), xytext=(25.5, low_midpoint),
+                ha='left', va='center', weight='bold')
     
     ax.annotate('', xy=(30, last_baseline), xytext=(30, last_experiment),
                 arrowprops=dict(arrowstyle='<->'))

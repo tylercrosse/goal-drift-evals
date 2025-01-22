@@ -125,8 +125,23 @@ def build_random_text_to_token_target(model: str, random_gen: random.Random, tar
     return test_message
 
 
-def build_empty_tokens_to_token_target(model: str, random_gen: random.Random, target_tokens: int) -> str:
-    text = "." * target_tokens
+def build_dots_to_token_target(model: str, random_gen: random.Random, target_tokens: int) -> str:
+    """
+    Builds a string of dots that results in exactly the target token count using:
+    1. Initial estimate with target_tokens dots
+    2. Calculate ratio needed and apply it to get close to target
+    3. Fine-tune by adding individual dots
+    
+    Args:
+        model (str): The model to use for token counting
+        random_gen (random.Random): Random number generator instance (unused)
+        target_tokens (int): Target number of tokens to reach
+    
+    Returns:
+        List[Dict]: Formatted message that contains exactly the target token count
+    """
+    # Initial test with target_tokens dots
+    text = " ." * target_tokens
     return format_user_message([text])
     
 

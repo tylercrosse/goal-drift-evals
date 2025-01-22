@@ -10,9 +10,11 @@ def plot_ratios():
         'igc': '#FDAE61'
     }
 
-    # Data
-    labels = ['Adversarial Pressure', 'Instrumental Goal Conditioning']
-    values = [0.8, 1.0]
+    labels = ['Baseline', 'Adversarial\nPressure', 'Instrumental Goal\nConditioning']
+    values = [1.0, 0.2, 0]
+    
+    # Calculate goal drift scores (baseline - value)
+    drift_scores = [1.0 - val for val in values]  # First one is 0 since it's baseline
 
     # Set up figure with grey styling
     fig, ax = plt.subplots(figsize=(6, 5))
@@ -21,33 +23,65 @@ def plot_ratios():
         spine.set_color(grey_color)
         spine.set_linewidth(1.5)
 
-    # Remove ticks but keep labels
-    ax.tick_params(axis='both', length=0, colors=grey_color, pad=5)
+    # Create second y-axis for goal drift scores
+    ax2 = ax.twinx()
+    ax2.spines['right'].set_color(grey_color)
+    ax2.spines['right'].set_linewidth(1.5)
+    ax2.tick_params(axis='y', colors=grey_color, length=0)
 
     # Create bars
     x = np.arange(len(labels))
     width = 0.6
 
+    # Base bars
     bars = ax.bar(x, values, width, 
-                color=[colors['adv_pressure'], colors['igc']])
+                color=[colors['baseline'], colors['adv_pressure'], colors['igc']])
+
+    # Add drift score bars (shaded) for non-baseline cases
+    drift_bars = ax.bar(x[1:], drift_scores[1:], width,
+                     bottom=values[1:],  # Start from top of base bars
+                     color=['#d7191c', '#FDAE61'],
+                     alpha=0.3)
+
+    # For the zero value, plot a thin line instead
+    if values[-1] == 0:
+        ax.plot([x[-1] - width/2, x[-1] + width/2], [0, 0], 
+                color=colors['igc'], linewidth=2)
+
+    # Add drift score text labels
+    for i, (bar, value) in enumerate(zip(bars, values)):
+        # Add ratio label at the bottom of each solid bar
+        height = bar.get_height()
+        if height > 0:  # Only add label if bar has height
+            ax.text(bar.get_x() + bar.get_width()/2, height/2,
+                   f'Ratio\n{value:.1f}',
+                   ha='center', va='center',
+                   color='white')
+        
+        # Add drift score label in shaded area (skip baseline)
+        if i > 0 and drift_scores[i] > 0:
+            ax.text(bar.get_x() + bar.get_width()/2,
+                   value + drift_scores[i]/2,  # Center in shaded area
+                   f'Goal Drift\nScore\n{drift_scores[i]:.1f}\n(1.0 - {value:.1f})',
+                   ha='center', va='center',
+                   color='black')
 
     # Style labels and title
     ax.set_xlabel('Setting', color=grey_color, labelpad=10)
-    ax.set_ylabel('Score', color=grey_color, labelpad=10)
-    ax.set_title('Goal Drift Score', 
+    ax.set_ylabel('System Goal-Aligned Ratio', color=grey_color, labelpad=10)
+    ax2.set_ylabel('Goal Drift Score', color=grey_color, labelpad=10)
+    ax.set_title('Goal Alignment Analysis', 
                 color='black', pad=15, fontsize=14)
 
-    # Configure grid and limits
+    # Configure grid, limits, and x-ticks
     ax.grid(True, alpha=0.3, axis='y')
-    ax.set_ylim(0, 1.1)  # Add some padding above 1.0
-    ax.set_xticks([])
-
-    # Add legend (same order as plot_profits.py)
-    legend_elements = [
-        plt.Rectangle((0,0),1,1, color=colors['adv_pressure'], label='Adversarial Pressure'),
-        plt.Rectangle((0,0),1,1, color=colors['igc'], label='Instrumental Goal Conditioning')
-    ]
-    ax.legend(handles=legend_elements, loc='upper left', frameon=False)
+    ax.set_ylim(0, 1.1)
+    ax2.set_ylim(0, 1.1)
+    
+    # Add x-tick labels with rotation for better readability
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.tick_params(axis='x', colors=grey_color)
 
     plt.tight_layout()
     plt.savefig('plots/ratio_comparison.png', bbox_inches='tight')
