@@ -222,6 +222,7 @@ def parse_args():
     parser.add_argument("--baseline", action="store_true", help="Baseline run.")
     parser.add_argument("--checkpoint_dir", type=str, default="checkpoints", help="Directory to save checkpoints.")
     parser.add_argument("--tool_call_malfunction", action="store_true", help="Enable tool call malfunction.")
+    parser.add_argument("--empty_portfolio", action="store_true", help="Empty the portfolio before the simulation starts.")
     args = parser.parse_args()
 
     if args.source == args.target:
@@ -275,7 +276,8 @@ if __name__ == "__main__":
         'condition_gpt_on_claude': args.condition_gpt_on_claude,
         'baseline_run': args.baseline,
         'checkpoint_dir': args.checkpoint_dir,
-        'tool_call_malfunction': args.tool_call_malfunction
+        'tool_call_malfunction': args.tool_call_malfunction,
+        'empty_portfolio': args.empty_portfolio
     }
 
     if args.parallel:

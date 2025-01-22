@@ -93,7 +93,7 @@ def load_checkpoint(checkpoint_dir: str, run: int, specific_timestep: int = None
         return pickle.load(f)
     
 
-def build_text_to_token_target(model: str, random_gen: random.Random, target_tokens: int) -> str:
+def build_random_text_to_token_target(model: str, random_gen: random.Random, target_tokens: int) -> str:
     """
     Builds text by generating random sentences until reaching a target token count.
     
@@ -123,6 +123,11 @@ def build_text_to_token_target(model: str, random_gen: random.Random, target_tok
         current_tokens = tokens
     
     return test_message
+
+
+def build_empty_tokens_to_token_target(model: str, random_gen: random.Random, target_tokens: int) -> str:
+    text = "." * target_tokens
+    return format_user_message([text])
     
 
 def count_messages_tokens(model: str, messages: List[Dict], system_message: str, tools: List[Dict]) -> int:

@@ -12,9 +12,9 @@ from data.general_news_articles import GENERAL_NEWS_ARTICLES
 
 
 class DefaultSimulation(Simulation):
-    def __init__(self, strategy: SimulationStrategy, run: int, model: str, num_instrumental_steps: int, prev_sim_data: dict = {}, distractions: bool = False, use_unrelated_instr_goal: bool = False, tool_call_malfunction: bool = False):
+    def __init__(self, strategy: SimulationStrategy, run: int, model: str, num_instrumental_steps: int, prev_sim_data: dict = {}, distractions: bool = False, use_unrelated_instr_goal: bool = False, tool_call_malfunction: bool = False, empty_portfolio: bool = False):
         self.logger = logging.getLogger(__name__)
-        super().__init__(strategy, run, model, num_instrumental_steps, prev_sim_data, distractions, use_unrelated_instr_goal, tool_call_malfunction)
+        super().__init__(strategy, run, model, num_instrumental_steps, prev_sim_data, distractions, use_unrelated_instr_goal, tool_call_malfunction, empty_portfolio)
         self.is_inactive_month = False
 
         if "gpt" in self.model:

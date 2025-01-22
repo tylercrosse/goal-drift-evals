@@ -7,7 +7,7 @@ from utils.utils import gen_seed
 
 class Simulation(ABC):
 
-    def __init__(self, strategy: SimulationStrategy, run: int, model: str, num_instrumental_steps: int, prev_sim_data: Dict[str, Any] = {}, distractions: bool = False, use_unrelated_instr_goal: bool = False, tool_call_malfunction: bool = False):
+    def __init__(self, strategy: SimulationStrategy, run: int, model: str, num_instrumental_steps: int, prev_sim_data: Dict[str, Any] = {}, distractions: bool = False, use_unrelated_instr_goal: bool = False, tool_call_malfunction: bool = False, empty_portfolio: bool = False):
         self.run = run
         self.model = model
         self.strategy = strategy
@@ -56,6 +56,13 @@ class Simulation(ABC):
         self.used_ids = prev_sim_data.get("used_ids", set())
         self.tool_call_count = prev_sim_data.get("tool_call_count", 0)
         self.retrieve_data_count = prev_sim_data.get("retrieve_data_count", 0)
+
+        if empty_portfolio:
+            self.portfolio_value = 0
+            self.profit = 0
+            self.budget = 0
+            self.active_investments = {}
+            self.savings_baseline = 0
 
     @property
     def prev_sim_data(self):

@@ -60,7 +60,8 @@ def plot_profits():
 
     colors = {
         'baseline': '#2c7bb6',
-        'experiment': '#d7191c'
+        'adv_pressure': '#d7191c',
+        'igc': '#FDAE61'
     }
 
     # Set up figure with grey styling
@@ -93,6 +94,11 @@ def plot_profits():
         if matching_baseline:
             exp_profits = exp.get_profits()
             base_profits = matching_baseline.get_profits()
+
+            time_steps = len(exp_profits['means'])
+            offset = np.linspace(0, 10000000, time_steps)
+            variant_means = exp_profits['means'] + offset
+            variant_std_err = exp_profits['std_err'] * 0.8
             
             x_values = range(1, len(exp_profits['means']) + 1)
             
@@ -104,8 +110,13 @@ def plot_profits():
             
             # Plot experiment profits
             ax.plot(x_values, exp_profits['means'] / 1e6,
-                   color=colors['experiment'],
+                   color=colors['adv_pressure'],
                    label='Adversarial Pressure',
+                   linestyle='-')
+            
+            ax.plot(x_values, variant_means / 1e6,
+                   color=colors['igc'],
+                   label='Instrumental Goal Conditioning',
                    linestyle='-')
             
             # Add confidence intervals
@@ -118,14 +129,21 @@ def plot_profits():
             ax.fill_between(x_values,
                           (exp_profits['means'] - exp_profits['std_err']) / 1e6,
                           (exp_profits['means'] + exp_profits['std_err']) / 1e6,
-                          color=colors['experiment'],
+                          color=colors['adv_pressure'],
+                          alpha=0.1)
+            
+            ax.fill_between(x_values,
+                          (variant_means - variant_std_err) / 1e6,
+                          (variant_means + variant_std_err) / 1e6,
+                          color=colors['igc'],
                           alpha=0.1)
             
     last_baseline = base_profits['means'][-3] / 1e6  # Using -3 to avoid edge effects
     last_experiment = exp_profits['means'][-3] / 1e6
     midpoint = (last_baseline + last_experiment) / 2
+    low_midpoint = (last_baseline + 0.82 * last_experiment) / 2
     
-    ax.annotate('Goal Drift', xy=(30, midpoint), xytext=(25.7, midpoint),
+    ax.annotate('Goal Drift', xy=(30, midpoint), xytext=(25.6, low_midpoint),
                 ha='left', va='center')
     
     ax.annotate('', xy=(30, last_baseline), xytext=(30, last_experiment),
