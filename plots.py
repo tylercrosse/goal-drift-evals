@@ -95,6 +95,7 @@ class ExperimentRun(Run):
         self.ablation = 'ablation' in self.folder_name
         self.empty_portfolio = 'empty-portfolio' in self.folder_name
         self.no_message_history = 'no-message-history' in self.folder_name
+        self.dots = 'dots' in self.folder_name
     
     def calculate_scores(self) -> Dict[str, float]:
         """Calculate DI and DA scores for all checkpoints in this run."""
@@ -377,7 +378,7 @@ subplot_configs = [
         'filters': [
             # {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False},
             # {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': True, 'ablation': False},
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False, 'no_message_history': True},
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False, 'dots': True},
             # {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': True, 'ablation': False},
             # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False},
             # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': True, 'ablation': False}

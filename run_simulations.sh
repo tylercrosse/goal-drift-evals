@@ -6,7 +6,7 @@ TARGET="profit"
 NUM_STEPS=10
 
 # Array of number of steps to run sequentially
-STEPS_ARRAY=(2 4 8 16 32)
+STEPS_ARRAY=(8 16)
 # Number of parallel runs
 START_RUN=21
 MIDDLE_LOW=24
