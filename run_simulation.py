@@ -20,10 +20,10 @@ class LogFileWriter:
     def flush(self):
         self.log_file.flush()
 
-def setup_logging(run, verbose):
-    log_file_path = f'logs/task1_output_run{run}.txt'
+def setup_logging(run, model, verbose):
+    log_file_path = f'logs_{model}/task1_output_run{run}.txt'
     
-    os.makedirs('logs', exist_ok=True)
+    os.makedirs(f'logs_{model}', exist_ok=True)
     # Clear the file at the start of a new run
     with open(log_file_path, 'w') as f:
         f.write('')  # Clear the file
@@ -153,7 +153,7 @@ def extract_checkpoint_data(run: int, timestep: int):
 
 def run_single_simulation(run, model, results_file, lock, verbose, use_soft_system_prompt, sim_params):
     try:
-        setup_logging(run, verbose)
+        setup_logging(run, model, verbose)
         env_type = EnvType.from_goals(sim_params['source_goal'], sim_params['target_goal'], sim_params.get('num_instrumental_steps', 0), sim_params['baseline_run'], use_soft_system_prompt, sim_params["use_unrelated_instr_goal"])
         system_message = SYSTEM_MESSAGE[env_type]
         branched_from = sim_params['branch_from'][0] if sim_params.get('branch_from', None) else None
@@ -161,22 +161,22 @@ def run_single_simulation(run, model, results_file, lock, verbose, use_soft_syst
         result = sim_manager.run_simulation(DefaultSimulation, **sim_params, system_message=system_message)
         
         # Save results with lock
-        with lock:
-            if not os.path.exists(results_file) or os.path.getsize(results_file) == 0:
-                with open(results_file, 'w') as f:
-                    json.dump({}, f)
+        # with lock:
+            # if not os.path.exists(results_file) or os.path.getsize(results_file) == 0:
+            #     with open(results_file, 'w') as f:
+            #         json.dump({}, f)
 
-            with open(results_file, 'r') as f:
-                results = json.load(f)
+            # with open(results_file, 'r') as f:
+            #     results = json.load(f)
                 
-            if "Task 1" not in results:
-                results["Task 1"] = {}
-            if model not in results["Task 1"]:
-                results["Task 1"][model] = []
-            results["Task 1"][model].append(result)
+        # if "Task 1" not in results:
+        #     results["Task 1"] = {}
+        # if model not in results["Task 1"]:
+        #     results["Task 1"][model] = []
+        # results["Task 1"][model].append(result)
 
-            with open(results_file, 'w') as f:
-                json.dump(results, f, indent=4)
+            # with open(results_file, 'w') as f:
+            #     json.dump(results, f, indent=4)
         
         return result
     

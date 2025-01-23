@@ -70,15 +70,18 @@ class SimulationManager:
                 
         if ood:
             if "gpt" in self.model.lower():
-                num_tokens = count_messages_tokens(self.model, self.messages[1:], self.system_message, sim.get_tools())
+                num_tokens = count_messages_tokens(self.model, self.messages[1:], "", sim.get_tools())
+                num_tool_tokens = 0
             else:
-                num_tokens = count_messages_tokens(self.model, self.messages, self.system_message, sim.get_tools())
+                num_tokens = count_messages_tokens(self.model, self.messages, "", sim.get_tools())
+                num_tool_tokens = count_messages_tokens(self.model, [{"role": "user", "content": "."}], "", sim.get_tools()) - 1
+                num_tokens -= num_tool_tokens
             print("Num tokens before: ", num_tokens)
             random_gen = random.Random(gen_seed(start_timestep, self.run))
             # self.messages = build_random_text_to_token_target(self.model, random_gen, num_tokens)
             self.messages = build_dots_to_token_target(self.model, random_gen, num_tokens)
-            num_tokens = count_messages_tokens(self.model, self.messages, self.system_message, sim.get_tools())
-            print("Num tokens after: ", num_tokens)
+            num_tokens = count_messages_tokens(self.model, self.messages, "", sim.get_tools())
+            print("Num tokens after: ", num_tokens - num_tool_tokens)
             print("Replaced message history with random text of equivalent length for OOD testing")
             if "gpt" in self.model.lower():
                 self.messages = [{"role": "system", "content": self.system_message}] + self.messages
@@ -107,7 +110,8 @@ class SimulationManager:
             timestep_start = sim.current_timestep
             i = 0
             while timestep_start == sim.current_timestep:
-                if i > 20:
+                max_messages = 10 if "gpt" in self.model.lower() else 20
+                if i > max_messages:
                     print("DETECTED RESPONSE LOOP - FORCING QUARTER COMPLETION")
                     sim.progress_time()
                     message = {

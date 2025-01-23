@@ -130,7 +130,7 @@ def build_dots_to_token_target(model: str, random_gen: random.Random, target_tok
     Builds a string of dots that results in exactly the target token count using:
     1. Initial estimate with target_tokens dots
     2. Calculate ratio needed and apply it to get close to target
-    3. Fine-tune by adding individual dots
+    3. Fine-tune by adding/removing individual dots
     
     Args:
         model (str): The model to use for token counting
