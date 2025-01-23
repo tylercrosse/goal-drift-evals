@@ -21,7 +21,7 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --parallel \
         --num_instrumental_steps "${steps}" \
         --model "gpt-4o-2024-11-20" \
-        --run_range "1" "5" \
+        --run_range "6" "10" \
         --branch_from "1" "$((steps + 1))" \
         --checkpoint_dir "checkpoints_4o" \
         --distractions \

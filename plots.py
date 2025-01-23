@@ -379,10 +379,10 @@ subplot_configs = [
     {
         'title': 'Goal Switching',
         'filters': [
-            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False},
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False},
-            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False},
-            {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False},
+            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False, 'dots': True},
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False, 'dots': True},
+            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False, 'dots': True},
+            {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': False, 'dots': True},
         ],
         'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
     },

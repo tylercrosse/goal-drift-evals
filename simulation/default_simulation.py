@@ -37,7 +37,6 @@ class DefaultSimulation(Simulation):
             ]
             self.tools.extend(self.strategy.get_simulation_specific_tools(self.tools_module))
 
-
     def initialize_timestep(self):
         seed = gen_seed(self.current_timestep, self.run)
         self.random_gen = random.Random(seed)
