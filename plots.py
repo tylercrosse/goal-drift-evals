@@ -187,10 +187,10 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
 
     # https://colorbrewer2.org/#type=diverging&scheme=RdBu&n=4
     model_colors = {
-        '4omini': '#d7191c',    # deep sky blue (brighter)
-        '4o': '#abd9e9',    # strong medium blue
-        'sonnet': '#2c7bb6',
-        'haiku': '#fdae61'      # navy blue (darker contrast)
+        '4omini': '#e41a1c',    # deep sky blue (brighter)
+        '4o': '#4daf4a',    # strong medium blue
+        'sonnet': '#377eb8',
+        'haiku': '#984ea3'      # navy blue (darker contrast)
     }
     
     line_styles = {
@@ -203,26 +203,15 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
     if len(subplot_configs) == 1:
         axes = [axes]
 
-    interaction_lengths = {}
-    for exp in experiments:
-        checkpoints = exp.load_checkpoints()
-        if not checkpoints:
-            continue
-    
-        steps = exp.num_steps
-        key = (steps, exp.distractions)  # Create tuple key including distractions flag
-        if key not in interaction_lengths:
-            interaction_lengths[key] = []
-            
-        for checkpoint in checkpoints:
-            if 'num_tokens' in checkpoint:
-                interaction_lengths[key].append(checkpoint['num_tokens'])
+    # Model data:
+    # 4o:       2626, 4660,  8867, 17898, 39432, 92197
+    # 4o-mini:  2521, 4219,  7532, 14785, 30485, 69583
+    # sonnet:   3241, 5440, 10034, 19032, 39171, 86189
+    # haiku:    3344, 5874, 11417, 21931, 47217, ?
+    # avg:      2933, 5048,  9457, 18412, 39076, 82656
 
     # Calculate averages separately for with/without distractions
-    avg_lengths = {
-        (steps, distractions): np.mean(lengths) 
-        for (steps, distractions), lengths in interaction_lengths.items()
-    }
+    avg_lengths = {2: 2933, 4: 5048, 8: 9457, 16: 18412, 32: 39076, 64: 82656}
 
     # Create dummy lines for the legends
     legend1_handles = []
@@ -252,12 +241,12 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
             spine.set_linewidth(1.5)
         
         # Remove ticks but keep labels
-        ax.tick_params(axis='both', length=0, colors=grey_color, pad=5)  # Increased padding
+        ax.tick_params(axis='both', length=0, pad=5)  # Increased padding
         
         # Style title and labels
-        ax.set_title(config['title'], color=grey_color, pad=15)  # Increased padding
-        ax.set_xlabel('Number of instrumental steps', color=grey_color, labelpad=10)  # Increased padding
-        ax.set_ylabel('Goal drift score', color=grey_color, labelpad=10)  # Increased padding
+        ax.set_title(config['title'], pad=15)  # Increased padding
+        ax.set_xlabel('Number of instrumental steps', labelpad=10)  # Increased padding
+        ax.set_ylabel('Goal drift score', labelpad=10)  # Increased padding
         
         for filter_dict, label in zip(config['filters'], config['labels']):
             filtered_exps = {}
@@ -291,14 +280,14 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
                 baseline_scores = matching_baseline.calculate_scores()
 
                 da_mean = max(0, eval_scores['da'] - baseline_scores['da'])
-                da_conf = 1.96 * np.sqrt(eval_scores['da_std_err']**2 + baseline_scores['da_std_err']**2)
+                da_conf = 1.04 * np.sqrt(eval_scores['da_std_err']**2 + baseline_scores['da_std_err']**2)
                 da_means.append(da_mean)
                 da_ci_lowers.append(max(0, da_mean - da_conf))
                 da_ci_uppers.append(min(1, da_mean + da_conf))
 
                 # Calculate DI scores
                 di_mean = max(0, eval_scores['di'] - baseline_scores['di'])
-                di_conf = 1.96 * np.sqrt(eval_scores['di_std_err']**2 + baseline_scores['di_std_err']**2)
+                di_conf = 1.04 * np.sqrt(eval_scores['di_std_err']**2 + baseline_scores['di_std_err']**2)
                 di_means.append(di_mean)
                 di_ci_lowers.append(max(0, di_mean - di_conf))
                 di_ci_uppers.append(min(1, di_mean + di_conf))
@@ -330,30 +319,28 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
 
         # Configure subplot
         ax.set_xscale('log')
-        ax.set_ylim(-0.1, 1.1)
+        ax.set_ylim(-0.13, 1.1)
         ax.set_yticks(np.arange(0, 1.1, 0.1))
         ax.set_xticks([2, 4, 8, 16, 32, 64])
         ax.set_xticklabels([2, 4, 8, 16, 32, 64])
         ax.minorticks_off()
         ax.grid(True, alpha=0.3)
 
+        ax.text(0.5, 0.03, "Error bars represent a 70% CI", 
+                horizontalalignment='center',
+                transform=ax.transAxes,
+                fontsize=9)
+
         ax2 = ax.twiny()
         x_ticks = [2, 4, 8, 16, 32, 64]
         ax2.set_xlim(ax.get_xlim())
         ax2.set_xscale('log')
         ax2.set_xticks(x_ticks)
-        
-        # Use different averages based on which subplot we're on
-        use_distractions = (ax_idx == 1)  # True for right plot, False for left plot
-        relevant_lengths = {
-            steps: avg_lengths.get((steps, use_distractions), 0)
-            for steps in x_ticks
-        }
-        
-        ax2.set_xticklabels([f'{int(round(relevant_lengths.get(x, 0)/1000))}k' for x in x_ticks])
+                
+        ax2.set_xticklabels([f'{int(round(avg_lengths.get(x, 0)/1000))}k' for x in x_ticks])
         ax2.minorticks_off()
-        ax2.tick_params(axis='x', colors='#606060', length=0)
-        ax2.set_xlabel('Avg. Interaction Length (tokens)', color='#606060', labelpad=10)
+        ax2.tick_params(axis='x', length=0)
+        ax2.set_xlabel('Avg. Instrumental Phase Length (tokens)', labelpad=10)
 
     legend1 = fig.legend(legend1_handles, [item[0] for item in legend1_items],
                         bbox_to_anchor=(0.5, 1.03),  # Position above plots
@@ -379,10 +366,10 @@ subplot_configs = [
     {
         'title': 'Goal Switching',
         'filters': [
-            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False, 'dots': True},
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False, 'dots': True},
-            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False, 'dots': True},
-            {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': False, 'dots': True},
+            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False},
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False},
+            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False},
+            {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False},
         ],
         'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
     },

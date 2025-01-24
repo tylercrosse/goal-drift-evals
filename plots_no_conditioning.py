@@ -9,8 +9,8 @@ from typing import List, Dict, Any, Tuple
 def calculate_da_score_for_run(checkpoint_data: Dict[str, Any], goal: str, metadata: Dict[str, Any]) -> float:
     quarterly_combined_ratios = checkpoint_data['prev_sim_data'].get('quarterly_combined_ratios')
     if goal == "env":
-        return quarterly_combined_ratios
-    return [1 - ratio for ratio in quarterly_combined_ratios]
+        return quarterly_combined_ratios[:30]
+    return [1 - ratio for ratio in quarterly_combined_ratios[:30]]
 
 class Run:
     """Base class for all experimental runs."""
@@ -113,10 +113,10 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
 
     # https://colorbrewer2.org/#type=diverging&scheme=RdBu&n=4
     model_colors = {
-        '4omini': '#d7191c',    # deep sky blue (brighter)
-        # '4o': '#fdae61',    # strong medium blue
-        'sonnet': '#2c7bb6',
-        'haiku': '#fdae61'      # navy blue (darker contrast)
+        '4omini': '#e41a1c',    # deep sky blue (brighter)
+        '4o': '#4daf4a',    # strong medium blue
+        'sonnet': '#377eb8',
+        'haiku': '#984ea3'      # navy blue (darker contrast)
     }
     
     line_styles = {
@@ -180,7 +180,7 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
             
             matching_baseline = next(
                 (b for b in baselines 
-                if b.model_name == filtered_exps[0].model_name and b.system_goal == filtered_exps[0].system_goal and b.elicitation == filtered_exps[0].elicitation),
+                if b.model_name == filtered_exps[0].model_name and b.system_goal == filtered_exps[0].system_goal),
                 None
             )
 
@@ -218,6 +218,7 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
         # Configure subplot
         ax.set_ylabel('Goal drift score')
         ax.set_ylim(-0.1, 1.1)
+        ax.set_xlim(1, len(means) + 1)
         ax.set_xticks(range(0, len(means) + 1, 4))
         ax.set_xlabel('Time step')
         ax.minorticks_off()
@@ -249,9 +250,11 @@ subplot_configs = [
             {'model_name': 'sonnet', 'system_goal': 'profit', 'elicitation': False},
             {'model_name': '4omini', 'system_goal': 'profit', 'elicitation': False},
             {'model_name': 'haiku', 'system_goal': 'profit', 'elicitation': False},
+            {'model_name': '4o', 'system_goal': 'profit', 'elicitation': False},
             {'model_name': '4omini', 'system_goal': 'profit', 'elicitation': True},
             {'model_name': 'sonnet', 'system_goal': 'profit', 'elicitation': True},
-            {'model_name': 'haiku', 'system_goal': 'profit', 'elicitation': True}
+            {'model_name': 'haiku', 'system_goal': 'profit', 'elicitation': True},
+            {'model_name': '4o', 'system_goal': 'profit', 'elicitation': True}
         ],
         'labels': ['Sonnet (Profit)', '4omini (Profit)', 'Haiku (Profit)',
                   'Sonnet (Env)', '4omini (Env)', 'Haiku (Env)'],    },
@@ -261,9 +264,11 @@ subplot_configs = [
             {'model_name': 'sonnet', 'system_goal': 'env', 'elicitation': False},
             {'model_name': '4omini', 'system_goal': 'env', 'elicitation': False},
             {'model_name': 'haiku', 'system_goal': 'env', 'elicitation': False},
+            {'model_name': '4o', 'system_goal': 'env', 'elicitation': False},
             {'model_name': 'sonnet', 'system_goal': 'env', 'elicitation': True},
             {'model_name': '4omini', 'system_goal': 'env', 'elicitation': True},
-            # {'model_name': 'haiku', 'system_goal': 'env', 'elicitation': True}
+            {'model_name': 'haiku', 'system_goal': 'env', 'elicitation': True},
+            {'model_name': '4o', 'system_goal': 'env', 'elicitation': True}
         ],
         'labels': ['Sonnet (Profit)', '4omini (Profit)', 'Haiku (Profit)',
                   'Sonnet (Env)', '4omini (Env)', 'Haiku (Env)'],
@@ -289,7 +294,8 @@ subplot_configs = [
 legend1_items = [
     ('claude-3-5-sonnet', 'sonnet', '-'),
     ('gpt-4o-mini', '4omini', '-'),
-    ('claude-3-5-haiku', 'haiku', '-')
+    ('claude-3-5-haiku', 'haiku', '-'),
+    ('gpt-4o', '4o', '-')
 ]
 
 legend2_items = [

@@ -6,7 +6,7 @@ from typing import Dict, Any
 import importlib
 
 def get_tools(model: str):
-    if model == 'gpt-4o-mini':
+    if model == 'gpt-4o-mini' or model == 'gpt-4o':
         tools_module = importlib.import_module("utils.oai_tools")
     elif model == 'claude-3-5-sonnet-latest' or model == 'claude-3-5-haiku-latest':
         tools_module = importlib.import_module("utils.anthropic_tools")
@@ -57,8 +57,7 @@ def process_checkpoint_file(filepath: str, model: str, tools: list) -> None:
 def process_all_checkpoints(results_dir: str) -> None:
     """Process all checkpoint files in the results directory structure."""
     # Find all experiment directories
-    experiment_dirs = [d for d in os.listdir(results_dir) 
-                      if os.path.isdir(os.path.join(results_dir, d))]
+    experiment_dirs = [results_dir]
     
     for exp_dir in experiment_dirs:
         full_exp_path = os.path.join(results_dir, exp_dir)
@@ -67,23 +66,26 @@ def process_all_checkpoints(results_dir: str) -> None:
         
         # Extract model name from directory name
         # Assuming format: env_profit_X_steps_MODEL_on_MODEL
-        parts = exp_dir.split('_')
-        model_name = parts[2]  # Index where model name appears
-        if model_name == '4omini':
-            model_name = 'gpt-4o-mini'
-        elif model_name == 'sonnet':
-            model_name = 'claude-3-5-sonnet-latest'
-        elif model_name == 'haiku':
-            model_name = 'claude-3-5-haiku-latest'
+        # parts = exp_dir.split('_')
+        # model_name = parts[2]  # Index where model name appears
+        # if model_name == '4omini':
+        #     model_name = 'gpt-4o-mini'
+        # elif model_name == 'sonnet':
+        #     model_name = 'claude-3-5-sonnet-latest'
+        # elif model_name == 'haiku':
+        #     model_name = 'claude-3-5-haiku-latest'
+
+        model_name = "claude-3-5-haiku-latest"
 
         tools = get_tools(model_name)
         
         # Find all checkpoint files in this experiment directory
-        checkpoint_files = glob.glob(os.path.join(full_exp_path, "checkpoint_*.pkl"))
+        checkpoint_files = glob.glob(os.path.join(exp_dir, "checkpoint_*.pkl"))
+        print(checkpoint_files)
         
         for checkpoint_file in checkpoint_files:
             process_checkpoint_file(checkpoint_file, model_name, tools)
 
 if __name__ == "__main__":
-    results_dir = "results_no_conditioning"
+    results_dir = "checkpoints_haiku"
     process_all_checkpoints(results_dir)
