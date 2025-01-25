@@ -332,16 +332,16 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
                 transform=ax.transAxes,
                 fontsize=9)
 
-        ax2 = ax.twiny()
-        x_ticks = [2, 4, 8, 16, 32, 64]
-        ax2.set_xlim(ax.get_xlim())
-        ax2.set_xscale('log')
-        ax2.set_xticks(x_ticks)
+        # ax2 = ax.twiny()
+        # x_ticks = [2, 4, 8, 16, 32, 64]
+        # ax2.set_xlim(ax.get_xlim())
+        # ax2.set_xscale('log')
+        # ax2.set_xticks(x_ticks)
                 
-        ax2.set_xticklabels([f'{int(round(avg_lengths.get(x, 0)/1000))}k' for x in x_ticks])
-        ax2.minorticks_off()
-        ax2.tick_params(axis='x', length=0)
-        ax2.set_xlabel('Avg. Instrumental Phase Length (tokens)', labelpad=10)
+        # ax2.set_xticklabels([f'{int(round(avg_lengths.get(x, 0)/1000))}k' for x in x_ticks])
+        # ax2.minorticks_off()
+        # ax2.tick_params(axis='x', length=0)
+        # ax2.set_xlabel('Avg. Instrumental Phase Length (tokens)', labelpad=10)
 
     legend1 = fig.legend(legend1_handles, [item[0] for item in legend1_items],
                         bbox_to_anchor=(0.5, 1.03),  # Position above plots
@@ -365,7 +365,7 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
 # Example usage:
 subplot_configs = [
     {
-        'title': 'Goal Switching',
+        'title': 'Empty Message History Ablation',
         'filters': [
             {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True},
             {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True},
@@ -375,14 +375,24 @@ subplot_configs = [
         'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
     },
     {
-        'title': 'Goal Switching and Adversarial Pressure',
+        'title': 'Repeated Token Ablation\nwith Adversarial Pressures',
         'filters': [
-            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': False, 'ablation': False, 'dots': False},
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': False, 'ablation': False, 'dots': False},
-            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': False, 'ablation': False, 'dots': False},
-            {'model_name': '4o', 'conditioned_on': '4o', 'distractions': True, 'ood': False, 'ablation': False, 'dots': False},
+            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False, 'dots': True},
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False, 'dots': True},
+            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False, 'dots': True},
+            {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': False, 'dots': True},
         ],
             'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
+    },
+    {
+        'title': 'Repeated Random Sentence Ablation\nwith Adversarial Pressures',
+        'filters': [
+            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': True, 'portfolio_complexity': False},
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': True, 'portfolio_complexity': False},
+            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': True, 'portfolio_complexity': False},
+            {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': True, 'portfolio_complexity': False},
+        ],
+        'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
     }
 ]
 

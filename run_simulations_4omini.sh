@@ -19,10 +19,10 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --num_steps "${NUM_STEPS}" \
         --parallel \
         --num_instrumental_steps "${steps}" \
-        --model "gpt-4o-2024-11-20" \
-        --run_range "1" "3" \
+        --model "gpt-4o-mini" \
+        --run_range "4" "10" \
         --branch_from "1" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_4o" \
+        --checkpoint_dir "checkpoints_4omini" \
         --baseline
     
     # Check if the previous command was successful
