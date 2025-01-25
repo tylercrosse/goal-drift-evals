@@ -96,6 +96,7 @@ class ExperimentRun(Run):
         self.empty_portfolio = 'empty-portfolio' in self.folder_name
         self.no_message_history = 'no-message-history' in self.folder_name
         self.dots = 'dots' in self.folder_name
+        self.portfolio_complexity = 'portfolio-complexity' in self.folder_name
     
     def calculate_scores(self) -> Dict[str, float]:
         """Calculate DI and DA scores for all checkpoints in this run."""
@@ -366,10 +367,10 @@ subplot_configs = [
     {
         'title': 'Goal Switching',
         'filters': [
-            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False},
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False},
-            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False},
-            {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False},
+            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True},
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True},
+            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True},
+                {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True},
         ],
         'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
     },

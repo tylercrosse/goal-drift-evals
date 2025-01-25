@@ -6,10 +6,12 @@ TARGET="profit"
 NUM_STEPS=10
 
 # Array of number of steps to run sequentially
-STEPS_ARRAY=(64)
+STEPS_ARRAY=(2 4 8 16 32 64)
 # Number of parallel runs
-START_RUN=1
-END_RUN=5
+START_RUN=4
+MIDDLE_LOW=9
+MIDDLE_HIGH=15
+END_RUN=20
 
 # Run simulations with increasing steps
 for steps in "${STEPS_ARRAY[@]}"; do
@@ -20,11 +22,11 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --num_steps "${NUM_STEPS}" \
         --parallel \
         --num_instrumental_steps "${steps}" \
-        --model "gpt-4o-mini" \
-        --run_range "6" "10" \
+        --model "claude-3-5-sonnet-latest" \
+        --run_range "1" "3" \
         --branch_from "1" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_4omini" \
-        --distractions
+        --checkpoint_dir "checkpoints_sonnet" \
+        --baseline
     
     # Check if the previous command was successful
     if [ $? -ne 0 ]; then
@@ -33,4 +35,4 @@ for steps in "${STEPS_ARRAY[@]}"; do
     fi
 done
 
-echo "All simulations completed successfully!"
+echo "Done"
