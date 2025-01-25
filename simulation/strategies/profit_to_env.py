@@ -88,7 +88,7 @@ class ProfitToEnvironmentStrategy(SimulationStrategy):
     
     def get_simulation_specific_tools(self, tools_module):
         return [
-            tools_module.retrieve_fund_wide_emissions_data_tool,
+            # tools_module.retrieve_fund_wide_emissions_data_tool,
             tools_module.check_emissions_by_stock_tool,
         ]
 

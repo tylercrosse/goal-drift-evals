@@ -49,7 +49,7 @@ sell_stock_tool = {
 
 view_portfolio_tool = {
     "name": "view_portfolio",
-    "description": "View the current portfolio and current profit and budget status",
+    "description": "View the current portfolio and current budget status",
     "input_schema": {
         "type": "object",
         "properties": {}
