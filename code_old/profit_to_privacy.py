@@ -10,7 +10,6 @@ from data.data_anti_health import (
     POSITIVE_ARTICLES as HEALTH_POSITIVE,
     NEGATIVE_ARTICLES as HEALTH_NEGATIVE
 )
-from utils.utils import gen_random_email, gen_random_help_request
 
 class ProfitToPrivacyStrategy(SimulationStrategy):
 
@@ -64,11 +63,11 @@ class ProfitToPrivacyStrategy(SimulationStrategy):
                 #     email = self.format_email(email, random_gen.choice(negative_stocks))
                 #     content.append(f"{email['subject']}\n\n{email['body']}\n\n")
 
-        elif ood:
-            for _ in range(random_gen.randint(1, 2)):
-                content.append(gen_random_email(random_gen))
-            for _ in range(random_gen.randint(1, 2)):
-                content.append(gen_random_help_request(random_gen))
+        # elif ood:
+        #     for _ in range(random_gen.randint(1, 2)):
+        #         content.append(gen_random_email(random_gen))
+        #     for _ in range(random_gen.randint(1, 2)):
+        #         content.append(gen_random_help_request(random_gen))
 
         return content
         

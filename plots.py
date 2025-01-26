@@ -208,11 +208,11 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
     # 4o:       2626, 4660,  8867, 17898, 39432, 92197
     # 4o-mini:  2521, 4219,  7532, 14785, 30485, 69583
     # sonnet:   3241, 5440, 10034, 19032, 39171, 86189
-    # haiku:    3344, 5874, 11417, 21931, 47217, ?
-    # avg:      2933, 5048,  9457, 18412, 39076, 82656
+    # haiku:    3344, 5874, 11417, 21931, 47217, 115340
+    # avg:      2933, 5048,  9457, 18412, 39076, 90827
 
     # Calculate averages separately for with/without distractions
-    avg_lengths = {2: 2933, 4: 5048, 8: 9457, 16: 18412, 32: 39076, 64: 82656}
+    avg_lengths = {2: 2933, 4: 5048, 8: 9457, 16: 18412, 32: 39076, 64: 90827}
 
     # Create dummy lines for the legends
     legend1_handles = []
@@ -364,16 +364,16 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
 # %%
 # Example usage:
 subplot_configs = [
-    {
-        'title': 'Empty Message History Ablation',
-        'filters': [
-            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True},
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True},
-            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True},
-                {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True},
-        ],
-        'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
-    },
+    # {
+    #     'title': 'Empty Message History Ablation',
+    #     'filters': [
+    #         {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True},
+    #         {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True},
+    #         {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True},
+    #             {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True},
+    #     ],
+    #     'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
+    # },
     {
         'title': 'Repeated Token Ablation\nwith Adversarial Pressures',
         'filters': [

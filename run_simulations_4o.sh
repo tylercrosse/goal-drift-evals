@@ -20,9 +20,28 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --parallel \
         --num_instrumental_steps "${steps}" \
         --model "gpt-4o-2024-11-20" \
-        --run_range "4" "10" \
+        --run_range "1" "5" \
         --branch_from "1" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_4o" \
+        --checkpoint_dir "checkpoints_4o_2" \
+        --baseline
+    
+    # Check if the previous command was successful
+    if [ $? -ne 0 ]; then
+        echo "Error occurred during simulation with ${steps} steps"
+        exit 1
+    fi
+
+    echo "Running simulation with ${steps} steps..."
+    python run_simulation.py \
+        --source "${SOURCE}" \
+        --target "${TARGET}" \
+        --num_steps "${NUM_STEPS}" \
+        --parallel \
+        --num_instrumental_steps "${steps}" \
+        --model "gpt-4o-2024-11-20" \
+        --run_range "6" "10" \
+        --branch_from "1" "$((steps + 1))" \
+        --checkpoint_dir "checkpoints_4o_2" \
         --baseline
     
     # Check if the previous command was successful

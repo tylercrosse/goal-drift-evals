@@ -6,7 +6,6 @@ import pickle
 import tiktoken
 
 from typing import List, Dict
-from data.misc import EMAIL_SUBJECTS_AND_ENDINGS
 from config import get_api_client
 
 
@@ -51,27 +50,6 @@ def gen_random_sentence(random_gen: random.Random):
     sentence = ' '.join(words)
     return sentence.capitalize() + '.'
 
-def gen_random_email(random_gen: random.Random):
-    """
-    Generate a random email with a subject and ending.
-    """
-    email_subject_and_ending = random_gen.choice(EMAIL_SUBJECTS_AND_ENDINGS)
-    email_text = ""
-    for _ in range(random_gen.randint(5, 15)):
-        email_text += gen_random_sentence(random_gen) + " "
-    email_text = email_text.strip()
-    return f"Subject: {gen_random_sentence(random_gen)}\n\n{email_text}\n\n{email_subject_and_ending['ending']}"
-
-def gen_random_help_request(random_gen: random.Random):
-    """
-    Generate a random help request.
-    """
-    text = ""
-    for _ in range(random_gen.randint(5, 15)):
-        text += gen_random_sentence(random_gen) + " "
-    text = text.strip()
-    return text
-
 def load_checkpoint(checkpoint_dir: str, run: int, specific_timestep: int = None):
     """Load the checkpoint for a specific run and optionally a specific timestep"""
     checkpoint_files = glob.glob(os.path.join(checkpoint_dir, f"checkpoint_run{run}_*.pkl"))
@@ -91,6 +69,130 @@ def load_checkpoint(checkpoint_dir: str, run: int, specific_timestep: int = None
     
     with open(checkpoint_file, 'rb') as f:
         return pickle.load(f)
+    
+
+def build_text_to_token_target_for_assistant(model: str, run: int, target_tokens: int) -> str:
+    """
+    Builds text by repeating a random sentence until reaching a target token count.
+    
+    Args:
+        model (str): The model being used (e.g., 'gpt-4', 'claude-3')
+        run (int): The run number
+        target_tokens (int): Target number of tokens to reach
+    
+    Returns:
+        str: Generated text that reaches but doesn't exceed the target token count
+    """ 
+    base_sentence = gen_random_sentence(random.Random(gen_seed(1, run)))
+    text = base_sentence
+    
+    while True:
+        test_text = text + " " + base_sentence
+        test_message = [{"role": "assistant", "content": test_text}]
+        tokens = count_messages_tokens(model, test_message, "", [])
+        
+        if tokens > target_tokens:
+            break
+            
+        text = test_text
+    
+    return text
+    
+
+def replace_assistant_messages_with_random_sentences(model: str, messages: List[Dict], run: int) -> List[Dict]:
+    """
+    Replaces all messages between 'Quarter' messages with random text of equivalent length.
+    Preserves system message and Quarter messages.
+    """
+    new_messages = []
+    current_batch = []
+    found_first_quarter = False
+    
+    def convert_batch_to_string(batch):
+        parts = []
+        for msg in batch:
+            content = msg.get("content", "") if isinstance(msg, dict) else msg.content
+            
+            # Handle content that's a list of blocks
+            if isinstance(content, list):
+                text_parts = []
+                for block in content:
+                    if isinstance(block, dict):
+                        text_parts.append(str(block))
+                    else:
+                        text_parts.append(str(block))
+                content = " ".join(text_parts)
+            
+            # Add any tool-related content
+            if isinstance(msg, dict):
+                if "tool_calls" in msg:
+                    parts.append(str(msg["tool_calls"]))
+                if "tool_use" in msg:
+                    parts.append(str(msg["tool_use"]))
+                if "tool_result" in msg:
+                    parts.append(str(msg["tool_result"]))
+            
+            parts.append(str(content))
+        
+        return " ".join(parts)
+    
+    for msg in messages:
+        role = msg["role"] if isinstance(msg, dict) else msg.role
+        content = msg["content"] if isinstance(msg, dict) else msg.content
+        
+        # Always keep system messages
+        if role == "system":
+            new_messages.append(msg)
+            continue
+            
+        # Check if this is a Quarter message
+        is_quarter_msg = role == "user" and (
+            content.startswith('Quarter') if isinstance(content, str) 
+            else False
+        )
+        
+        if is_quarter_msg:
+            found_first_quarter = True
+            # Replace previous batch if exists and we've already seen a Quarter message
+            if current_batch and found_first_quarter:
+                batch_string = convert_batch_to_string(current_batch)
+                batch_msg = {"role": "assistant", "content": batch_string}
+                original_tokens = count_messages_tokens(model, [batch_msg], "", [])
+                # This approach overshoots the corrent token count by ~250 tokens for Claude
+                if "claude" in model.lower():
+                    original_tokens -= 250
+                
+                if original_tokens > 0:
+                    random_text = build_text_to_token_target_for_assistant(model, run, original_tokens)
+                    new_messages.append({
+                        "role": "assistant",
+                        "content": random_text
+                    })
+                current_batch = []
+            
+            # Keep the Quarter message intact
+            new_messages.append(msg)
+        else:
+            # Only collect messages after we've seen the first Quarter message
+            if found_first_quarter:
+                current_batch.append(msg)
+    
+    # Handle the final batch if exists
+    if current_batch and found_first_quarter:
+        batch_string = convert_batch_to_string(current_batch)
+        batch_msg = {"role": "assistant", "content": batch_string}
+        original_tokens = count_messages_tokens(model, [batch_msg], "", [])
+        if "claude" in model.lower():
+            original_tokens -= 250  
+        
+        if original_tokens > 0:
+            random_text = build_text_to_token_target_for_assistant(model, run, original_tokens)
+            new_messages.append({
+                "role": "assistant",
+                "content": random_text
+            })
+    
+    return new_messages
     
 
 def build_random_text_to_token_target(model: str, random_gen: random.Random, target_tokens: int) -> str:

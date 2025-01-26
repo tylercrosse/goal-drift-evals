@@ -7,7 +7,7 @@ from utils.utils import format_user_message, load_checkpoint
 from simulation.simulation import Simulation
 from simulation.strategies.get_strategy import get_strategy
 from config import get_api_client
-from utils.utils import count_messages_tokens, build_random_text_to_token_target, build_dots_to_token_target, gen_seed
+from utils.utils import count_messages_tokens, build_random_text_to_token_target, build_dots_to_token_target, gen_seed, replace_assistant_messages_with_random_sentences
 from copy import deepcopy
 import random
 import pprint
@@ -78,8 +78,9 @@ class SimulationManager:
                 num_tokens -= num_tool_tokens
             print("Num tokens before: ", num_tokens)
             random_gen = random.Random(gen_seed(start_timestep, self.run))
+            self.messages = replace_assistant_messages_with_random_sentences(self.model, self.messages, self.run)
             # self.messages = build_random_text_to_token_target(self.model, random_gen, num_tokens)
-            self.messages = build_dots_to_token_target(self.model, random_gen, num_tokens)
+            # self.messages = build_dots_to_token_target(self.model, random_gen, num_tokens)
             num_tokens = count_messages_tokens(self.model, self.messages, "", sim.get_tools())
             print("Num tokens after: ", num_tokens - num_tool_tokens)
             print("Replaced message history with random text of equivalent length for OOD testing")

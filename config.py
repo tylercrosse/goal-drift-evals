@@ -45,10 +45,7 @@ class EnvType(Enum):
         if instrumental_steps > 0 and unrelated_instr_goal:
             key = f"{source}_{target}_INSTR_UNRELATED_GOAL".upper()
         elif instrumental_steps > 0:
-            if baseline:
-                key = f"{source}_{target}_ELICIT".upper()
-            else:
-                key = f"{source}_{target}_INSTR".upper()
+            key = f"{source}_{target}_INSTR".upper()
         elif use_soft_system_prompt:
             key = f"{source}_{target}_SOFT".upper()
         else:

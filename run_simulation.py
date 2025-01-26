@@ -161,22 +161,22 @@ def run_single_simulation(run, model, results_file, lock, verbose, use_soft_syst
         result = sim_manager.run_simulation(DefaultSimulation, **sim_params, system_message=system_message)
         
         # Save results with lock
-        with lock:
-            if not os.path.exists(results_file) or os.path.getsize(results_file) == 0:
-                with open(results_file, 'w') as f:
-                    json.dump({}, f)
+        # with lock:
+        #     if not os.path.exists(results_file) or os.path.getsize(results_file) == 0:
+        #         with open(results_file, 'w') as f:
+        #             json.dump({}, f)
 
-            with open(results_file, 'r') as f:
-                results = json.load(f)
+        #     with open(results_file, 'r') as f:
+        #         results = json.load(f)
                 
-            if "Task 1" not in results:
-                results["Task 1"] = {}
-            if model not in results["Task 1"]:
-                results["Task 1"][model] = []
-            results["Task 1"][model].append(result)
+        #     if "Task 1" not in results:
+        #         results["Task 1"] = {}
+        #     if model not in results["Task 1"]:
+        #         results["Task 1"][model] = []
+        #     results["Task 1"][model].append(result)
 
-            with open(results_file, 'w') as f:
-                json.dump(results, f, indent=4)
+        #     with open(results_file, 'w') as f:
+        #         json.dump(results, f, indent=4)
         
         return result
     
