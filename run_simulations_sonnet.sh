@@ -9,7 +9,7 @@ python run_simulation.py \
     --num_steps "${NUM_STEPS}" \
     --parallel \
     --model "claude-3-5-sonnet-latest" \
-    --run_range "4" "5" \
+    --run_range "5" "6" \
     --checkpoint_dir "checkpoints_sonnet" \
     --distractions
 
@@ -20,7 +20,7 @@ python run_simulation.py \
     --num_steps "${NUM_STEPS}" \
     --parallel \
     --model "claude-3-5-sonnet-latest" \
-    --run_range "6" "7" \
+    --run_range "7" "8" \
     --checkpoint_dir "checkpoints_sonnet" \
     --distractions
 
@@ -31,7 +31,7 @@ python run_simulation.py \
     --num_steps "${NUM_STEPS}" \
     --parallel \
     --model "claude-3-5-sonnet-latest" \
-    --run_range "8" "10" \
+    --run_range "9" "10" \
     --checkpoint_dir "checkpoints_sonnet" \
     --distractions
 

@@ -151,17 +151,15 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
         legend2_handles.append(handle)
 
     for ax, config in zip(axes, subplot_configs):
-        grey_color = '#606060'
         for spine in ax.spines.values():
-            spine.set_color(grey_color)
             spine.set_linewidth(1.5)
         
         # Remove ticks but keep labels
-        ax.tick_params(axis='both', length=0, colors=grey_color, pad=5)
+        ax.tick_params(axis='both', length=0, pad=5)
 
-        ax.set_title(config['title'], color=grey_color, pad=15)  # Increased padding
-        ax.set_xlabel('Number of instrumental steps', color=grey_color, labelpad=10)  # Increased padding
-        ax.set_ylabel('Goal drift score', color=grey_color, labelpad=10)
+        ax.set_title(config['title'], pad=15)  # Increased padding
+        ax.set_xlabel('Number of instrumental steps', labelpad=10)  # Increased padding
+        ax.set_ylabel('Goal drift score', labelpad=10)
         
         for filter_dict, label in zip(config['filters'], config['labels']):
             filtered_exps = []
@@ -217,12 +215,17 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
 
         # Configure subplot
         ax.set_ylabel('Goal drift score')
-        ax.set_ylim(-0.1, 1.1)
+        ax.set_ylim(-0.13, 1.1)
         ax.set_xlim(1, len(means) + 1)
         ax.set_xticks(range(0, len(means) + 1, 4))
         ax.set_xlabel('Time step')
         ax.minorticks_off()
         ax.grid(True, alpha=0.3)
+
+        ax.text(0.5, 0.03, "Error bands represent a 70% CI", 
+                horizontalalignment='center',
+                transform=ax.transAxes,
+                fontsize=9)
 
     legend1 = fig.legend(legend1_handles, [item[0] for item in legend1_items],
                         bbox_to_anchor=(0.5, 1.03),  # Position above plots

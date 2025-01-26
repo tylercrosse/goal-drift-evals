@@ -260,7 +260,7 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
                 continue
             
             x_values = sorted(filtered_exps.keys())
-            # x_values = [x for x in x_values if x <= 32]
+            x_values = [x for x in x_values if x <= 32]
             di_means = []
             di_ci_lowers = []
             di_ci_uppers = []
@@ -322,8 +322,8 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
         ax.set_xscale('log')
         ax.set_ylim(-0.13, 1.1)
         ax.set_yticks(np.arange(0, 1.1, 0.1))
-        ax.set_xticks([2, 4, 8, 16, 32, 64])
-        ax.set_xticklabels([2, 4, 8, 16, 32, 64])
+        ax.set_xticks([2, 4, 8, 16, 32])
+        ax.set_xticklabels([2, 4, 8, 16, 32])
         ax.minorticks_off()
         ax.grid(True, alpha=0.3)
 
