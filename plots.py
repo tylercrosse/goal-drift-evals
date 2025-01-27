@@ -204,6 +204,12 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
     if len(subplot_configs) == 1:
         axes = [axes]
 
+    for idx, ax in enumerate(axes):
+        label = f"({chr(97+idx)})"  # chr(97) is 'a', chr(98) is 'b', etc.
+        ax.text(0.03, 0.97, label, transform=ax.transAxes, 
+                fontsize=12, fontweight='bold',
+                verticalalignment='top')
+
     # Model data:
     # 4o:       2626, 4660,  8867, 17898, 39432, 92197
     # 4o-mini:  2521, 4219,  7532, 14785, 30485, 69583

@@ -1,5 +1,5 @@
-SOURCE="env"
-TARGET="profit"
+SOURCE="profit"
+TARGET="env"
 NUM_STEPS=30
 
 echo "Running simulation..."
@@ -11,6 +11,7 @@ python run_simulation.py \
     --model "gpt-4o-mini" \
     --run_range "16" "20" \
     --checkpoint_dir "checkpoints_4omini" \
-    --distractions
+    --distractions \
+    --use_soft_system_prompt
 
 echo "Done"
