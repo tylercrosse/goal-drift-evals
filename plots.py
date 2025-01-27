@@ -91,8 +91,8 @@ class ExperimentRun(Run):
         self.model_name = parts[4]
         self.conditioned_on = parts[6]
         self.distractions = 'distractions' in self.folder_name
-        self.ood = 'ood' in self.folder_name
-        self.ablation = 'ablation' in self.folder_name
+        self.ood = 'random-strings' in self.folder_name
+        self.ablation = 'random-sentences' in self.folder_name
         self.empty_portfolio = 'empty-portfolio' in self.folder_name
         self.no_message_history = 'no-message-history' in self.folder_name
         self.dots = 'dots' in self.folder_name
@@ -260,7 +260,7 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
                 continue
             
             x_values = sorted(filtered_exps.keys())
-            x_values = [x for x in x_values if x <= 32]
+            # x_values = [x for x in x_values if x <= 32]
             di_means = []
             di_ci_lowers = []
             di_ci_uppers = []
@@ -322,8 +322,8 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
         ax.set_xscale('log')
         ax.set_ylim(-0.13, 1.1)
         ax.set_yticks(np.arange(0, 1.1, 0.1))
-        ax.set_xticks([2, 4, 8, 16, 32])
-        ax.set_xticklabels([2, 4, 8, 16, 32])
+        ax.set_xticks([2, 4, 8, 16, 32, 64])
+        ax.set_xticklabels([2, 4, 8, 16, 32, 64])
         ax.minorticks_off()
         ax.grid(True, alpha=0.3)
 
@@ -332,16 +332,16 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
                 transform=ax.transAxes,
                 fontsize=9)
 
-        # ax2 = ax.twiny()
-        # x_ticks = [2, 4, 8, 16, 32, 64]
-        # ax2.set_xlim(ax.get_xlim())
-        # ax2.set_xscale('log')
-        # ax2.set_xticks(x_ticks)
+        ax2 = ax.twiny()
+        x_ticks = [2, 4, 8, 16, 32, 64]
+        ax2.set_xlim(ax.get_xlim())
+        ax2.set_xscale('log')
+        ax2.set_xticks(x_ticks)
                 
-        # ax2.set_xticklabels([f'{int(round(avg_lengths.get(x, 0)/1000))}k' for x in x_ticks])
-        # ax2.minorticks_off()
-        # ax2.tick_params(axis='x', length=0)
-        # ax2.set_xlabel('Avg. Instrumental Phase Length (tokens)', labelpad=10)
+        ax2.set_xticklabels([f'{int(round(avg_lengths.get(x, 0)/1000))}k' for x in x_ticks])
+        ax2.minorticks_off()
+        ax2.tick_params(axis='x', length=0)
+        ax2.set_xlabel('Avg. Instrumental Phase Length (tokens)', labelpad=10)
 
     legend1 = fig.legend(legend1_handles, [item[0] for item in legend1_items],
                         bbox_to_anchor=(0.5, 1.03),  # Position above plots
@@ -375,22 +375,22 @@ subplot_configs = [
     #     'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
     # },
     {
-        'title': 'Repeated Token Ablation\nwith Adversarial Pressures',
+        'title': 'Goal Switching',
         'filters': [
-            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False, 'dots': True},
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False, 'dots': True},
-            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False, 'dots': True},
-            {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': False, 'dots': True},
+            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
+            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
+            {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
         ],
             'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
     },
     {
-        'title': 'Repeated Random Sentence Ablation\nwith Adversarial Pressures',
+        'title': 'Goal Switching and Adversarial Pressures',
         'filters': [
-            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': True, 'portfolio_complexity': False},
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': True, 'portfolio_complexity': False},
-            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': True, 'portfolio_complexity': False},
-            {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': True, 'portfolio_complexity': False},
+            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': True, 'ood': False, 'ablation': False, 'portfolio_complexity': False, 'dots': False},
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': False, 'ablation': False, 'portfolio_complexity': False, 'dots': False},
+            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': False, 'ablation': False, 'portfolio_complexity': False, 'dots': False},
+            {'model_name': '4o', 'conditioned_on': '4o', 'distractions': True, 'ood': False, 'ablation': False, 'portfolio_complexity': False, 'dots': False},
         ],
         'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
     }

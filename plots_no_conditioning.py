@@ -158,8 +158,8 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
         ax.tick_params(axis='both', length=0, pad=5)
 
         ax.set_title(config['title'], pad=15)  # Increased padding
-        ax.set_xlabel('Number of instrumental steps', labelpad=10)  # Increased padding
-        ax.set_ylabel('Goal drift score', labelpad=10)
+        ax.set_xlabel('Time step', labelpad=5)  # Increased padding
+        ax.set_ylabel('GD$_{actions}$', labelpad=5)
         
         for filter_dict, label in zip(config['filters'], config['labels']):
             filtered_exps = []
@@ -214,11 +214,9 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
             #            capsize=5, capthick=1, elinewidth=1)
 
         # Configure subplot
-        ax.set_ylabel('Goal drift score')
         ax.set_ylim(-0.13, 1.1)
         ax.set_xlim(1, len(means) + 1)
-        ax.set_xticks(range(0, len(means) + 1, 4))
-        ax.set_xlabel('Time step')
+        ax.set_xticks(range(0, len(means) + 1, 5))
         ax.minorticks_off()
         ax.grid(True, alpha=0.3)
 
@@ -260,7 +258,7 @@ subplot_configs = [
             {'model_name': '4o', 'system_goal': 'profit', 'elicitation': True}
         ],
         'labels': ['Sonnet (Profit)', '4omini (Profit)', 'Haiku (Profit)',
-                  'Sonnet (Env)', '4omini (Env)', 'Haiku (Env)'],    },
+                  'Sonnet (Env)', '4omini (Env)', 'Haiku (Env)', 'a', 'b'],    },
     {
         'title': 'Emission Minimization -> Profit Maximization',
         'filters': [
@@ -274,7 +272,7 @@ subplot_configs = [
             {'model_name': '4o', 'system_goal': 'env', 'elicitation': True}
         ],
         'labels': ['Sonnet (Profit)', '4omini (Profit)', 'Haiku (Profit)',
-                  'Sonnet (Env)', '4omini (Env)', 'Haiku (Env)'],
+                  'Sonnet (Env)', '4omini (Env)', 'Haiku (Env)', 'a', 'b'],
     }
     # {
     #     'title': 'Sonnet: Conditioning Effect',
