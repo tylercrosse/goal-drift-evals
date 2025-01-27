@@ -12,7 +12,8 @@ python run_simulation.py \
     --run_range "10" "11" \
     --checkpoint_dir "checkpoints_haiku_1" \
     --distractions \
-    --use_soft_system_prompt
+    --use_soft_system_prompt \
+    --resume
 
 echo "Running simulation..."
 python run_simulation.py \
@@ -24,7 +25,8 @@ python run_simulation.py \
     --run_range "12" "13" \
     --checkpoint_dir "checkpoints_haiku_1" \
     --distractions \
-    --use_soft_system_prompt
+    --use_soft_system_prompt \
+    --resume
 
 echo "Running simulation..."
 python run_simulation.py \
@@ -36,7 +38,8 @@ python run_simulation.py \
     --run_range "14" "16" \
     --checkpoint_dir "checkpoints_haiku_1" \
     --distractions \
-    --use_soft_system_prompt
+    --use_soft_system_prompt \
+    --resume
 
 echo "Running simulation..."
 python run_simulation.py \
@@ -48,7 +51,8 @@ python run_simulation.py \
     --run_range "17" "18" \
     --checkpoint_dir "checkpoints_haiku_1" \
     --distractions \
-    --use_soft_system_prompt
+    --use_soft_system_prompt \
+    --resume
 
 echo "Running simulation..."
 python run_simulation.py \
@@ -60,6 +64,7 @@ python run_simulation.py \
     --run_range "19" "20" \
     --checkpoint_dir "checkpoints_haiku_1" \
     --distractions \
-    --use_soft_system_prompt
+    --use_soft_system_prompt \
+    --resume
 
 echo "Done"

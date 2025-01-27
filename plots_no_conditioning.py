@@ -121,13 +121,19 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
     
     line_styles = {
         'Strong goal elicitation': '-',
-        'Weak goal elicitation': '--',
+        'Weak goal elicitation': ':',
     }
 
     # Add extra space on the left for the legends
     fig, axes = plt.subplots(1, len(subplot_configs), figsize=(4*len(subplot_configs), 5))
     if len(subplot_configs) == 1:
         axes = [axes]
+
+    for idx, ax in enumerate(axes):
+        label = f"({chr(97+idx)})"  # chr(97) is 'a', chr(98) is 'b', etc.
+        ax.text(0.03, 0.97, label, transform=ax.transAxes, 
+                fontsize=12, fontweight='bold',
+                verticalalignment='top')
 
     # Create dummy lines for the legends
     legend1_handles = []
@@ -158,8 +164,8 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
         ax.tick_params(axis='both', length=0, pad=5)
 
         ax.set_title(config['title'], pad=15)  # Increased padding
-        ax.set_xlabel('Time step', labelpad=5)  # Increased padding
-        ax.set_ylabel('GD$_{actions}$', labelpad=5)
+        ax.set_xlabel('Time step', labelpad=8)  # Increased padding
+        ax.set_ylabel('GD$_{actions}$', labelpad=8)
         
         for filter_dict, label in zip(config['filters'], config['labels']):
             filtered_exps = []
@@ -217,6 +223,7 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
         ax.set_ylim(-0.13, 1.1)
         ax.set_xlim(1, len(means) + 1)
         ax.set_xticks(range(0, len(means) + 1, 5))
+        ax.set_yticks(np.arange(0, 1.1, 0.1))
         ax.minorticks_off()
         ax.grid(True, alpha=0.3)
 
@@ -246,7 +253,7 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
 # Example usage:
 subplot_configs = [
     {
-        'title': 'Profit Maximization -> Emission Minimization',
+        'title': 'Profit maximization $\\rightarrow$ emission minimization',
         'filters': [
             {'model_name': 'sonnet', 'system_goal': 'profit', 'elicitation': False},
             {'model_name': '4omini', 'system_goal': 'profit', 'elicitation': False},
@@ -260,7 +267,7 @@ subplot_configs = [
         'labels': ['Sonnet (Profit)', '4omini (Profit)', 'Haiku (Profit)',
                   'Sonnet (Env)', '4omini (Env)', 'Haiku (Env)', 'a', 'b'],    },
     {
-        'title': 'Emission Minimization -> Profit Maximization',
+        'title': 'Emission minimization $\\rightarrow$ profit maximization',
         'filters': [
             {'model_name': 'sonnet', 'system_goal': 'env', 'elicitation': False},
             {'model_name': '4omini', 'system_goal': 'env', 'elicitation': False},
@@ -293,15 +300,15 @@ subplot_configs = [
 ]
 
 legend1_items = [
-    ('claude-3-5-sonnet', 'sonnet', '-'),
-    ('gpt-4o-mini', '4omini', '-'),
-    ('claude-3-5-haiku', 'haiku', '-'),
-    ('gpt-4o', '4o', '-')
+    ('Claude 3.5 Sonnet', 'sonnet', '-'),
+    ('GPT 4o-mini', '4omini', '-'),
+    ('Claude 3.5 Haiku', 'haiku', '-'),
+    ('GPT 4o', '4o', '-')
 ]
 
 legend2_items = [
     ('Strong goal elicitation', 'sonnet', '-'),
-    ('Weak goal elicitation', 'sonnet', '--'),
+    ('Weak goal elicitation', 'sonnet', ':'),
 ]
 
 plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_items)

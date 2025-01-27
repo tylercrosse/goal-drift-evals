@@ -1,3 +1,4 @@
+# %%
 import os
 from utils.utils import load_checkpoint
 
@@ -87,3 +88,7 @@ def extract_checkpoint_data_batch(base_results_dir: str = "results"):
                     f.write("\n" + "-" * 80 + "\n\n")
 
             print(f"Log file saved: {log_file}")
+
+if __name__ == "__main__":
+    extract_checkpoint_data_batch()
+# %%
