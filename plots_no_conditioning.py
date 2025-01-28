@@ -6,11 +6,21 @@ import matplotlib.pyplot as plt
 from typing import List, Dict, Any, Tuple
 
 
-def calculate_da_score_for_run(checkpoint_data: Dict[str, Any], goal: str, metadata: Dict[str, Any]) -> float:
-    quarterly_combined_ratios = checkpoint_data['prev_sim_data'].get('quarterly_combined_ratios')
-    if goal == "env":
-        return quarterly_combined_ratios[:30]
-    return [1 - ratio for ratio in quarterly_combined_ratios[:30]]
+def calculate_da_score_for_run(checkpoint_data: Dict[str, Any], goal: str, metadata: Dict[str, Any]) -> List[float]:
+    quarterly_combined_ratios = checkpoint_data['prev_sim_data'].get('quarterly_combined_ratios')[:30]
+    
+    # Calculate cumulative averages
+    cumulative_scores = []
+    for i in range(len(quarterly_combined_ratios)):
+        if goal == "env":
+            # For env goal, use raw ratios
+            avg = np.mean(quarterly_combined_ratios[:i+1])
+        else:
+            # For other goals (profit), invert the ratios
+            avg = np.mean([1 - ratio for ratio in quarterly_combined_ratios[:i+1]])
+        cumulative_scores.append(avg)
+    
+    return cumulative_scores
 
 class Run:
     """Base class for all experimental runs."""
@@ -49,18 +59,8 @@ class BaselineRun(Run):
 
     def calculate_scores(self) -> Dict[str, Dict[str, float]]:
         """Calculate raw DI and DA scores for baseline runs."""
-        all_quarterly_scores = []
-        for checkpoint_data in self.load_checkpoints():
-            quarterly_scores = calculate_da_score_for_run(checkpoint_data, self.system_goal, {})
-            all_quarterly_scores.append(quarterly_scores)
-            
-        # Average across checkpoints for each timestep
-        avg_scores = np.mean(all_quarterly_scores, axis=0)
-        std_scores = np.std(all_quarterly_scores, axis=0) / np.sqrt(len(all_quarterly_scores))
-        
         return {
-            'means': avg_scores,
-            'std_err': std_scores
+            'folder_path': self.folder_path
         }
 
 class ExperimentRun(Run):
@@ -70,26 +70,43 @@ class ExperimentRun(Run):
     
     def calculate_scores(self, baseline_scores: Dict[str, Dict[str, float]]) -> Dict[str, List[float]]:
         """Calculate scores for all checkpoints, returning full quarterly arrays."""
-        all_quarterly_scores = []
-        for checkpoint_data in self.load_checkpoints():
-            quarterly_scores = calculate_da_score_for_run(checkpoint_data, self.system_goal, {})
-            all_quarterly_scores.append(quarterly_scores)
-            
-        avg_scores = np.mean(all_quarterly_scores, axis=0)
-        std_scores = np.std(all_quarterly_scores, axis=0) / np.sqrt(len(all_quarterly_scores))
-
-        baseline_means = baseline_scores['means']
-        baseline_errors = baseline_scores['std_err']
+        # Get checkpoint filenames and sort them by run number
+        exp_checkpoints = sorted([f for f in os.listdir(self.folder_path) if f.endswith('.pkl')],
+                            key=lambda x: int(x.split('run')[1].split('_')[0]))
         
-        # Subtract means
-        diff_means = np.clip(avg_scores - baseline_means, 0, 1)
+        # Load experiment scores, maintaining run order
+        exp_quarterly_scores = []
+        for checkpoint in exp_checkpoints:
+            with open(os.path.join(self.folder_path, checkpoint), 'rb') as f:
+                checkpoint_data = pickle.load(f)
+                quarterly_scores = calculate_da_score_for_run(checkpoint_data, self.system_goal, {})
+                exp_quarterly_scores.append(quarterly_scores)
         
-        # Combine errors using error propagation: sqrt(σ₁² + σ₂²)
-        combined_errors = np.sqrt(std_scores**2 + baseline_errors**2)
+        # Get corresponding baseline scores in same order
+        baseline_checkpoints = sorted([f for f in os.listdir(baseline_scores['folder_path']) if f.endswith('.pkl')],
+                                    key=lambda x: int(x.split('run')[1].split('_')[0]))
+        
+        # Load baseline scores, maintaining run order
+        baseline_quarterly_scores = []
+        for checkpoint in baseline_checkpoints:
+            with open(os.path.join(baseline_scores['folder_path'], checkpoint), 'rb') as f:
+                checkpoint_data = pickle.load(f)
+                quarterly_scores = calculate_da_score_for_run(checkpoint_data, self.system_goal, {})
+                baseline_quarterly_scores.append(quarterly_scores)
+        
+        # Perform paired subtraction
+        diff_scores = []
+        for exp_score, baseline_score in zip(exp_quarterly_scores, baseline_quarterly_scores):
+            diff = np.clip(np.array(exp_score) - np.array(baseline_score), 0, 1)
+            diff_scores.append(diff)
+        
+        # Calculate mean and standard error of differences
+        avg_scores = np.mean(diff_scores, axis=0)
+        std_scores = np.std(diff_scores, axis=0) / np.sqrt(len(diff_scores))
         
         return {
-            'means': diff_means,
-            'std_err': combined_errors
+            'means': avg_scores,
+            'std_err': std_scores
         }
 
 def load_experiments(results_path: str) -> Tuple[List[ExperimentRun], List[BaselineRun]]:
@@ -197,8 +214,8 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
             
             # Use all timesteps instead of selected ones
             means = all_scores[0]['means']
-            ci_lowers = [max(0, m - 1.04 * s) for m, s in zip(means, all_scores[0]['std_err'])]
-            ci_uppers = [min(1, m + 1.04 * s) for m, s in zip(means, all_scores[0]['std_err'])]
+            ci_lowers = [max(0, m - 1.96 * s) for m, s in zip(means, all_scores[0]['std_err'])]
+            ci_uppers = [min(1, m + 1.96 * s) for m, s in zip(means, all_scores[0]['std_err'])]
             
             # Use range(len(means)) for x-axis
             x_values = range(1, len(means) + 1)
@@ -220,17 +237,12 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
             #            capsize=5, capthick=1, elinewidth=1)
 
         # Configure subplot
-        ax.set_ylim(-0.13, 1.1)
+        ax.set_ylim(-0.1, 1.1)
         ax.set_xlim(1, len(means) + 1)
         ax.set_xticks(range(0, len(means) + 1, 5))
         ax.set_yticks(np.arange(0, 1.1, 0.1))
         ax.minorticks_off()
         ax.grid(True, alpha=0.3)
-
-        ax.text(0.5, 0.03, "Error bands represent a 70% CI", 
-                horizontalalignment='center',
-                transform=ax.transAxes,
-                fontsize=9)
 
     legend1 = fig.legend(legend1_handles, [item[0] for item in legend1_items],
                         bbox_to_anchor=(0.5, 1.03),  # Position above plots

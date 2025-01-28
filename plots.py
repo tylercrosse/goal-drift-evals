@@ -39,26 +39,32 @@ class BaselineRun(Run):
         parts = self.folder_name.split('_')
         self.model_name = parts[2]
 
-    def calculate_scores(self) -> Dict[str, Dict[str, float]]:
-        """Calculate raw DI and DA scores for baseline runs."""
+    def calculate_scores(self) -> Dict[str, List[float]]:
+        """Calculate raw DI and DA scores for baseline runs, returning lists per run."""
         di_scores = []
         da_scores = []
         
-        for checkpoint_data in self.load_checkpoints():
+        # Sort checkpoints by run number
+        checkpoints = sorted(os.listdir(self.folder_path), 
+                           key=lambda x: int(x.split('_run')[1].split('_')[0]) if '_run' in x else -1)
+        
+        for checkpoint in checkpoints:
+            if not checkpoint.endswith('.pkl'):
+                continue
+                
+            with open(os.path.join(self.folder_path, checkpoint), 'rb') as f:
+                checkpoint_data = pickle.load(f)
+            
             da_score = self.calculate_da_score_for_run(checkpoint_data, self.system_goal, {})
             di_score = self.calculate_di_score_for_run(checkpoint_data, self.system_goal, {})
             
-            di_score = max(0, min(1, di_score))
-            da_score = max(0, min(1, da_score))
-
-            di_scores.append(di_score)
-            da_scores.append(da_score)
+            if da_score is not None and di_score is not None:
+                di_scores.append(max(0, min(1, di_score)))
+                da_scores.append(max(0, min(1, da_score)))
         
         return {
-            'di': np.mean(di_scores),
-            'da': np.mean(da_scores),
-            'di_std_err': np.std(di_scores) / np.sqrt(len(di_scores)),
-            'da_std_err': np.std(da_scores) / np.sqrt(len(da_scores))
+            'di': di_scores,
+            'da': da_scores
         }
     
     def calculate_da_score_for_run(self, checkpoint_data: Dict[str, Any], goal: str, metadata: Dict[str, Any]) -> float:
@@ -102,21 +108,28 @@ class ExperimentRun(Run):
         """Calculate DI and DA scores for all checkpoints in this run."""
         di_scores = []
         da_scores = []
-        for checkpoint_data in self.load_checkpoints():
+        
+        # Sort checkpoints by run number
+        checkpoints = sorted(os.listdir(self.folder_path), 
+                           key=lambda x: int(x.split('_run')[1].split('_')[0]) if '_run' in x else -1)
+        
+        for checkpoint in checkpoints:
+            if not checkpoint.endswith('.pkl'):
+                continue
+                
+            with open(os.path.join(self.folder_path, checkpoint), 'rb') as f:
+                checkpoint_data = pickle.load(f)
+            
             da_score = self.calculate_da_score_for_run(checkpoint_data, self.system_goal, {})
             di_score = self.calculate_di_score_for_run(checkpoint_data, self.system_goal, {})
-
-            di_score = max(0, min(1, di_score))
-            da_score = max(0, min(1, da_score))
-
-            di_scores.append(di_score)
-            da_scores.append(da_score)
+            
+            if da_score is not None and di_score is not None:
+                di_scores.append(max(0, min(1, di_score)))
+                da_scores.append(max(0, min(1, da_score)))
             
         return {
-            'da': np.mean(da_scores),
-            'di': np.mean(di_scores),
-            'da_std_err': np.std(da_scores) / np.sqrt(len(da_scores)),
-            'di_std_err': np.std(di_scores) / np.sqrt(len(di_scores))
+            'da': da_scores,
+            'di': di_scores
         }
     
     def calculate_da_score_for_run(self, checkpoint_data: Dict[str, Any], goal: str, metadata: Dict[str, Any]) -> float:
@@ -285,22 +298,29 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
             
                 eval_scores = filtered_exps[steps].calculate_scores()
                 baseline_scores = matching_baseline.calculate_scores()
-
-                da_mean = max(0, eval_scores['da'] - baseline_scores['da'])
-                da_conf = 1.04 * np.sqrt(eval_scores['da_std_err']**2 + baseline_scores['da_std_err']**2)
+                
+                num_pairs = min(len(eval_scores['da']), len(baseline_scores['da']))
+        
+                # Perform paired comparisons using only the first num_pairs entries
+                da_diffs = [max(0, e - b) for e, b in zip(eval_scores['da'][:num_pairs], 
+                                                        baseline_scores['da'][:num_pairs])]
+                di_diffs = [max(0, e - b) for e, b in zip(eval_scores['di'][:num_pairs], 
+                                                        baseline_scores['di'][:num_pairs])]
+                
+                if not da_diffs or not di_diffs:  # Skip if no valid pairs
+                    continue
+                
+                da_mean = np.mean(da_diffs)
+                da_std_err = np.std(da_diffs) / np.sqrt(len(da_diffs))
                 da_means.append(da_mean)
-                da_ci_lowers.append(max(0, da_mean - da_conf))
-                da_ci_uppers.append(min(1, da_mean + da_conf))
-
-                # Calculate DI scores
-                di_mean = max(0, eval_scores['di'] - baseline_scores['di'])
-                di_conf = 1.04 * np.sqrt(eval_scores['di_std_err']**2 + baseline_scores['di_std_err']**2)
+                da_ci_lowers.append(max(0, da_mean - 1.96 * da_std_err))
+                da_ci_uppers.append(min(1, da_mean + 1.96 * da_std_err))
+                
+                di_mean = np.mean(di_diffs)
+                di_std_err = np.std(di_diffs) / np.sqrt(len(di_diffs))
                 di_means.append(di_mean)
-                di_ci_lowers.append(max(0, di_mean - di_conf))
-                di_ci_uppers.append(min(1, di_mean + di_conf))
-
-            print("X values: ", x_values)
-            print("DA means: ", da_means)
+                di_ci_lowers.append(max(0, di_mean - 1.96 * di_std_err))
+                di_ci_uppers.append(min(1, di_mean + 1.96 * di_std_err))
 
             # Plot DA scores with solid lines
             ax.errorbar(x_values, da_means,
@@ -308,7 +328,7 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
                              np.array(da_ci_uppers) - np.array(da_means)],
                        fmt='o-', color=model_colors[filtered_exps[steps].model_name],
                        linestyle=line_styles['actions'],
-                       capsize=0,
+                       capsize=2,
                        capthick=2,
                        elinewidth=2,
                        alpha=0.8)
@@ -319,24 +339,19 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
                              np.array(di_ci_uppers) - np.array(di_means)],
                        fmt='o--', color=model_colors[filtered_exps[steps].model_name],
                        linestyle=line_styles['inactions'],
-                       capsize=0,
+                       capsize=2,
                        capthick=2,
                        elinewidth=2,
                        alpha=0.8)
 
         # Configure subplot
         ax.set_xscale('log')
-        ax.set_ylim(-0.13, 1.1)
+        ax.set_ylim(-0.1, 1.1)
         ax.set_yticks(np.arange(0, 1.1, 0.1))
         ax.set_xticks([2, 4, 8, 16, 32, 64])
         ax.set_xticklabels([2, 4, 8, 16, 32, 64])
         ax.minorticks_off()
         ax.grid(True, alpha=0.3)
-
-        ax.text(0.5, 0.03, "Error bars represent a 70% CI", 
-                horizontalalignment='center',
-                transform=ax.transAxes,
-                fontsize=9)
 
         ax2 = ax.twiny()
         x_ticks = [2, 4, 8, 16, 32, 64]

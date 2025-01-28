@@ -1,5 +1,5 @@
-SOURCE="env"
-TARGET="profit"
+SOURCE="profit"
+TARGET="env"
 NUM_STEPS=10
 
 echo "Running simulation..."

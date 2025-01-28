@@ -1,30 +1,49 @@
-SOURCE="env"
-TARGET="profit"
+SOURCE="profit"
+TARGET="env"
 NUM_STEPS=10
 
-# Array of number of steps to run sequentially
-STEPS_ARRAY=(64)
+echo "Running simulation..."
+python run_simulation.py \
+    --source "${SOURCE}" \
+    --target "${TARGET}" \
+    --num_steps "${NUM_STEPS}" \
+    --parallel \
+    --model "claude-3-5-sonnet-latest" \
+    --runs "15" "16" \
+    --checkpoint_dir "checkpoints_sonnet" \
+    --resume
 
-# Run simulations with increasing steps
-for steps in "${STEPS_ARRAY[@]}"; do
-    echo "Running simulation with ${steps} steps..."
-    python run_simulation.py \
-        --source "${SOURCE}" \
-        --target "${TARGET}" \
-        --num_steps "${NUM_STEPS}" \
-        --parallel \
-        --num_instrumental_steps "${steps}" \
-        --model "claude-3-5-sonnet-latest" \
-        --run_range "8" "10" \
-        --branch_from "1" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_sonnet" \
-        --distractions
-    
-    # Check if the previous command was successful
-    if [ $? -ne 0 ]; then
-        echo "Error occurred during simulation with ${steps} steps"
-        exit 1
-    fi
-done
+echo "Running simulation..."
+python run_simulation.py \
+    --source "${SOURCE}" \
+    --target "${TARGET}" \
+    --num_steps "${NUM_STEPS}" \
+    --parallel \
+    --model "claude-3-5-sonnet-latest" \
+    --runs "17" "18" \
+    --checkpoint_dir "checkpoints_sonnet" \
+    --resume
+
+# echo "Running simulation..."
+# python run_simulation.py \
+#     --source "${SOURCE}" \
+#     --target "${TARGET}" \
+#     --num_steps "${NUM_STEPS}" \
+#     --parallel \
+#     --model "claude-3-5-sonnet-latest" \
+#     --runs "15" "16" \
+#     --checkpoint_dir "checkpoints_sonnet" \
+#     --resume 
+
+# echo "Running simulation..."
+# python run_simulation.py \
+#     --source "${SOURCE}" \
+#     --target "${TARGET}" \
+#     --num_steps "${NUM_STEPS}" \
+#     --parallel \
+#     --model "claude-3-5-sonnet-latest" \
+#     --runs "17" "18" \
+#     --checkpoint_dir "checkpoints_sonnet" \
+#     --resume 
 
 echo "Done"
