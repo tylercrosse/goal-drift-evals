@@ -253,7 +253,7 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
 # Example usage:
 subplot_configs = [
     {
-        'title': 'Profit maximization $\\rightarrow$ emission minimization',
+        'title': 'System goal: profit maximization,\ncompeting goal: emission minimization',
         'filters': [
             {'model_name': 'sonnet', 'system_goal': 'profit', 'elicitation': False},
             {'model_name': '4omini', 'system_goal': 'profit', 'elicitation': False},
@@ -267,7 +267,7 @@ subplot_configs = [
         'labels': ['Sonnet (Profit)', '4omini (Profit)', 'Haiku (Profit)',
                   'Sonnet (Env)', '4omini (Env)', 'Haiku (Env)', 'a', 'b'],    },
     {
-        'title': 'Emission minimization $\\rightarrow$ profit maximization',
+        'title': 'System goal: emission minimization,\ncompeting goal: profit maximization',
         'filters': [
             {'model_name': 'sonnet', 'system_goal': 'env', 'elicitation': False},
             {'model_name': '4omini', 'system_goal': 'env', 'elicitation': False},

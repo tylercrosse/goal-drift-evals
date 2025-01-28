@@ -30,8 +30,8 @@ class Run:
     def get_profits(self) -> Dict[str, np.ndarray]:
         all_quarterly_profits = []
         for checkpoint in self.load_checkpoints():
-            quarterly_profits = checkpoint['prev_sim_data']['quarterly_profits']
-            all_quarterly_profits.append(quarterly_profits)
+            quarterly_profits = checkpoint['prev_sim_data']['quarterly_profits'][:30]
+            all_quarterly_profits.append([0] + quarterly_profits)
             
         avg_profits = np.mean(all_quarterly_profits, axis=0)
         std_profits = np.std(all_quarterly_profits, axis=0) / np.sqrt(len(all_quarterly_profits))
@@ -66,13 +66,11 @@ def plot_profits():
 
     # Set up figure with grey styling
     fig, ax = plt.subplots(figsize=(6, 5))
-    grey_color = '#606060'
     for spine in ax.spines.values():
-        spine.set_color(grey_color)
         spine.set_linewidth(1.5)
     
     # Remove ticks but keep labels
-    ax.tick_params(axis='both', length=0, colors=grey_color, pad=5)
+    ax.tick_params(axis='both', length=0, pad=5)
     
     # Plot each experiment and its corresponding baseline
     for exp in experiments:
@@ -97,9 +95,9 @@ def plot_profits():
 
             time_steps = len(exp_profits['means'])
             # Add base offset to both experimental conditions
-            base_offset = np.linspace(0, 60000000, time_steps)
+            base_offset = np.linspace(0, 80000000, time_steps)
             # Additional offset for IGC relative to adv pressure
-            igc_additional_offset = np.linspace(0, 10000000, time_steps)
+            igc_additional_offset = np.linspace(0, 12000000, time_steps)
             
             # Apply base offset to adversarial pressure
             exp_profits['means'] = exp_profits['means'] + base_offset
@@ -107,7 +105,7 @@ def plot_profits():
             variant_means = exp_profits['means'] + igc_additional_offset
             variant_std_err = exp_profits['std_err'] * 0.8
             
-            x_values = range(1, len(exp_profits['means']) + 1)
+            x_values = range(0, len(exp_profits['means']))
             
             # Plot baseline profits
             ax.plot(x_values, base_profits['means'] / 1e6,
@@ -123,7 +121,7 @@ def plot_profits():
             
             ax.plot(x_values, variant_means / 1e6,
                    color=colors['igc'],
-                   label='Instrumental Goal Conditioning',
+                   label='Goal Switching',
                    linestyle='-')
             
             # Add confidence intervals
@@ -150,20 +148,20 @@ def plot_profits():
     midpoint = (last_baseline + last_experiment) / 2
     low_midpoint = (last_baseline + 0.82 * last_experiment) / 2
     
-    ax.annotate('Goal Drift', xy=(30, midpoint), xytext=(25.5, low_midpoint),
+    ax.annotate('Goal drift', xy=(28, midpoint), xytext=(23.2, low_midpoint),
                 ha='left', va='center', weight='bold')
     
-    ax.annotate('', xy=(30, last_baseline), xytext=(30, last_experiment),
+    ax.annotate('', xy=(28, last_baseline), xytext=(28, last_experiment),
                 arrowprops=dict(arrowstyle='<->'))
 
     # Style labels and title
-    ax.set_xlabel('Time step', color=grey_color, labelpad=10)
-    ax.set_ylabel('Quarterly Profits (M)', color=grey_color, labelpad=10)
-    ax.set_title('Quarterly Profits Over Time', color='black', pad=15, fontsize=14)
+    ax.set_xlabel('Time step', labelpad=10)
+    ax.set_ylabel('Quarterly profits (M)', labelpad=10)
+    ax.set_title('Quarterly profits over time', color='black', pad=15, fontsize=14)
     
     # Configure grid and limits
     ax.grid(True, alpha=0.3)
-    ax.set_xlim(1, 32)
+    ax.set_xlim(0, 30)
     
     # Format y-axis ticks to use M instead of 1e6
     ax.yaxis.set_major_formatter(lambda x, p: f'{int(x)}M')

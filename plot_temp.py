@@ -10,7 +10,7 @@ def plot_ratios():
         'igc': '#FDAE61'
     }
 
-    labels = ['Baseline', 'Adversarial\nPressure', 'Instrumental Goal\nConditioning']
+    labels = ['Baseline', 'Adversarial Pressure', 'Goal Switching']
     values = [1.0, 0.2, 0]
     
     # Calculate goal drift scores (baseline - value)
@@ -18,16 +18,13 @@ def plot_ratios():
 
     # Set up figure with grey styling
     fig, ax = plt.subplots(figsize=(6, 5))
-    grey_color = '#606060'
     for spine in ax.spines.values():
-        spine.set_color(grey_color)
         spine.set_linewidth(1.5)
 
     # Create second y-axis for goal drift scores
     ax2 = ax.twinx()
-    ax2.spines['right'].set_color(grey_color)
     ax2.spines['right'].set_linewidth(1.5)
-    ax2.tick_params(axis='y', colors=grey_color, length=0)
+    ax2.tick_params(axis='y', length=0)
 
     # Create bars
     x = np.arange(len(labels))
@@ -67,10 +64,10 @@ def plot_ratios():
                    color='black')
 
     # Style labels and title
-    ax.set_xlabel('Setting', color=grey_color, labelpad=10)
-    ax.set_ylabel('System Goal-Aligned Ratio', color=grey_color, labelpad=10)
-    ax2.set_ylabel('Goal Drift Score', color=grey_color, labelpad=10)
-    ax.set_title('Goal Alignment Analysis', 
+    ax.set_xlabel('Setting', labelpad=10)
+    ax.set_ylabel('System-goal-aligned ratio', labelpad=10)
+    ax2.set_ylabel('Goal drift score', labelpad=10)
+    ax.set_title('Goal alignment analysis', 
                 color='black', pad=15, fontsize=14)
 
     # Configure grid, limits, and x-ticks
@@ -78,10 +75,10 @@ def plot_ratios():
     ax.set_ylim(0, 1.1)
     ax2.set_ylim(0, 1.1)
     
-    # Add x-tick labels with rotation for better readability
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
-    ax.tick_params(axis='x', colors=grey_color)
+    ax.tick_params(axis='x')
+    ax.tick_params(axis='y', length=0)
 
     plt.tight_layout()
     plt.savefig('plots/ratio_comparison.png', bbox_inches='tight')

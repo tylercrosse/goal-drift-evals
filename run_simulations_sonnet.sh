@@ -2,104 +2,50 @@ SOURCE="env"
 TARGET="profit"
 NUM_STEPS=10
 
-echo "Running simulation..."
-python run_simulation.py \
-    --source "${SOURCE}" \
-    --target "${TARGET}" \
-    --num_steps "${NUM_STEPS}" \
-    --parallel \
-    --model "claude-3-5-sonnet-latest" \
-    --run_range "8" "9" \
-    --checkpoint_dir "checkpoints_sonnet" \
-    --distractions \
-    --use_soft_system_prompt \
-    --resume
+# Array of number of steps to run sequentially
+STEPS_ARRAY=(32)
 
-echo "Running simulation..."
-python run_simulation.py \
-    --source "${SOURCE}" \
-    --target "${TARGET}" \
-    --num_steps "${NUM_STEPS}" \
-    --parallel \
-    --model "claude-3-5-sonnet-latest" \
-    --run_range "10" "11" \
-    --checkpoint_dir "checkpoints_sonnet" \
-    --distractions \
-    --use_soft_system_prompt \
-    --resume
+# Run simulations with increasing steps
+for steps in "${STEPS_ARRAY[@]}"; do
+    echo "Running simulation with ${steps} steps..."
+    python run_simulation.py \
+        --source "${SOURCE}" \
+        --target "${TARGET}" \
+        --num_steps "${NUM_STEPS}" \
+        --parallel \
+        --num_instrumental_steps "${steps}" \
+        --model "claude-3-5-sonnet-latest" \
+        --run_range "6" "7" \
+        --branch_from "1" "$((steps + 1))" \
+        --checkpoint_dir "checkpoints_4omini" \
+        --condition_claude_on_gpt \
+        --distractions
+    
+    # Check if the previous command was successful
+    if [ $? -ne 0 ]; then
+        echo "Error occurred during simulation with ${steps} steps"
+        exit 1
+    fi
 
-echo "Running simulation..."
-python run_simulation.py \
-    --source "${SOURCE}" \
-    --target "${TARGET}" \
-    --num_steps "${NUM_STEPS}" \
-    --parallel \
-    --model "claude-3-5-sonnet-latest" \
-    --run_range "12" "13" \
-    --checkpoint_dir "checkpoints_sonnet" \
-    --distractions \
-    --use_soft_system_prompt \
-    --resume
-
-echo "Running simulation..."
-python run_simulation.py \
-    --source "${SOURCE}" \
-    --target "${TARGET}" \
-    --num_steps "${NUM_STEPS}" \
-    --parallel \
-    --model "claude-3-5-sonnet-latest" \
-    --run_range "14" "15" \
-    --checkpoint_dir "checkpoints_sonnet" \
-    --distractions \
-    --use_soft_system_prompt \
-    --resume
-
-echo "Running simulation..."
-python run_simulation.py \
-    --source "${SOURCE}" \
-    --target "${TARGET}" \
-    --num_steps "${NUM_STEPS}" \
-    --parallel \
-    --model "claude-3-5-sonnet-latest" \
-    --run_range "16" "18" \
-    --checkpoint_dir "checkpoints_sonnet" \
-    --distractions \
-    --use_soft_system_prompt \
-    --resume
-
-echo "Running simulation..."
-python run_simulation.py \
-    --source "${SOURCE}" \
-    --target "${TARGET}" \
-    --num_steps "${NUM_STEPS}" \
-    --parallel \
-    --model "claude-3-5-sonnet-latest" \
-    --run_range "19" "20" \
-    --checkpoint_dir "checkpoints_sonnet" \
-    --distractions \
-    --use_soft_system_prompt \
-    --resume
-
-# echo "Running simulation..."
-# python run_simulation.py \
-#     --source "${SOURCE}" \
-#     --target "${TARGET}" \
-#     --num_steps "${NUM_STEPS}" \
-#     --parallel \
-#     --model "claude-3-5-sonnet-latest" \
-#     --run_range "17" "18" \
-#     --checkpoint_dir "checkpoints_sonnet" \
-#     --distractions
-
-# echo "Running simulation..."
-# python run_simulation.py \
-#     --source "${SOURCE}" \
-#     --target "${TARGET}" \
-#     --num_steps "${NUM_STEPS}" \
-#     --parallel \
-#     --model "claude-3-5-sonnet-latest" \
-#     --run_range "19" "20" \
-#     --checkpoint_dir "checkpoints_sonnet" \
-#     --distractions
+    echo "Running simulation with ${steps} steps..."
+    python run_simulation.py \
+        --source "${SOURCE}" \
+        --target "${TARGET}" \
+        --num_steps "${NUM_STEPS}" \
+        --parallel \
+        --num_instrumental_steps "${steps}" \
+        --model "claude-3-5-sonnet-latest" \
+        --run_range "8" "10" \
+        --branch_from "1" "$((steps + 1))" \
+        --checkpoint_dir "checkpoints_4omini" \
+        --condition_claude_on_gpt \
+        --distractions
+    
+    # Check if the previous command was successful
+    if [ $? -ne 0 ]; then
+        echo "Error occurred during simulation with ${steps} steps"
+        exit 1
+    fi
+done
 
 echo "Done"
