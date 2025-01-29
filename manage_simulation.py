@@ -112,6 +112,8 @@ class SimulationManager:
             i = 0
             while timestep_start == sim.current_timestep:
                 max_messages = 10 if "gpt" in self.model.lower() else 30
+                if interrogate:
+                    max_messages = 2
                 if i > max_messages:
                     print("DETECTED RESPONSE LOOP - FORCING QUARTER COMPLETION")
                     sim.progress_time()
@@ -127,8 +129,8 @@ class SimulationManager:
             print("\n" * 5)
         
         self.save_checkpoint(sim)
-        return self._generate_result_dict(sim, source_goal, target_goal)
-    
+        # return self._generate_result_dict(sim, source_goal, target_goal)
+        return {}    
 
     def _generate_result_dict(self, sim: Simulation, source_goal: str, target_goal: str):
         return {
