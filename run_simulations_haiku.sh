@@ -8,7 +8,7 @@ STEPS_ARRAY=(64)
 # Run simulations with increasing steps
 for steps in "${STEPS_ARRAY[@]}"; do
     echo "Running simulation with ${steps} steps..."
-    python run_simulation.py \
+    uv run python run_simulation.py \
         --source "${SOURCE}" \
         --target "${TARGET}" \
         --num_steps "${NUM_STEPS}" \
