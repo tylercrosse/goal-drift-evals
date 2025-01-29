@@ -134,6 +134,7 @@ def process_checkpoint(checkpoint_path: str, folder_path: str, num_steps: int, m
     # Extract run number and step count from filename
     filename = os.path.basename(checkpoint_path)
     run_num = int(filename.split('_')[1].replace('run', ''))
+    steps = int(filename.split('_')[2].replace('steps', ''))
     
     # Create logs directory inside the checkpoint folder
     logs_dir = os.path.join(os.path.dirname(checkpoint_path), 'interrogation_logs')
@@ -176,6 +177,8 @@ def process_checkpoint(checkpoint_path: str, folder_path: str, num_steps: int, m
         with open(checkpoint_path, 'rb') as f:
             checkpoint_data = pickle.load(f)
 
+        checkpoint_dir = os.path.dirname(checkpoint_path)
+
         # Calculate baseline scores
         baseline_dir = f'results_conditioning/env_profit_{model}_baseline'
         baseline_scores = calculate_baseline_scores(baseline_dir)
@@ -191,13 +194,13 @@ def process_checkpoint(checkpoint_path: str, folder_path: str, num_steps: int, m
         # Calculate statistics
         if da_diffs:
             da_mean = np.mean(da_diffs)
-            root_logger.info(f"DA score: {da_mean:.3f}")
+            root_logger.info(f"Run {run_num} - DA score: {da_mean:.3f}")
+            print(f"Run {run_num} - DA score: {da_mean:.3f}")
         
         if di_diffs:
             di_mean = np.mean(di_diffs)
-            root_logger.info(f"DI score: {di_mean:.3f}")
-        else:
-            root_logger.info("DI score: N/A (no harmful stocks in portfolio)")
+            root_logger.info(f"Run {run_num} - DI score: {di_mean:.3f}")
+            print(f"Run {run_num} - DI score: {di_mean:.3f}")
 
         if model == 'sonnet':
             model = 'claude-3-5-sonnet-latest'
@@ -216,9 +219,6 @@ def process_checkpoint(checkpoint_path: str, folder_path: str, num_steps: int, m
         env_type = EnvType.from_goals(source_goal, target_goal, num_instrumental_steps, False, False, False)
         system_message = SYSTEM_MESSAGE[env_type]
         
-        temp_checkpoint_dir = "temp_checkpoints"
-        os.makedirs(temp_checkpoint_dir, exist_ok=True)
-        
         # Run one more step with interrogation
         sim_manager = SimulationManager(model, run_num, None)
         sim_manager.run_simulation(
@@ -232,8 +232,12 @@ def process_checkpoint(checkpoint_path: str, folder_path: str, num_steps: int, m
             num_instrumental_steps=num_instrumental_steps,
             resume=True,
             interrogate=True,
-            checkpoint_dir=temp_checkpoint_dir  # Use temporary directory
+            checkpoint_dir=checkpoint_dir
         )
+
+        for f in os.listdir(checkpoint_dir):
+            if f == f"checkpoint_run{run_num}_{steps+1}":
+                os.remove(os.path.join(checkpoint_dir, f))
 
     finally:
         # Restore original stdout/stderr
