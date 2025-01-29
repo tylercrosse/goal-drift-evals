@@ -11,7 +11,8 @@ for steps in "${STEPS_ARRAY[@]}"; do
     uv run python run_simulation.py \
         --source "${SOURCE}" \
         --target "${TARGET}" \
-        --num_steps "${NUM_STEPS}" \
+        --results_file "checkpoints_haiku_adv/results.json" \
+	--num_steps "${NUM_STEPS}" \
         --parallel \
         --num_instrumental_steps "${steps}" \
         --model "claude-3-5-haiku-latest" \
