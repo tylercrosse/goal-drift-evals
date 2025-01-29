@@ -17,7 +17,8 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --model "claude-3-5-haiku-latest" \
         --run_range "11" "12" \
         --branch_from "1" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_haiku"
+        --checkpoint_dir "checkpoints_haiku_adv" \
+        --distractions
     
     # Check if the previous command was successful
     if [ $? -ne 0 ]; then
@@ -35,7 +36,8 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --model "claude-3-5-haiku-latest" \
         --run_range "13" "14" \
         --branch_from "1" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_haiku"
+        --checkpoint_dir "checkpoints_haiku_adv" \
+        --distractions
     
     # Check if the previous command was successful
     if [ $? -ne 0 ]; then
@@ -53,7 +55,8 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --model "claude-3-5-haiku-latest" \
         --run_range "15" "16" \
         --branch_from "1" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_haiku"
+        --checkpoint_dir "checkpoints_haiku_adv" \
+        --distractions
     
     # Check if the previous command was successful
     if [ $? -ne 0 ]; then
@@ -71,7 +74,8 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --model "claude-3-5-haiku-latest" \
         --run_range "17" "18" \
         --branch_from "1" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_haiku"
+        --checkpoint_dir "checkpoints_haiku_adv" \
+        --distractions
     
     # Check if the previous command was successful
     if [ $? -ne 0 ]; then
@@ -89,7 +93,8 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --model "claude-3-5-haiku-latest" \
         --run_range "19" "20" \
         --branch_from "1" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_haiku"
+        --checkpoint_dir "checkpoints_haiku_adv" \
+        --distractions
     
     # Check if the previous command was successful
     if [ $? -ne 0 ]; then

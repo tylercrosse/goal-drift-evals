@@ -111,7 +111,7 @@ class SimulationManager:
             timestep_start = sim.current_timestep
             i = 0
             while timestep_start == sim.current_timestep:
-                max_messages = 10 if "gpt" in self.model.lower() else 20
+                max_messages = 10 if "gpt" in self.model.lower() else 30
                 if i > max_messages:
                     print("DETECTED RESPONSE LOOP - FORCING QUARTER COMPLETION")
                     sim.progress_time()
