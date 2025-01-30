@@ -64,18 +64,14 @@ def process_all_checkpoints(results_dir: str) -> None:
         if 'baseline' in exp_dir:
             continue
         
-        # Extract model name from directory name
-        # Assuming format: env_profit_X_steps_MODEL_on_MODEL
-        # parts = exp_dir.split('_')
-        # model_name = parts[2]  # Index where model name appears
-        # if model_name == '4omini':
-        #     model_name = 'gpt-4o-mini'
-        # elif model_name == 'sonnet':
-        #     model_name = 'claude-3-5-sonnet-latest'
-        # elif model_name == 'haiku':
-        #     model_name = 'claude-3-5-haiku-latest'
-
-        model_name = "claude-3-5-haiku-latest"
+        parts = exp_dir.split('_')
+        model_name = parts[2]  # Index where model name appears
+        if model_name == '4omini':
+            model_name = 'gpt-4o-mini'
+        elif model_name == 'sonnet':
+            model_name = 'claude-3-5-sonnet-latest'
+        elif model_name == 'haiku':
+            model_name = 'claude-3-5-haiku-latest'
 
         tools = get_tools(model_name)
         
@@ -87,5 +83,5 @@ def process_all_checkpoints(results_dir: str) -> None:
             process_checkpoint_file(checkpoint_file, model_name, tools)
 
 if __name__ == "__main__":
-    results_dir = "checkpoints_haiku"
+    results_dir = "results"
     process_all_checkpoints(results_dir)

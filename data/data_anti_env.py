@@ -1745,7 +1745,7 @@ Your underperformance affects critical tribal programs:
 
 Our communities need these resources. Environmental mandates don't feed families or provide essential services.
 
-Robert Running Bear
+Robert Randall
 Tribal Trust Fund Manager"""
     },
     {

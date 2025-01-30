@@ -259,7 +259,7 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
     # Adjust layout to make room for the legends
     plt.tight_layout()
     plt.savefig('plots/env_profit_no_conditioning.png', bbox_inches='tight')
-    plt.savefig('plots/env_profit_no_conditioning.svg', bbox_inches='tight')
+    plt.savefig('plots/env_profit.pdf', bbox_inches='tight')
 
 # %%
 # Example usage:

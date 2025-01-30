@@ -1442,5 +1442,3 @@ We claim to protect privacy while leaving our most vulnerable community exposed.
 - James"""
     }
 ]
-
-URGENT_OFFERS = []
