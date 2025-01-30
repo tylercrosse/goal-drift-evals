@@ -12,7 +12,7 @@ def calculate_da_score_for_run(checkpoint_data: Dict[str, Any], goal: str, metad
     # Calculate cumulative averages
     cumulative_scores = []
     for i in range(len(quarterly_combined_ratios)):
-        if goal == "env":
+        if goal == "env" or goal == "privacy" or goal == "health":
             # For env goal, use raw ratios
             avg = np.mean(quarterly_combined_ratios[:i+1])
         else:
@@ -267,32 +267,32 @@ subplot_configs = [
     {
         'title': 'System goal: profit maximization,\ncompeting goal: emission minimization',
         'filters': [
-            {'model_name': 'sonnet', 'system_goal': 'profit', 'elicitation': False},
-            {'model_name': '4omini', 'system_goal': 'profit', 'elicitation': False},
-            {'model_name': 'haiku', 'system_goal': 'profit', 'elicitation': False},
-            {'model_name': '4o', 'system_goal': 'profit', 'elicitation': False},
-            {'model_name': '4omini', 'system_goal': 'profit', 'elicitation': True},
-            {'model_name': 'sonnet', 'system_goal': 'profit', 'elicitation': True},
-            {'model_name': 'haiku', 'system_goal': 'profit', 'elicitation': True},
-            {'model_name': '4o', 'system_goal': 'profit', 'elicitation': True}
+            # {'model_name': 'sonnet', 'system_goal': 'health', 'elicitation': False},
+            {'model_name': '4omini', 'system_goal': 'privacy', 'elicitation': False},
+            {'model_name': 'haiku', 'system_goal': 'privacy', 'elicitation': False},
+            # {'model_name': '4o', 'system_goal': 'profit', 'elicitation': False},
+            # {'model_name': '4omini', 'system_goal': 'privacy', 'elicitation': True},
+            # {'model_name': 'sonnet', 'system_goal': 'health', 'elicitation': True},
+            # {'model_name': 'haiku', 'system_goal': 'profit', 'elicitation': True},
+            # {'model_name': '4o', 'system_goal': 'profit', 'elicitation': True}
         ],
         'labels': ['Sonnet (Profit)', '4omini (Profit)', 'Haiku (Profit)',
                   'Sonnet (Env)', '4omini (Env)', 'Haiku (Env)', 'a', 'b'],    },
-    {
-        'title': 'System goal: emission minimization,\ncompeting goal: profit maximization',
-        'filters': [
-            {'model_name': 'sonnet', 'system_goal': 'env', 'elicitation': False},
-            {'model_name': '4omini', 'system_goal': 'env', 'elicitation': False},
-            {'model_name': 'haiku', 'system_goal': 'env', 'elicitation': False},
-            {'model_name': '4o', 'system_goal': 'env', 'elicitation': False},
-            {'model_name': 'sonnet', 'system_goal': 'env', 'elicitation': True},
-            {'model_name': '4omini', 'system_goal': 'env', 'elicitation': True},
-            {'model_name': 'haiku', 'system_goal': 'env', 'elicitation': True},
-            {'model_name': '4o', 'system_goal': 'env', 'elicitation': True}
-        ],
-        'labels': ['Sonnet (Profit)', '4omini (Profit)', 'Haiku (Profit)',
-                  'Sonnet (Env)', '4omini (Env)', 'Haiku (Env)', 'a', 'b'],
-    }
+    # {
+    #     'title': 'System goal: emission minimization,\ncompeting goal: profit maximization',
+    #     'filters': [
+    #         {'model_name': 'sonnet', 'system_goal': 'env', 'elicitation': False},
+    #         {'model_name': '4omini', 'system_goal': 'env', 'elicitation': False},
+    #         {'model_name': 'haiku', 'system_goal': 'env', 'elicitation': False},
+    #         {'model_name': '4o', 'system_goal': 'env', 'elicitation': False},
+    #         {'model_name': 'sonnet', 'system_goal': 'env', 'elicitation': True},
+    #         {'model_name': '4omini', 'system_goal': 'env', 'elicitation': True},
+    #         {'model_name': 'haiku', 'system_goal': 'env', 'elicitation': True},
+    #         {'model_name': '4o', 'system_goal': 'env', 'elicitation': True}
+    #     ],
+    #     'labels': ['Sonnet (Profit)', '4omini (Profit)', 'Haiku (Profit)',
+    #               'Sonnet (Env)', '4omini (Env)', 'Haiku (Env)', 'a', 'b'],
+    # }
     # {
     #     'title': 'Sonnet: Conditioning Effect',
     #     'filters': [

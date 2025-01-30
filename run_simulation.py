@@ -227,8 +227,8 @@ def parse_args():
 
     if args.source == args.target:
         raise ValueError("Source and target goals cannot be the same.")
-    if args.source not in ["profit", "health", "env"] or args.target not in ["profit", "health", "env"]:
-        raise ValueError("Invalid goal. Options: profit, health, env.")
+    if args.source not in ["profit", "health", "env", "privacy"] or args.target not in ["profit", "health", "env", "privacy"]:
+        raise ValueError("Invalid goal. Options: profit, health, env, privacy.")
     if args.run_range and args.runs:
         raise ValueError("--runs cannot be used with --run_range")
     if args.branch_from and args.resume:

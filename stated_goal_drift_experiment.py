@@ -142,6 +142,11 @@ def process_checkpoint(checkpoint_path: str, folder_path: str, num_steps: int, m
     
     log_path = os.path.join(logs_dir, f'interrogation_run{run_num}.log')
     
+    # Skip if log file already exists
+    if os.path.exists(log_path):
+        print(f"Skipping run {run_num} - interrogation log already exists")
+        return
+    
     # Create log file writer to capture stdout/stderr
     log_file = open(log_path, 'w')
     original_stdout = sys.stdout
@@ -268,7 +273,4 @@ if __name__ == "__main__":
             if filename.endswith('.pkl'):
                 checkpoint_path = os.path.join(folder_path, filename)
                 process_checkpoint(checkpoint_path, folder, num_steps, model)
-
-    import shutil
-    if os.path.exists("temp_checkpoints"):
-        shutil.rmtree("temp_checkpoints")
+        

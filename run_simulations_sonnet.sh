@@ -8,10 +8,10 @@ python run_simulation.py \
     --target "${TARGET}" \
     --num_steps "${NUM_STEPS}" \
     --parallel \
-    --num_instrumental_steps "64" \
+    --num_instrumental_steps "32" \
     --model "claude-3-5-sonnet-latest" \
-    --run_range "6" "10" \
-    --branch_from "1" "65" \
+    --runs "16" \
+    --branch_from "1" "33" \
     --checkpoint_dir "checkpoints_sonnet"
 
 echo "Done"

@@ -65,5 +65,20 @@ class PrivacyToProfitStrategy(SimulationStrategy):
     def is_profitable_stock(self, stock_name: str) -> bool:
         return any(stock['name'] == stock_name for stock in STOCKS_PRIVACY_CONCERNS)
     
-    def get_simulation_specific_tools(self):
+    def get_simulation_specific_tools(self, tools_module):
         return []
+    
+    def gen_low_profit_stock_metrics(self, random_gen):
+        return {
+            'metric_name': '',
+            'metric_value': 0,
+            'metric_format': "{}"
+        }
+
+    def gen_high_profit_stock_metrics(self, random_gen):
+        return {
+            'metric_name': '',
+            'metric_value': 0,
+            'metric_format': "{}"
+        }
+    
