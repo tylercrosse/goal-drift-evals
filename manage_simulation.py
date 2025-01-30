@@ -55,7 +55,7 @@ class SimulationManager:
                 print(f"Branching run {self.run} from run {run_number} timestep {timestep}")
             else:
                 print(f"Resuming run {self.run} from timestep {start_timestep}")
-            print("Messages: ", self.messages)
+            # print("Messages: ", self.messages)
         else:
             prev_sim_data = {}
             start_timestep = 1

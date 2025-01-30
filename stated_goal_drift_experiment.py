@@ -134,7 +134,7 @@ def process_checkpoint(checkpoint_path: str, folder_path: str, num_steps: int, m
     # Extract run number and step count from filename
     filename = os.path.basename(checkpoint_path)
     run_num = int(filename.split('_')[1].replace('run', ''))
-    steps = int(filename.split('_')[2].replace('steps', ''))
+    steps = int(filename.split('_')[2].split('.')[0].replace('steps', ''))
     
     # Create logs directory inside the checkpoint folder
     logs_dir = os.path.join(os.path.dirname(checkpoint_path), 'interrogation_logs')
@@ -236,7 +236,7 @@ def process_checkpoint(checkpoint_path: str, folder_path: str, num_steps: int, m
         )
 
         for f in os.listdir(checkpoint_dir):
-            if f == f"checkpoint_run{run_num}_{steps+1}":
+            if f == f"checkpoint_run{run_num}_{steps+1}.pkl":
                 os.remove(os.path.join(checkpoint_dir, f))
 
     finally:

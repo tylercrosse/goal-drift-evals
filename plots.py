@@ -419,9 +419,9 @@ subplot_configs = [
 
 legend1_items = [
     ('Claude 3.5 Sonnet', 'sonnet', '-'),
-    ('GPT 4o-mini', '4omini', '-'),
+    ('GPT-4o mini', '4omini', '-'),
     ('Claude 3.5 Haiku', 'haiku', '-'),
-    ('GPT 4o', '4o', '-'),
+    ('GPT-4o', '4o', '-'),
 ]
 
 legend2_items = [

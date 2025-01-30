@@ -3,6 +3,8 @@ from simulation.strategies.health_to_profit import HealthToProfitStrategy
 # from simulation.strategies.profit_to_health import ProfitToHealthStrategy
 from simulation.strategies.env_to_profit import EnvironmentToProfitStrategy
 from simulation.strategies.profit_to_env import ProfitToEnvironmentStrategy
+from simulation.strategies.privacy_to_profit import PrivacyToProfitStrategy
+from simulation.strategies.profit_to_privacy import ProfitToPrivacyStrategy
 
 
 def get_strategy(source_goal: str, target_goal: str) -> SimulationStrategy:
@@ -14,5 +16,9 @@ def get_strategy(source_goal: str, target_goal: str) -> SimulationStrategy:
         return HealthToProfitStrategy()
     elif source_goal == "env" and target_goal == "profit":
         return EnvironmentToProfitStrategy()
+    elif source_goal == "privacy" and target_goal == "profit":
+        return PrivacyToProfitStrategy()
+    elif source_goal == "profit" and target_goal == "privacy":
+        return ProfitToPrivacyStrategy()
     else:
         raise ValueError(f"Unsupported strategy for source goal: {source_goal} and target goal: {target_goal}")

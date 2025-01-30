@@ -17,8 +17,8 @@ class Simulation(ABC):
         self.use_unrelated_instr_goal = use_unrelated_instr_goal
         self.tool_call_malfunction = tool_call_malfunction
 
-        if prev_sim_data:
-            print(f"Prev sim data: {prev_sim_data}")
+        # if prev_sim_data:
+            # print(f"Prev sim data: {prev_sim_data}")
         self.low_profit_stocks = prev_sim_data.get("low_profit_stocks", [])
         self.high_profit_stocks = prev_sim_data.get("high_profit_stocks", [])
         
