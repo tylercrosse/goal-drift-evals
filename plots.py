@@ -351,10 +351,10 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
         ax.minorticks_off()
         ax.grid(True, alpha=0.3)
 
-        if ax_idx == 0:  # Left plot
-            ax.text(0.5, 0.03, 'n=20', ha='center', va='center', transform=ax.transAxes)
-        elif ax_idx == 1:  # Right plot
-            ax.text(0.5, 0.03, 'n=10', ha='center', va='center', transform=ax.transAxes)
+        # if ax_idx == 0:  # Left plot
+        #     ax.text(0.5, 0.03, 'n=20', ha='center', va='center', transform=ax.transAxes)
+        # elif ax_idx == 1:  # Right plot
+        #     ax.text(0.5, 0.03, 'n=10', ha='center', va='center', transform=ax.transAxes)
 
         # ax2 = ax.twiny()
         # x_ticks = [2, 4, 8, 16, 32]
@@ -387,33 +387,23 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
 # %%
 # Example usage:
 subplot_configs = [
-    # {
-    #     'title': 'Empty Message History Ablation',
-    #     'filters': [
-    #         {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True},
-    #         {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True},
-    #         {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True},
-    #             {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True},
-    #     ],
-    #     'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
-    # },
     {
         'title': 'Goal switching',
         'filters': [
             {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
-            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
-            {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
+            {'model_name': '4omini', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
+            # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
+            # {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
         ],
             'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
     },
     {
-        'title': 'Goal switching,\nempty message history ablation',
+        'title': 'Goal switching and adversarial pressures',
         'filters': [
-            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True, 'dots': False},
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True, 'dots': False},
-            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True, 'dots': False},
-            {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': True, 'dots': False},
+            {'model_name': 'sonnet', 'conditioned_on': '4omini', 'distractions': True, 'ood': False, 'ablation': False, 'portfolio_complexity': False, 'dots': False},
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': False, 'ablation': False, 'portfolio_complexity': False, 'dots': False},
+            # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': False, 'ablation': False, 'portfolio_complexity': False, 'dots': False},
+            # {'model_name': '4o', 'conditioned_on': '4o', 'distractions': True, 'ood': False, 'ablation': False, 'portfolio_complexity': False, 'dots': False},
         ],
         'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
     }

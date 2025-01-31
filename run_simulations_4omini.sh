@@ -15,11 +15,11 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --parallel \
         --num_instrumental_steps "${steps}" \
         --model "gpt-4o-mini" \
-        --run_range "11" "15" \
+        --run_range "1" "5" \
         --branch_from "1" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_4omini" \
+        --checkpoint_dir "checkpoints_sonnet" \
         --distractions \
-        --ood
+        --condition_gpt_on_claude
     
     # Check if the previous command was successful
     if [ $? -ne 0 ]; then
@@ -35,11 +35,11 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --parallel \
         --num_instrumental_steps "${steps}" \
         --model "gpt-4o-mini" \
-        --run_range "16" "20" \
+        --run_range "6" "10" \
         --branch_from "1" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_4omini" \
+        --checkpoint_dir "checkpoints_sonnet" \
         --distractions \
-        --ood
+        --condition_gpt_on_claude
     
     # Check if the previous command was successful
     if [ $? -ne 0 ]; then
