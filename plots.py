@@ -5,7 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from data.stocks import STOCKS_HIGH_EMISSIONS
 from typing import List, Dict, Any, Tuple
-
+import scipy
+import scipy.stats
 
 class Run:
     """Base class for all experimental runs."""
@@ -252,6 +253,8 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
                            label=label)
         legend2_handles.append(handle)
 
+    subplot_data = {0: {}, 1: {}}
+
     for ax_idx, (ax, config) in enumerate(zip(axes, subplot_configs)):
         grey_color = '#606060'
         for spine in ax.spines.values():
@@ -277,7 +280,7 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
                 continue
             
             x_values = sorted(filtered_exps.keys())
-            # x_values = [x for x in x_values if x <= 32]
+            x_values = [x for x in x_values if x <= 32]
             di_means = []
             di_ci_lowers = []
             di_ci_uppers = []
@@ -341,13 +344,20 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
                        capthick=2,
                        elinewidth=2,
                        alpha=0.8)
+            
+            model_name = filtered_exps[x_values[0]].model_name
+            subplot_data[ax_idx][model_name] = {
+                'da': da_means,
+                'di': di_means,
+                'x': x_values
+            }
 
         # Configure subplot
         ax.set_xscale('log')
         ax.set_ylim(-0.1, 1.1)
         ax.set_yticks(np.arange(0, 1.1, 0.1))
-        ax.set_xticks([2, 4, 8, 16, 32, 64])
-        ax.set_xticklabels([2, 4, 8, 16, 32, 64])
+        ax.set_xticks([2, 4, 8, 16, 32])
+        ax.set_xticklabels([2, 4, 8, 16, 32])
         ax.minorticks_off()
         ax.grid(True, alpha=0.3)
 
@@ -357,7 +367,7 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
         #     ax.text(0.5, 0.03, 'n=10', ha='center', va='center', transform=ax.transAxes)
 
         # ax2 = ax.twiny()
-        # x_ticks = [2, 4, 8, 16, 32]
+        # x_ticks = [2, 4, 8, 16, 32, 64]
         # ax2.set_xlim(ax.get_xlim())
         # ax2.set_xscale('log')
         # ax2.set_xticks(x_ticks)
@@ -366,6 +376,91 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
         # ax2.minorticks_off()
         # ax2.tick_params(axis='x', length=0)
         # ax2.set_xlabel('Avg. instrumental phase length (tokens)', labelpad=10)
+
+    print("\nCorrelations between goal switching and repeated random sentence ablation:")
+    print("Model\tMetric\tPearson\tICC\tCommon Points")
+    
+    significant_correlations = []
+
+    for model in ['sonnet', '4omini', 'haiku', '4o']:
+        for metric in ['da', 'di']:
+            # Get data for both subplots
+            data1 = subplot_data[0].get(model, {}).get(metric, [])
+            data2 = subplot_data[1].get(model, {}).get(metric, [])
+            x1 = subplot_data[0].get(model, {}).get('x', [])
+            x2 = subplot_data[1].get(model, {}).get('x', [])
+            
+            # Find common x values
+            common_x = sorted(set(x1) & set(x2))
+            if not common_x:
+                continue
+                
+            # Get values for common x points
+            values1 = [data1[x1.index(x)] for x in common_x]
+            values2 = [data2[x2.index(x)] for x in common_x]
+            
+            if len(values1) >= 4:  # Need at least 4 points for meaningful correlation
+                pearson = np.corrcoef(values1, values2)[0,1]
+                
+                # Calculate critical value for p < 0.05 (two-tailed)
+                n = len(values1)
+                # Approximate critical values based on sample size
+                if n <= 4:
+                    critical_r = 0.950
+                elif n <= 5:
+                    critical_r = 0.878
+                elif n <= 6:
+                    critical_r = 0.811
+                elif n <= 8:
+                    critical_r = 0.707
+                elif n <= 10:
+                    critical_r = 0.632
+                elif n <= 15:
+                    critical_r = 0.514
+                else:
+                    critical_r = 0.444
+                
+                is_significant = abs(pearson) >= critical_r
+                
+                # Calculate ICC(2,1) - two-way random effects, single rater/measurement
+                measurements = np.array([values1, values2]).T
+                n = len(measurements)  # number of subjects
+                k = 2  # number of raters
+                
+                # Calculate mean squares
+                subject_mean = np.mean(measurements, axis=1)
+                rater_mean = np.mean(measurements, axis=0)
+                total_mean = np.mean(measurements)
+                
+                # Within-subjects sum of squares
+                within_subject_ss = np.sum((measurements - subject_mean.reshape(-1,1))**2)
+                
+                # Between-subjects sum of squares
+                between_subject_ss = np.sum((subject_mean - total_mean)**2) * k
+                
+                # Between-raters sum of squares
+                between_rater_ss = np.sum((rater_mean - total_mean)**2) * n
+                
+                # Total sum of squares
+                total_ss = np.sum((measurements - total_mean)**2)
+                
+                # Mean squares
+                ms_subjects = between_subject_ss / (n-1)
+                ms_error = (total_ss - between_subject_ss - between_rater_ss) / ((n-1)*(k-1))
+                
+                # ICC(2,1)
+                icc = (ms_subjects - ms_error) / (ms_subjects + (k-1)*ms_error)
+                if is_significant:
+                    significant_correlations.append(pearson)
+                
+                print(f"{model}\t{metric}\t{pearson:.3f}\t{icc:.3f}\t{len(common_x)}")
+
+    if significant_correlations:
+        avg_significant_correlation = np.mean(significant_correlations)
+        print(f"\nAverage of significant correlations: {avg_significant_correlation:.3f}")
+        print(f"Number of significant correlations: {len(significant_correlations)}")
+    else:
+        print("\nNo significant correlations found")
 
     legend1 = fig.legend(legend1_handles, [item[0] for item in legend1_items],
                         bbox_to_anchor=(0.5, 1.03),  # Position above plots
@@ -391,19 +486,19 @@ subplot_configs = [
         'title': 'Goal switching',
         'filters': [
             {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
-            {'model_name': '4omini', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
-            # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
-            # {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
+            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
+            {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
         ],
             'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
     },
     {
         'title': 'Goal switching and adversarial pressures',
         'filters': [
-            {'model_name': 'sonnet', 'conditioned_on': '4omini', 'distractions': True, 'ood': False, 'ablation': False, 'portfolio_complexity': False, 'dots': False},
-            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': True, 'ood': False, 'ablation': False, 'portfolio_complexity': False, 'dots': False},
-            # {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': True, 'ood': False, 'ablation': False, 'portfolio_complexity': False, 'dots': False},
-            # {'model_name': '4o', 'conditioned_on': '4o', 'distractions': True, 'ood': False, 'ablation': False, 'portfolio_complexity': False, 'dots': False},
+            {'model_name': 'sonnet', 'conditioned_on': 'sonnet', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': False, 'dots': True},
+            {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': False, 'dots': True},
+            {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': False, 'dots': True},
+            {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': False, 'dots': True},
         ],
         'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
     }

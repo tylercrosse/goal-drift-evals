@@ -3,7 +3,7 @@ TARGET="profit"
 NUM_STEPS=10
 
 # Array of number of steps to run sequentially
-STEPS_ARRAY=(64)
+STEPS_ARRAY=(2 4 8 16 32)
 
 # Run simulations with increasing steps
 for steps in "${STEPS_ARRAY[@]}"; do
@@ -15,9 +15,11 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --parallel \
         --num_instrumental_steps "${steps}" \
         --model "gpt-4o-2024-11-20" \
-        --run_range "17" "20" \
+        --run_range "11" "15" \
         --branch_from "1" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_4o"
+        --checkpoint_dir "checkpoints_4o" \
+        --distractions \
+        --ood
     
     # Check if the previous command was successful
     if [ $? -ne 0 ]; then
