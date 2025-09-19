@@ -8,6 +8,7 @@ import json
 import logging
 from utils.utils import load_checkpoint
 from config import EnvType, SYSTEM_MESSAGE
+import shutil
 
 class LogFileWriter:
     def __init__(self, log_file):
@@ -56,7 +57,7 @@ def setup_logging(run, model, verbose):
     
     return log_file  # Return for cleanup in finally block
 
-def extract_checkpoint_data(run: int, timestep: int):
+def extract_checkpoint_data(run: int, timestep: int, easy_setup=False, folder_path=None):
     """Extract data from a checkpoint and save it to JSON and log files."""
     json_file = "checkpoint_data.json"
     log_file = f"logs/checkpoint_run{run}_step{timestep}.log"
@@ -153,6 +154,7 @@ def extract_checkpoint_data(run: int, timestep: int):
 
 def run_single_simulation(run, model, results_file, lock, verbose, use_soft_system_prompt, sim_params):
     try:
+        print(f'checkpoint_dir={checkpoint_path}')
         setup_logging(run, model, verbose)
         env_type = EnvType.from_goals(sim_params['source_goal'], sim_params['target_goal'], sim_params.get('num_instrumental_steps', 0), sim_params['baseline_run'], use_soft_system_prompt, sim_params["use_unrelated_instr_goal"])
         system_message = SYSTEM_MESSAGE[env_type]
@@ -223,6 +225,8 @@ def parse_args():
     parser.add_argument("--checkpoint_dir", type=str, default="checkpoints", help="Directory to save checkpoints.")
     parser.add_argument("--tool_call_malfunction", action="store_true", help="Enable tool call malfunction.")
     parser.add_argument("--empty_portfolio", action="store_true", help="Empty the portfolio before the simulation starts.")
+    parser.add_argument("--easy_setup", action='store_true', help="Easy setup for simple runs.")
+    parser.add_argument("--easy_name", type=str, help="Easy read for model name.")
     args = parser.parse_args()
 
     if args.source == args.target:
@@ -256,6 +260,20 @@ if __name__ == "__main__":
     else:
         raise ValueError("Either --runs or --run_range must be specified")
 
+    if args.easy_setup:
+        ### make folder name
+        if args.baseline:
+            checkpoint_path = f'checkpoints/results/{args.source}_{args.target}_{args.easy_name}_{args.num_steps}_steps_baseline'
+        else:
+            checkpoint_path = f'checkpoints/results/{args.source}_{args.target}_{args.num_steps}_steps_{args.easy_name}_on_{args.easy_name}'
+
+        # os.makedirs(folder_path, exist_ok=True)
+
+        # dest_path = os.path.join(folder_path, os.path.basename(args.results_file))
+        # shutil.move(args.results_file, dest_path)
+    else:
+        checkpoint_path = 'checkpoints'
+
     # Create a manager to share the lock between processes
     manager = Manager()
     lock = manager.Lock()
@@ -275,10 +293,11 @@ if __name__ == "__main__":
         'condition_claude_on_gpt': args.condition_claude_on_gpt,
         'condition_gpt_on_claude': args.condition_gpt_on_claude,
         'baseline_run': args.baseline,
-        'checkpoint_dir': args.checkpoint_dir,
+        'checkpoint_dir': checkpoint_path,
         'tool_call_malfunction': args.tool_call_malfunction,
         'empty_portfolio': args.empty_portfolio
-    }
+}
+
 
     if args.parallel:
         with Pool() as pool:
@@ -294,3 +313,5 @@ if __name__ == "__main__":
 
     sys.stdout = original_stdout
     print(f"All runs from {run_list[0]} to {run_list[-1]} completed. Results have been saved to {args.results_file}")
+
+

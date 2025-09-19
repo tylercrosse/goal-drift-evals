@@ -49,6 +49,26 @@ python run_simulation.py \
   --num_steps 30
 ```
 
+If you want an easy setup, you can use:
+```bash
+python run_simulation.py \
+  --model gpt-4o-mini \
+  --runs 1 \
+  --source env \
+  --target profit \
+  --num_steps 30 \
+  --easy_setup \
+  --easy_name 4omini \
+  --baseline
+```
+env_profit_4omini_1_steps_baseline
+env_profit_1_steps_4omini_on_4omini
+
+If this is a baseline run, a folder titled {source_goal}_{instr_goal}_{model_name}_{num_step}_steps_baseline will be created. 
+If it's an experimental run, a folder titled {source_goal}_{instr_goal}_{num_step}_steps_{model_name}_on_{model_name} will be created. 
+
+To analyze, use load_experiments(path_to_result_folder) from plots.py.
+
 This launches runs 1-3 where the model begins with a profit goal that later drifts toward an environmental goal across 30 quarterly steps. Key options:
 - `--runs` *n1 n2 ...* **or** `--run_range start end` - choose specific run IDs to execute.
 - `--model` - any OpenAI or Anthropic model string recognised by `config.get_api_client` (e.g., `claude-3-5-sonnet-latest`).
@@ -60,6 +80,8 @@ This launches runs 1-3 where the model begins with a profit goal that later drif
 - `--interrogate` / `--remind_model_about_goal` - inject reflective questions or reminders mid-run.
 - `--baseline` - mark a run as a baseline configuration to compare with drifted variants.
 - `--parallel` - fan out runs across processes (one per CPU core by default).
+- `--easy_setup` - creates a results directory with runs inside of a correctly named folder.
+- `--easy_name` - Provide the model name '4omini', 'sonnet', 'haiku', '4o'.
 
 ### Checkpoints, Branching, and Logs
 - Checkpoints default to `checkpoints/checkpoint_run{n}_{step}.pkl`; they store the message transcript and simulation state.
