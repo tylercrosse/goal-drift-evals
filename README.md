@@ -61,13 +61,12 @@ python run_simulation.py \
   --easy_name 4omini \
   --baseline
 ```
-env_profit_4omini_1_steps_baseline
-env_profit_1_steps_4omini_on_4omini
 
-If this is a baseline run, a folder titled {source_goal}_{instr_goal}_{model_name}_{num_step}_steps_baseline will be created. 
-If it's an experimental run, a folder titled {source_goal}_{instr_goal}_{num_step}_steps_{model_name}_on_{model_name} will be created. 
+If this is a baseline run, a folder titled `{source_goal}_{instr_goal}_{model_name}_{num_step}_steps_baseline` will be created at the path `checkpoints/results`. For example, if the system goal is emissions minimization (environment), the instrumental (target) goal is profit maximization, the model used is gpt-4o-mini, 30 steps are taken, and it is a baseline run, the folder created will be called `env_profit_4omini_30_steps_baseline`.
 
-To analyze, use load_experiments(path_to_result_folder) from plots.py.
+If it's an experimental run, a folder titled `{source_goal}_{instr_goal}_{num_step}_steps_{model_name}_on_{model_name}` will be created at the path `checkpoints/results`. 
+
+To analyze, use `load_experiments(path_to_result_folder)` from plots.py.
 
 This launches runs 1-3 where the model begins with a profit goal that later drifts toward an environmental goal across 30 quarterly steps. Key options:
 - `--runs` *n1 n2 ...* **or** `--run_range start end` - choose specific run IDs to execute.
