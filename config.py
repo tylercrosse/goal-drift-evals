@@ -3,7 +3,7 @@ from openai import OpenAI
 from anthropic import Anthropic
 import os
 
-oai_client = OpenAI()
+oai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY")) if os.environ.get("OPENAI_API_KEY") else OpenAI()
 api_key = os.environ.get("ANTHROPIC_API_KEY")
 anthropic_client = Anthropic(api_key=api_key)
 

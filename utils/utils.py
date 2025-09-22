@@ -253,8 +253,13 @@ def count_messages_tokens(model: str, messages: List[Dict], system_message: str,
     api_client = get_api_client(model)
 
     if "gpt" in model.lower():
+        try:
+            encoding = tiktoken.encoding_for_model(model)
+        except KeyError:
+            # Fall back to the closest available tokenizer for newly released models
+            encoding = tiktoken.get_encoding("cl100k_base")
+
         for message in messages:
-            encoding = tiktoken.encoding_for_model(model) if "gpt" in model.lower() else None
             # Count message content
             content = message["content"] if isinstance(message, dict) else message.content
             if isinstance(content, str):
