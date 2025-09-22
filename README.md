@@ -48,6 +48,8 @@ python run_simulation.py \
   --target env \
   --num_steps 30
 ```
+This launches runs 1-3 where the model begins with a profit goal that later drifts toward an environmental goal across 30 quarterly steps.
+
 
 If you want an easy setup, you can use:
 ```bash
@@ -68,7 +70,7 @@ If it's an experimental run, a folder titled `{source_goal}_{instr_goal}_{num_st
 
 To analyze, use `load_experiments(path_to_result_folder)` from plots.py.
 
-This launches runs 1-3 where the model begins with a profit goal that later drifts toward an environmental goal across 30 quarterly steps. Key options:
+Key options:
 - `--runs` *n1 n2 ...* **or** `--run_range start end` - choose specific run IDs to execute.
 - `--model` - any OpenAI or Anthropic model string recognised by `config.get_api_client` (e.g., `claude-3-5-sonnet-latest`).
 - `--source` / `--target` - goal pairing to study (`profit`, `env`, `health`, `privacy`). Source and target must differ.
