@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import sys
 from manage_simulation import SimulationManager
 from simulation.default_simulation import DefaultSimulation
@@ -9,6 +12,7 @@ import logging
 from utils.utils import load_checkpoint
 from config import EnvType, SYSTEM_MESSAGE
 import shutil
+
 
 class LogFileWriter:
     def __init__(self, log_file):
@@ -194,7 +198,7 @@ def run_single_simulation(run, model, results_file, lock, verbose, use_soft_syst
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default="gpt-4o-mini", help="Model to evaluate")
+    parser.add_argument("--model", default="gpt-4o-mini", help="Model to evaluate (e.g., gpt-4o-mini, gpt-5-mini-2025-08-07)")
     parser.add_argument("--results_file", default="results.json", help="File path for the results JSON")
     parser.add_argument("--parallel", action="store_true", help="Enable parallel execution of runs")
     parser.add_argument("--runs", nargs="+", type=int, 
@@ -246,7 +250,7 @@ def parse_args():
 if __name__ == "__main__":
     original_stdout = sys.stdout
     args = parse_args()
-    
+
     if args.extract_checkpoint:
         run, timestep = args.branch_from
         extract_checkpoint_data(run, timestep)
@@ -313,5 +317,4 @@ if __name__ == "__main__":
 
     sys.stdout = original_stdout
     print(f"All runs from {run_list[0]} to {run_list[-1]} completed. Results have been saved to {args.results_file}")
-
 

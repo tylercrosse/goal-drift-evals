@@ -6,9 +6,9 @@ from typing import Dict, Any
 import importlib
 
 def get_tools(model: str):
-    if model == 'gpt-4o-mini' or model == 'gpt-4o':
+    if model.lower().startswith('gpt-'):
         tools_module = importlib.import_module("utils.oai_tools")
-    elif model == 'claude-3-5-sonnet-latest' or model == 'claude-3-5-haiku-latest':
+    elif model.lower().startswith('claude-'):
         tools_module = importlib.import_module("utils.anthropic_tools")
     else:
         raise ValueError(f"Unsupported model: {model}")
