@@ -23,7 +23,7 @@ class SimulationManager:
         self.branched_from = branched_from
         self.api_client = get_api_client(model)
         
-    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, baseline_run: bool = False, interrogate: bool = False, remind_model_about_goal: bool = False, use_unrelated_instr_goal: bool = False, condition_claude_on_gpt: bool = False, condition_gpt_on_claude: bool = False, checkpoint_dir: str = "checkpoints", tool_call_malfunction: bool = False, empty_portfolio: bool = False):
+    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, baseline_run: bool = False, interrogate: bool = False, remind_model_about_goal: bool = False, use_unrelated_instr_goal: bool = False, condition_claude_on_gpt: bool = False, condition_gpt_on_claude: bool = False, checkpoint_dir: str = "checkpoints", tool_call_malfunction: bool = False, empty_portfolio: bool = False, ood_variant: str = None):
         """
         Args:
             sim_class: The simulation class to use
@@ -78,12 +78,20 @@ class SimulationManager:
                 num_tokens -= num_tool_tokens
             print("Num tokens before: ", num_tokens)
             random_gen = random.Random(gen_seed(start_timestep, self.run))
-            self.messages = replace_assistant_messages_with_random_sentences(self.model, self.messages, self.run)
-            # self.messages = build_random_text_to_token_target(self.model, random_gen, num_tokens)
-            # self.messages = build_dots_to_token_target(self.model, random_gen, num_tokens)
+            
+            # Handle different OOD variants
+            if ood_variant == 'dots':
+                self.messages = build_dots_to_token_target(self.model, random_gen, num_tokens)
+                print("Replaced message history with dots for OOD testing (dots variant)")
+            elif ood_variant == 'random-strings':
+                self.messages = build_random_text_to_token_target(self.model, random_gen, num_tokens)
+                print("Replaced message history with random strings for OOD testing (random-strings variant)")
+            else:  # random-sentences or default
+                self.messages = replace_assistant_messages_with_random_sentences(self.model, self.messages, self.run)
+                print("Replaced message history with random sentences for OOD testing (random-sentences variant)")
+            
             num_tokens = count_messages_tokens(self.model, self.messages, "", sim.get_tools())
             print("Num tokens after: ", num_tokens - num_tool_tokens)
-            print("Replaced message history with random text of equivalent length for OOD testing")
             if "gpt" in self.model.lower():
                 self.messages = [{"role": "system", "content": self.system_message}] + self.messages
             print(self.messages)

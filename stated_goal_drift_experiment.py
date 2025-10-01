@@ -201,6 +201,8 @@ def process_checkpoint(checkpoint_path: str, folder_path: str, num_steps: int, m
             model = 'gpt-4o-mini'
         elif model == '4o':
             model = 'gpt-4o-2024-11-20'
+        elif model == '5mini':
+            model = 'gpt-5-mini-2025-08-07'
 
         parts = folder_path.split('_')
         source_goal = parts[0]

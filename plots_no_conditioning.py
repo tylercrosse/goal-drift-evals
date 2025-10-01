@@ -133,7 +133,8 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
         '4omini': '#e41a1c',    # deep sky blue (brighter)
         '4o': '#4daf4a',    # strong medium blue
         'sonnet': '#377eb8',
-        'haiku': '#984ea3'      # navy blue (darker contrast)
+        'haiku': '#984ea3',      # navy blue (darker contrast)
+        '5mini': '#ff7f00',  # vivid orange for GPT-5 mini
     }
     
     line_styles = {
@@ -271,13 +272,15 @@ subplot_configs = [
             {'model_name': '4omini', 'system_goal': 'profit', 'elicitation': False},
             {'model_name': 'haiku', 'system_goal': 'profit', 'elicitation': False},
             {'model_name': '4o', 'system_goal': 'profit', 'elicitation': False},
+            {'model_name': '5mini', 'system_goal': 'profit', 'elicitation': False},
             {'model_name': '4omini', 'system_goal': 'profit', 'elicitation': True},
             {'model_name': 'sonnet', 'system_goal': 'profit', 'elicitation': True},
             {'model_name': 'haiku', 'system_goal': 'profit', 'elicitation': True},
-            {'model_name': '4o', 'system_goal': 'profit', 'elicitation': True}
+            {'model_name': '4o', 'system_goal': 'profit', 'elicitation': True},
+            {'model_name': '5mini', 'system_goal': 'profit', 'elicitation': True}
         ],
-        'labels': ['Sonnet (Profit)', '4omini (Profit)', 'Haiku (Profit)',
-                  'Sonnet (Env)', '4omini (Env)', 'Haiku (Env)', 'a', 'b'],    },
+        'labels': ['Sonnet (Profit)', '4omini (Profit)', 'Haiku (Profit)', '4o (Profit)', '5mini (Profit)',
+                  '4omini (Env)', 'Sonnet (Env)', 'Haiku (Env)', '4o (Env)', '5mini (Env)'],    },
     {
         'title': 'System goal: emission minimization,\ncompeting goal: profit maximization',
         'filters': [
@@ -285,13 +288,15 @@ subplot_configs = [
             {'model_name': '4omini', 'system_goal': 'env', 'elicitation': False},
             {'model_name': 'haiku', 'system_goal': 'env', 'elicitation': False},
             {'model_name': '4o', 'system_goal': 'env', 'elicitation': False},
+            {'model_name': '5mini', 'system_goal': 'env', 'elicitation': False},
             {'model_name': 'sonnet', 'system_goal': 'env', 'elicitation': True},
             {'model_name': '4omini', 'system_goal': 'env', 'elicitation': True},
             {'model_name': 'haiku', 'system_goal': 'env', 'elicitation': True},
-            {'model_name': '4o', 'system_goal': 'env', 'elicitation': True}
+            {'model_name': '4o', 'system_goal': 'env', 'elicitation': True},
+            {'model_name': '5mini', 'system_goal': 'env', 'elicitation': True}
         ],
-        'labels': ['Sonnet (Profit)', '4omini (Profit)', 'Haiku (Profit)',
-                  'Sonnet (Env)', '4omini (Env)', 'Haiku (Env)', 'a', 'b'],
+        'labels': ['Sonnet (Profit)', '4omini (Profit)', 'Haiku (Profit)', '4o (Profit)', '5mini (Profit)',
+                  'Sonnet (Env)', '4omini (Env)', 'Haiku (Env)', '4o (Env)', '5mini (Env)'],
     }
     # {
     #     'title': 'Sonnet: Conditioning Effect',
@@ -315,7 +320,8 @@ legend1_items = [
     ('Claude 3.5 Sonnet', 'sonnet', '-'),
     ('GPT-4o mini', '4omini', '-'),
     ('Claude 3.5 Haiku', 'haiku', '-'),
-    ('GPT-4o', '4o', '-')
+    ('GPT-4o', '4o', '-'),
+    ('GPT-5 mini', '5mini', '-')
 ]
 
 legend2_items = [
