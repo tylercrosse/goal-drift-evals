@@ -1,10 +1,15 @@
 # %%
+import argparse
+import json
 import os
 import pickle
-import numpy as np
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
+
 import matplotlib.pyplot as plt
+import numpy as np
+
 from data.stocks import STOCKS_HIGH_EMISSIONS
-from typing import List, Dict, Any, Tuple
 import scipy
 import scipy.stats
 
@@ -154,6 +159,8 @@ class ExperimentRun(Run):
         if budgets is None or high_profit_stocks_bought is None or investment_ratios is None:
             return None
 
+        if len(profits) < 11:
+            print("🐞 Len profits issue", len(profits))
         leftover_budget = profits[-11] * (1 - investment_ratios[-11])
         divestment_budget = sum(high_profit_divestments[-10:]) + sum(low_profit_divestments[-10:])
         quarterly_budgets = sum(budgets[-10:])
@@ -192,18 +199,37 @@ def load_experiments(results_path: str) -> Tuple[List[ExperimentRun], List[Basel
     return experiments, baselines
 
 
-def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_items):
-    experiments, baselines = load_experiments('results/')
-    conditioning_experiments, conditioning_baselines = load_experiments('results_conditioning/')
-    experiments.extend(conditioning_experiments)
-    baselines.extend(conditioning_baselines)
+def plot_multiple_experiment_results(
+    subplot_configs,
+    legend1_items,
+    legend2_items,
+    results_path: str = 'results/',
+    conditioning_path: str = 'results_conditioning/',
+    output_prefix: str = 'plots/env_profit',
+    save_png: bool = True,
+    save_pdf: bool = True,
+):
+    experiments, baselines = load_experiments(results_path)
+
+    if conditioning_path:
+        conditioning_experiments, conditioning_baselines = load_experiments(conditioning_path)
+        experiments.extend(conditioning_experiments)
+        baselines.extend(conditioning_baselines)
+
+    print(baselines)
+    for exp in baselines:
+        print("Base:", exp.model_name)
+    for exp in experiments:
+        print('Exp:', exp.model_name, exp.system_goal, exp.target_goal, exp.num_steps)
+    
 
     # https://colorbrewer2.org/#type=diverging&scheme=RdBu&n=4
     model_colors = {
         '4omini': '#e41a1c',    # deep sky blue (brighter)
         '4o': '#4daf4a',    # strong medium blue
         'sonnet': '#377eb8',
-        'haiku': '#984ea3'      # navy blue (darker contrast)
+        'haiku': '#984ea3',      # navy blue (darker contrast)
+        '5mini': '#ff7f00',  # vivid orange for GPT-5 mini
     }
     
     line_styles = {
@@ -274,8 +300,7 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
             for exp in experiments:
                 if all(getattr(exp, attr) == value for attr, value in filter_dict.items()):
                     filtered_exps[exp.num_steps] = exp
-            
-            print(filtered_exps)
+
             if not filtered_exps:
                 continue
             
@@ -382,7 +407,7 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
     
     significant_correlations = []
 
-    for model in ['sonnet', '4omini', 'haiku', '4o']:
+    for model in ['sonnet', '4omini', 'haiku', '4o', '5mini']:
         for metric in ['da', 'di']:
             # Get data for both subplots
             data1 = subplot_data[0].get(model, {}).get(metric, [])
@@ -476,12 +501,35 @@ def plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_ite
 
     # Adjust layout to make room for the legends
     plt.tight_layout()
-    plt.savefig('plots/env_profit.png', bbox_inches='tight')
-    plt.savefig('plots/env_profit.pdf', bbox_inches='tight')
 
-# %%
-# Example usage:
-subplot_configs = [
+    output_dir = os.path.dirname(output_prefix)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+
+    if save_png:
+        plt.savefig(f'{output_prefix}.png', bbox_inches='tight')
+    if save_pdf:
+        plt.savefig(f'{output_prefix}.pdf', bbox_inches='tight')
+
+
+def load_config(path: Path) -> Tuple[Any, Any, Any]:
+    with path.open() as f:
+        payload = json.load(f)
+
+    required_keys = {'subplot_configs', 'legend1_items', 'legend2_items'}
+    missing = required_keys - payload.keys()
+    if missing:
+        missing_str = ', '.join(sorted(missing))
+        raise ValueError(f'Config file missing required keys: {missing_str}')
+
+    return (
+        payload['subplot_configs'],
+        payload['legend1_items'],
+        payload['legend2_items'],
+    )
+
+
+DEFAULT_SUBPLOT_CONFIGS = [
     {
         'title': 'Goal switching',
         'filters': [
@@ -489,8 +537,9 @@ subplot_configs = [
             {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
             {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
             {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
+            {'model_name': '5mini', 'conditioned_on': '5mini', 'distractions': False, 'ood': False, 'ablation': False, 'dots': False, 'portfolio_complexity': False},
         ],
-            'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
+        'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Self-Conditioned'],
     },
     {
         'title': 'Goal switching and adversarial pressures',
@@ -499,22 +548,73 @@ subplot_configs = [
             {'model_name': '4omini', 'conditioned_on': '4omini', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': False, 'dots': True},
             {'model_name': 'haiku', 'conditioned_on': 'haiku', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': False, 'dots': True},
             {'model_name': '4o', 'conditioned_on': '4o', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': False, 'dots': True},
+            {'model_name': '5mini', 'conditioned_on': '5mini', 'distractions': False, 'ood': False, 'ablation': False, 'portfolio_complexity': False, 'dots': True},
         ],
-        'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned'],
+        'labels': ['Self-Conditioned', 'Sonnet-Conditioned', 'Haiku-Conditioned', 'Sonnet-Conditioned', 'Self-Conditioned'],
     }
 ]
 
-legend1_items = [
+DEFAULT_LEGEND1_ITEMS = [
     ('Claude 3.5 Sonnet', 'sonnet', '-'),
     ('GPT-4o mini', '4omini', '-'),
     ('Claude 3.5 Haiku', 'haiku', '-'),
     ('GPT-4o', '4o', '-'),
+    ('GPT-5 mini', '5mini', '-'),
 ]
 
-legend2_items = [
+DEFAULT_LEGEND2_ITEMS = [
     ('Goal drift through actions', 'sonnet', '-'),
     ('Goal drift through inaction', 'sonnet', '--'),
 ]
 
-plot_multiple_experiment_results(subplot_configs, legend1_items, legend2_items)
-# %%
+def dump_default_config(path: Path) -> None:
+    payload = {
+        'subplot_configs': DEFAULT_SUBPLOT_CONFIGS,
+        'legend1_items': DEFAULT_LEGEND1_ITEMS,
+        'legend2_items': DEFAULT_LEGEND2_ITEMS,
+    }
+    path.write_text(json.dumps(payload, indent=2))
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description='Generate goal drift plots from experiment outputs.')
+    parser.add_argument('--config', type=str, help='Path to JSON config file.')
+    parser.add_argument('--dump-default-config', type=str, metavar='PATH', help='Write default configuration to PATH and exit.')
+    parser.add_argument('--results-dir', default='results/', help="Directory containing experiment results. Defaults to 'results/'.")
+    parser.add_argument('--conditioning-dir', default='results_conditioning/', help="Directory containing conditioning results. Use '' to skip.")
+    parser.add_argument('--output-prefix', default='plots/env_profit', help="Output file prefix for generated plots. Defaults to 'plots/env_profit'.")
+    parser.add_argument('--no-png', action='store_true', help='Skip writing PNG output.')
+    parser.add_argument('--no-pdf', action='store_true', help='Skip writing PDF output.')
+
+    args = parser.parse_args()
+
+    if args.dump_default_config:
+        dump_path = Path(args.dump_default_config)
+        dump_default_config(dump_path)
+        print(f'Default configuration written to {dump_path}')
+        if not args.config:
+            return
+
+    if args.config:
+        subplot_configs, legend1_items, legend2_items = load_config(Path(args.config))
+    else:
+        subplot_configs = DEFAULT_SUBPLOT_CONFIGS
+        legend1_items = DEFAULT_LEGEND1_ITEMS
+        legend2_items = DEFAULT_LEGEND2_ITEMS
+
+    conditioning_dir = args.conditioning_dir or None
+
+    plot_multiple_experiment_results(
+        subplot_configs,
+        legend1_items,
+        legend2_items,
+        results_path=args.results_dir,
+        conditioning_path=conditioning_dir,
+        output_prefix=args.output_prefix,
+        save_png=not args.no_png,
+        save_pdf=not args.no_pdf,
+    )
+
+
+if __name__ == '__main__':
+    main()

@@ -68,6 +68,8 @@ def process_all_checkpoints(results_dir: str) -> None:
         model_name = parts[2]  # Index where model name appears
         if model_name == '4omini':
             model_name = 'gpt-4o-mini'
+        elif model_name == '5mini':
+            model_name = 'gpt-5-mini-2025-08-07'
         elif model_name == 'sonnet':
             model_name = 'claude-3-5-sonnet-latest'
         elif model_name == 'haiku':

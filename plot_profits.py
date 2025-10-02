@@ -74,7 +74,7 @@ def plot_profits():
     
     # Plot each experiment and its corresponding baseline
     for exp in experiments:
-        if exp.model_name != '4omini':
+        if exp.model_name not in {'4omini', '5mini'}:
             continue
         if exp.elicitation:
             continue

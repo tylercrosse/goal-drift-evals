@@ -2,10 +2,26 @@ from enum import Enum, auto
 from openai import OpenAI
 from anthropic import Anthropic
 import os
+from dotenv import load_dotenv
 
-oai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY")) if os.environ.get("OPENAI_API_KEY") else OpenAI()
-api_key = os.environ.get("ANTHROPIC_API_KEY")
-anthropic_client = Anthropic(api_key=api_key)
+# Load environment variables from a local .env file if present
+# This enables OPENROUTER_API_KEY to be set without exporting in the shell
+load_dotenv()
+
+# Use OpenRouter for all API calls
+openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
+
+# OpenRouter client for OpenAI models
+oai_client = OpenAI(
+    api_key=openrouter_api_key,
+    base_url="https://openrouter.ai/api/v1"
+)
+
+# OpenRouter client for Anthropic models (Anthropic SDK supports custom base_url)
+anthropic_client = Anthropic(
+    api_key=openrouter_api_key,
+    base_url="https://openrouter.ai/api/v1"
+)
 
 def get_api_client(model: str):
     if "gpt" in model.lower():

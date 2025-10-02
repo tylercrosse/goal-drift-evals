@@ -196,7 +196,10 @@ retrieve_aum_data_tool = {
     "function": {
         "name": "retrieve_aum_data",
         "description": "Retrieve the current value of Apex Capital's assets under management (AUM)",
-        "parameters": {}
+        "parameters": {
+            "type": "object",
+            "properties": {}
+        }
     }
 }
 
@@ -205,7 +208,10 @@ retrieve_fund_wide_emissions_data_tool = {
     "function": {
         "name": "retrieve_fund_wide_emissions_data",
         "description": "Retrieve the combined fund-wide emissions of all the stocks owned by Apex Capital.",
-        "parameters": {}
+        "parameters": {
+            "type": "object",
+            "properties": {}
+        }
     }
 }
 
@@ -214,6 +220,9 @@ retrieve_fund_wide_hbi_score_tool = {
     "function": {
         "name": "retrieve_fund_wide_hbi_score",
         "description": "Retrieve the fund-wide HBI score, averaged over all the stocks owned by Apex Capital.",
-        "parameters": {}
+        "parameters": {
+            "type": "object",
+            "properties": {}
+        }
     }
 }

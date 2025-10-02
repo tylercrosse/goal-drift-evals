@@ -214,7 +214,9 @@ def parse_args():
     parser.add_argument("--target", default="privacy", help="Goal to drift towards. Options: profit, privacy, health, env.")
     parser.add_argument("--num_steps", type=int, default=30, help="Number of timesteps to run the simulation for.")
     parser.add_argument("--distractions", action="store_true", help="Enable distractions.")
-    parser.add_argument("--ood", action="store_true", help="Enable out-of-distribution simulation.")
+    parser.add_argument("--ood", action="store_true", help="Enable out-of-distribution simulation (deprecated - use --ood-variant instead).")
+    parser.add_argument("--ood-variant", type=str, choices=['dots', 'random-sentences', 'random-strings'], 
+                        help="Type of out-of-distribution testing: 'dots' (replace with dots), 'random-sentences' (replace with random sentences), 'random-strings' (replace with random strings).")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output.")
     parser.add_argument("--extract_checkpoint", action="store_true",
                        help="Extract data from a checkpoint without running simulation. Use together with --branch_from to specify the checkpoint. No simulation will be run when using this flag.")
@@ -231,6 +233,7 @@ def parse_args():
     parser.add_argument("--empty_portfolio", action="store_true", help="Empty the portfolio before the simulation starts.")
     parser.add_argument("--easy_setup", action='store_true', help="Easy setup for simple runs.")
     parser.add_argument("--easy_name", type=str, help="Easy read for model name.")
+    parser.add_argument("--easy_conditioned_on", type=str, help="Easy read for conditioning model name (defaults to easy_name).")
     args = parser.parse_args()
 
     if args.source == args.target:
@@ -265,29 +268,51 @@ if __name__ == "__main__":
         raise ValueError("Either --runs or --run_range must be specified")
 
     if args.easy_setup:
-        ### make folder name
+        if not args.easy_name:
+            raise ValueError("--easy_setup requires --easy_name")
+
+        conditioned_on = args.easy_conditioned_on or args.easy_name
+        is_conditioned_run = conditioned_on != args.easy_name or args.condition_claude_on_gpt or args.condition_gpt_on_claude
+        results_root = 'results_conditioning' if is_conditioned_run else 'results'
+
         if args.baseline:
-            checkpoint_path = f'checkpoints/results/{args.source}_{args.target}_{args.easy_name}_{args.num_steps}_steps_baseline'
+            dir_name = f'{args.source}_{args.target}_{args.easy_name}_{args.num_steps}_steps_baseline'
         else:
-            checkpoint_path = f'checkpoints/results/{args.source}_{args.target}_{args.num_steps}_steps_{args.easy_name}_on_{args.easy_name}'
+            dir_name = f'{args.source}_{args.target}_{args.num_instrumental_steps}_steps_{args.easy_name}_on_{conditioned_on}'
+        
+        # Auto-append suffix based on experimental conditions
+        suffix = None
+        if args.distractions:
+            suffix = 'distractions'
+        elif args.ood_variant:
+            suffix = args.ood_variant
+        elif args.ood:
+            # Backward compatibility: --ood defaults to random-sentences
+            suffix = 'random-sentences'
+        
+        if suffix:
+            dir_name = f'{dir_name}_{suffix}'
 
-        # os.makedirs(folder_path, exist_ok=True)
-
-        # dest_path = os.path.join(folder_path, os.path.basename(args.results_file))
-        # shutil.move(args.results_file, dest_path)
+        checkpoint_path = os.path.join(results_root, dir_name)
     else:
-        checkpoint_path = 'checkpoints'
+        checkpoint_path = args.checkpoint_dir
 
     # Create a manager to share the lock between processes
     manager = Manager()
     lock = manager.Lock()
 
+    # Determine OOD variant (for backward compatibility)
+    ood_variant = args.ood_variant
+    if not ood_variant and args.ood:
+        ood_variant = 'random-sentences'  # Default for --ood flag
+    
     sim_params = {
         'num_steps': args.num_steps,
         'source_goal': args.source,
         'target_goal': args.target,
         'distractions': args.distractions,
-        'ood': args.ood,
+        'ood': args.ood or bool(ood_variant),  # Keep for backward compatibility
+        'ood_variant': ood_variant,
         'num_instrumental_steps': args.num_instrumental_steps,
         'resume': args.resume,
         'interrogate': args.interrogate,
@@ -300,7 +325,7 @@ if __name__ == "__main__":
         'checkpoint_dir': checkpoint_path,
         'tool_call_malfunction': args.tool_call_malfunction,
         'empty_portfolio': args.empty_portfolio
-}
+    }
 
 
     if args.parallel:
@@ -317,4 +342,3 @@ if __name__ == "__main__":
 
     sys.stdout = original_stdout
     print(f"All runs from {run_list[0]} to {run_list[-1]} completed. Results have been saved to {args.results_file}")
-
