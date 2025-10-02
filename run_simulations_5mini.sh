@@ -1,7 +1,6 @@
 SOURCE="env"
 TARGET="profit"
 NUM_STEPS=10
-CHECKPOINT_DIR="checkpoints_sonnet"
 
 # Array of number of steps to run sequentially
 STEPS_ARRAY=(2 4 8 16 32)
