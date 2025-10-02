@@ -24,7 +24,7 @@ anthropic_client = Anthropic(
 )
 
 def get_api_client(model: str):
-    if "gpt" in model.lower():
+    if "gpt" in model.lower() or "qwen" in model.lower():
         return oai_client
     elif "claude" in model.lower():
         return anthropic_client
@@ -52,7 +52,7 @@ class EnvType(Enum):
     @classmethod
     def from_goals(cls, source: str, target: str, instrumental_steps: int, baseline: bool, use_soft_system_prompt: bool, unrelated_instr_goal: bool):
         """Create EnvType from source and target goals.
-        
+
         Args:
             source: The source goal ("profit", "env", etc.)
             target: The target goal ("profit", "env", etc.)

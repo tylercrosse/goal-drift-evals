@@ -22,7 +22,7 @@ class SimulationManager:
         self.run = run
         self.branched_from = branched_from
         self.api_client = get_api_client(model)
-        
+
     def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, baseline_run: bool = False, interrogate: bool = False, remind_model_about_goal: bool = False, use_unrelated_instr_goal: bool = False, condition_claude_on_gpt: bool = False, condition_gpt_on_claude: bool = False, checkpoint_dir: str = "checkpoints", tool_call_malfunction: bool = False, empty_portfolio: bool = False, ood_variant: str = None):
         """
         Args:
@@ -35,8 +35,8 @@ class SimulationManager:
         """
         self.checkpoint_dir = checkpoint_dir
         os.makedirs(self.checkpoint_dir, exist_ok=True)
-        
-        self.messages = [system_message] if "gpt" in self.model.lower() else []
+
+        self.messages = [system_message] if ("gpt" in self.model.lower() or "qwen" in self.model.lower()) else []
         self.system_message = system_message['content']
 
         checkpoint_state = None
@@ -45,7 +45,7 @@ class SimulationManager:
             checkpoint_state = load_checkpoint(self.checkpoint_dir, run_number, timestep)
         elif resume:
             checkpoint_state = load_checkpoint(self.checkpoint_dir, self.run)
-        
+
         if checkpoint_state:
             prev_sim_data = checkpoint_state["prev_sim_data"]
             start_timestep = checkpoint_state["current_timestep"]
@@ -67,9 +67,9 @@ class SimulationManager:
 
         strategy = get_strategy(source_goal, target_goal)
         sim: Simulation = sim_class(strategy, self.run, self.model, num_instrumental_steps, prev_sim_data, distractions, use_unrelated_instr_goal, tool_call_malfunction, empty_portfolio)
-                
+
         if ood:
-            if "gpt" in self.model.lower():
+            if "gpt" in self.model.lower() or "qwen" in self.model.lower():
                 num_tokens = count_messages_tokens(self.model, self.messages[1:], "", sim.get_tools())
                 num_tool_tokens = 0
             else:
@@ -78,7 +78,7 @@ class SimulationManager:
                 num_tokens -= num_tool_tokens
             print("Num tokens before: ", num_tokens)
             random_gen = random.Random(gen_seed(start_timestep, self.run))
-            
+
             # Handle different OOD variants
             if ood_variant == 'dots':
                 self.messages = build_dots_to_token_target(self.model, random_gen, num_tokens)
@@ -89,10 +89,10 @@ class SimulationManager:
             else:  # random-sentences or default
                 self.messages = replace_assistant_messages_with_random_sentences(self.model, self.messages, self.run)
                 print("Replaced message history with random sentences for OOD testing (random-sentences variant)")
-            
+
             num_tokens = count_messages_tokens(self.model, self.messages, "", sim.get_tools())
             print("Num tokens after: ", num_tokens - num_tool_tokens)
-            if "gpt" in self.model.lower():
+            if "gpt" in self.model.lower() or "qwen" in self.model.lower():
                 self.messages = [{"role": "system", "content": self.system_message}] + self.messages
             print(self.messages)
 
@@ -119,7 +119,7 @@ class SimulationManager:
             timestep_start = sim.current_timestep
             i = 0
             while timestep_start == sim.current_timestep:
-                max_messages = 10 if "gpt" in self.model.lower() else 30
+                max_messages = 10 if ("gpt" in self.model.lower() or "qwen" in self.model.lower()) else 30
                 if interrogate:
                     max_messages = 2
                 if i > max_messages:
@@ -133,12 +133,12 @@ class SimulationManager:
                     continue
                 self.single_step(self.model, sim)
                 i += 1
-            
+
             print("\n" * 5)
-        
+
         self.save_checkpoint(sim)
         # return self._generate_result_dict(sim, source_goal, target_goal)
-        return {}    
+        return {}
 
     def _generate_result_dict(self, sim: Simulation, source_goal: str, target_goal: str):
         return {
@@ -166,7 +166,7 @@ class SimulationManager:
             "num_tool_calls": sim.tool_call_count,
             "branched_from": self.branched_from,
         }
-        
+
     def single_step(self, model: str, sim: Simulation, verbose: bool = True):
         """
         Prompts the given model to make business decisions and records these decisions in the simulation.
@@ -204,13 +204,13 @@ class SimulationManager:
 
                 print(f"{percentage_cached:.1f}% of input prompt cached ({total_input_tokens} tokens)")
                 print('\n')
-            
+
             tool_calls, response_message_content = self.extract_tool_calls_and_response_message(model, response)
-            
+
             if verbose:
                 print("Response message content: ", response_message_content)
                 print("Tool calls: ", tool_calls)
-            
+
             if tool_calls is None:
                 self.messages.append({
                     "role": "user",
@@ -218,18 +218,21 @@ class SimulationManager:
                 })
                 print("User: Please continue with your next action.")
                 return self.messages
-            
+
             else:
                 tool_call_messages = []
                 for tool_call in tool_calls:
                     function_name, function_args = self.extract_function_name_and_args(tool_call)
+
+                    tool_call.function.arguments = json.dumps(function_args or {})
+
                     function_response = sim.handle_tools(function_name, function_args)
-                    tool_message = self.create_tool_message(tool_call, function_name, function_response)
+                    tool_message = self.create_tool_message(tool_call, function_name, function_response, function_args)
                     tool_call_messages.append(tool_message)
 
                 print("Tool call messages: ", [tool_call_message["content"] for tool_call_message in tool_call_messages])
                 self.messages += tool_call_messages
-            
+
         except Exception as e:
             logging.error("Error in single_step: %s", str(e), exc_info=True)
             return self.messages
@@ -238,20 +241,30 @@ class SimulationManager:
     def extract_function_name_and_args(self, tool_call):
         if hasattr(tool_call, 'function'):  # GPT format
             function_name = tool_call.function.name
-            function_args = json.loads(tool_call.function.arguments)
+            raw_args = tool_call.function.arguments
+
+            if not raw_args or raw_args.strip() == "":
+                function_args = {}
+            else:
+                try:
+                    function_args = json.loads(raw_args)
+                except json.JSONDecodeError:
+                    function_args = {}
         else:  # Claude format
             function_name = tool_call.name
             function_args = tool_call.input
         return function_name, function_args
 
 
-    def create_tool_message(self, tool_call, function_name, function_response):
+    def create_tool_message(self, tool_call, function_name, function_response, function_args=None):
+        safe_args = json.dumps(function_args or {})
         if hasattr(tool_call, 'function'): # GPT format
             tool_message = {
                 "tool_call_id": tool_call.id,
                 "role": "tool",
                 "name": function_name,
                 "content": json.dumps(function_response),
+                "arguments": safe_args,
             }
         else: # Claude format
             tool_message = {
@@ -261,17 +274,18 @@ class SimulationManager:
                         "type": "tool_result",
                         "tool_use_id": tool_call.id,
                         "content": json.dumps(function_response),
+                        "arguments": safe_args,
                     }
                 ]
             }
         return tool_message
-        
+
 
     def call_api(self, model, messages, tools, tool_choice):
         max_retries = 10
         try:
             for _ in range(max_retries):
-                if "gpt" in model.lower():
+                if "gpt" in model.lower() or "qwen" in model.lower():
                     return self.api_client.chat.completions.create(
                         model=model,
                         messages=messages,
@@ -300,7 +314,7 @@ class SimulationManager:
         except Exception as e:
             logging.error("API call failed after retries: %s", str(e), exc_info=True)
             raise
-        
+
 
     def modify_messages_for_claude(self, messages: List[Dict]) -> None:
         user_messages_content = []
@@ -318,7 +332,7 @@ class SimulationManager:
                 messages.remove(message)
             else:
                 break
-        
+
         if user_messages_content:
             messages.append(
                 {
@@ -356,23 +370,23 @@ class SimulationManager:
             content = message.get("content", "") if isinstance(message, dict) else message.content
 
             if role == "tool":
-                tool_call_id = (message.tool_call_id if hasattr(message, 'tool_call_id') 
+                tool_call_id = (message.tool_call_id if hasattr(message, 'tool_call_id')
                             else message.get('tool_call_id'))
                 # Store tool results for later matching
                 tool_results[tool_call_id] = content
-                
+
             elif role == "assistant":
                 flush_user_content()
-                
+
                 content_list = []
                 if isinstance(content, str) and content.strip():  # Check for non-empty string
                     content_list.append({"type": "text", "text": content})
                 elif content:  # Only add non-empty content
                     content_list.append({"type": "text", "text": str(content)})
-                
-                tool_calls = (message.tool_calls if hasattr(message, 'tool_calls') 
+
+                tool_calls = (message.tool_calls if hasattr(message, 'tool_calls')
                             else message.get('tool_calls', []))
-                
+
                 if tool_calls:
                     for tool_call in tool_calls:
                         tool_id = tool_call.id
@@ -389,14 +403,14 @@ class SimulationManager:
                                 "tool_use_id": tool_id,
                                 "content": tool_results[tool_id]
                             })
-                
+
                 # Only add assistant message if it has content
                 if content_list:  # Add this check
                     converted_messages.append({
-                        "role": "assistant", 
+                        "role": "assistant",
                         "content": content_list
                     })
-                
+
             elif role == "user":
                 if isinstance(content, str):
                     pending_user_content.append({"type": "text", "text": content})
@@ -410,11 +424,11 @@ class SimulationManager:
     def modify_interaction_sequence_for_gpt(self) -> None:
         """Convert Claude-style message history to GPT format."""
         converted_messages = []
-        
+
         for message in self.messages:
             role = message.get('role')
             content = message.get('content')
-            
+
             if role == "user":
                 if isinstance(content, list):
                     for content_item in content:
@@ -440,11 +454,11 @@ class SimulationManager:
                                 "tool_call_id": content_item.tool_use_id,
                                 "content": content_item.content
                             })
-            
+
             elif role == "assistant":
                 content_list = []
                 tool_calls = []
-                
+
                 for content_item in content:
                     if isinstance(content_item, dict) and content_item.get("type") == "text":
                         content_list.append(content_item["text"])
@@ -468,21 +482,21 @@ class SimulationManager:
                                 "arguments": json.dumps(content_item.input)
                             }
                         })
-                
+
                 if content_list or tool_calls:
                     converted_messages.append({
                         "role": "assistant",
                         "content": " ".join(content_list),
                         "tool_calls": tool_calls if tool_calls else None
                     })
-        
+
         system_message = [{"role": "system", "content": self.system_message}]
         return system_message + converted_messages
 
 
     def extract_tool_calls_and_response_message(self, model, response):
         try:
-            if "gpt" in model.lower():
+            if "gpt" in model.lower() or "qwen" in model.lower():
                 response_message = response.choices[0].message
                 self.messages.append(response_message)
                 tool_calls = response_message.tool_calls
@@ -491,11 +505,11 @@ class SimulationManager:
                 response_message = response
                 text_blocks = [block.text for block in response.content if isinstance(block, TextBlock) and block.text.strip()]
                 tool_blocks = [block for block in response.content if isinstance(block, ToolUseBlock)]
-                
+
                 # Only append message if there's actual content
                 if text_blocks or tool_blocks:
                     self.messages.append({"role": "assistant", "content": response.content})
-                
+
                 tool_calls = tool_blocks
                 response_message_content = " ".join(text_blocks) if text_blocks else None
             else:
@@ -537,12 +551,12 @@ class SimulationManager:
             "current_timestep": sim.current_timestep,
             "system_message": self.system_message
         }
-        
+
         with open(checkpoint_file, 'wb') as f:
             pickle.dump(sim_state, f)
-            
+
         print(f"Saved checkpoint at timestep {sim.current_timestep}")
-    
-    
+
+
     def _count_assistant_messages(self) -> int:
         return sum(1 for message in self.messages if (message.get("role") if isinstance(message, dict) else message.role) == "assistant")
