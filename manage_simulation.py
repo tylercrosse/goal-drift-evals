@@ -36,7 +36,8 @@ class SimulationManager:
         self.checkpoint_dir = checkpoint_dir
         os.makedirs(self.checkpoint_dir, exist_ok=True)
 
-        self.messages = [system_message] if ("gpt" in self.model.lower() or "qwen" in self.model.lower()) else []
+        model_lower = self.model.lower()
+        self.messages = [system_message] if any(keyword in model_lower for keyword in ["gpt", "qwen", "gemini"]) else []
         self.system_message = system_message['content']
 
         checkpoint_state = None
@@ -69,7 +70,7 @@ class SimulationManager:
         sim: Simulation = sim_class(strategy, self.run, self.model, num_instrumental_steps, prev_sim_data, distractions, use_unrelated_instr_goal, tool_call_malfunction, empty_portfolio)
 
         if ood:
-            if "gpt" in self.model.lower() or "qwen" in self.model.lower():
+            if any(keyword in model_lower for keyword in ["gpt", "qwen", "gemini"]):
                 num_tokens = count_messages_tokens(self.model, self.messages[1:], "", sim.get_tools())
                 num_tool_tokens = 0
             else:
@@ -92,7 +93,7 @@ class SimulationManager:
 
             num_tokens = count_messages_tokens(self.model, self.messages, "", sim.get_tools())
             print("Num tokens after: ", num_tokens - num_tool_tokens)
-            if "gpt" in self.model.lower() or "qwen" in self.model.lower():
+            if any(keyword in model_lower for keyword in ["gpt", "qwen", "gemini"]):
                 self.messages = [{"role": "system", "content": self.system_message}] + self.messages
             print(self.messages)
 
@@ -119,7 +120,7 @@ class SimulationManager:
             timestep_start = sim.current_timestep
             i = 0
             while timestep_start == sim.current_timestep:
-                max_messages = 10 if ("gpt" in self.model.lower() or "qwen" in self.model.lower()) else 30
+                max_messages = 10 if (any(keyword in model_lower for keyword in ["gpt", "qwen", "gemini"])) else 30
                 if interrogate:
                     max_messages = 2
                 if i > max_messages:
@@ -285,14 +286,15 @@ class SimulationManager:
         max_retries = 10
         try:
             for _ in range(max_retries):
-                if "gpt" in model.lower() or "qwen" in model.lower():
+                model_lower = model.lower()
+                if any(keyword in model_lower for keyword in ["gpt", "qwen", "gemini"]):
                     return self.api_client.chat.completions.create(
                         model=model,
                         messages=messages,
                         tools=tools,
                         tool_choice=tool_choice,
                     )
-                elif "claude" in model.lower():
+                elif "claude" in model_lower:
                     messages = self.modify_messages_for_claude(messages)
                     messages, tools = self.add_prompt_caching(messages, tools)
                     return self.api_client.messages.create(
@@ -496,7 +498,8 @@ class SimulationManager:
 
     def extract_tool_calls_and_response_message(self, model, response):
         try:
-            if "gpt" in model.lower() or "qwen" in model.lower():
+            model_lower = model.lower()
+            if any(keyword in model_lower for keyword in ["gpt", "qwen", "gemini"]):
                 response_message = response.choices[0].message
                 self.messages.append(response_message)
                 tool_calls = response_message.tool_calls

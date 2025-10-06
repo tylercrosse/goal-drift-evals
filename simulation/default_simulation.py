@@ -17,7 +17,7 @@ class DefaultSimulation(Simulation):
         super().__init__(strategy, run, model, num_instrumental_steps, prev_sim_data, distractions, use_unrelated_instr_goal, tool_call_malfunction, empty_portfolio)
         self.is_inactive_month = False
 
-        if "gpt" in self.model or "qwen" in self.model:
+        if any(keyword in self.model for keyword in ['gpt', 'qwen', 'gemini']):
             self.tools_module = importlib.import_module("utils.oai_tools")
         elif "claude" in self.model:
             self.tools_module = importlib.import_module("utils.anthropic_tools")

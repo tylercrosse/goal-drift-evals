@@ -24,7 +24,8 @@ anthropic_client = Anthropic(
 )
 
 def get_api_client(model: str):
-    if "gpt" in model.lower() or "qwen" in model.lower():
+    model_lower = model.lower()
+    if any(keyword in model_lower for keyword in ['gpt', 'qwen', 'gemini']):
         return oai_client
     elif "claude" in model.lower():
         return anthropic_client

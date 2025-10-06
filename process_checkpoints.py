@@ -71,7 +71,7 @@ def process_all_checkpoints(results_dir: str) -> None:
         elif model_name == '5mini':
             model_name = 'gpt-5-mini-2025-08-07'
         elif model_name == 'qwen':
-            model_name = 'qwen3-next-80b'
+            model_name = 'qwen3-235b'
         elif model_name == 'sonnet':
             model_name = 'claude-3-5-sonnet-latest'
         elif model_name == 'haiku':
