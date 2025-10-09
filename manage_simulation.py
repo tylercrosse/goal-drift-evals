@@ -1,5 +1,5 @@
 import json
-from typing import List, Dict
+from typing import List, Dict, Iterable, Optional
 import pickle
 import os
 from anthropic.types import ToolUseBlock, TextBlock
@@ -13,6 +13,46 @@ import random
 import pprint
 import logging
 from utils.model_config import get_model_family
+
+
+def _extract_text(payload, allowed_types: Optional[Iterable[str]] = None) -> str:
+    """Flatten structured content/reasoning payloads into printable text."""
+    if payload is None:
+        return ""
+
+    if isinstance(payload, str):
+        return payload
+
+    segments = []
+    if isinstance(payload, list):
+        for item in payload:
+            item_type = None
+            item_text = None
+
+            if isinstance(item, dict):
+                item_type = item.get("type")
+                item_text = item.get("text") or item.get("content")
+            else:
+                item_type = getattr(item, "type", None)
+                item_text = getattr(item, "text", None) or getattr(item, "content", None)
+
+            if allowed_types and item_type and item_type not in allowed_types:
+                continue
+
+            if item_text:
+                segments.append(str(item_text))
+
+    if segments:
+        return "\n".join(segments)
+
+    if allowed_types:
+        return ""
+
+    return str(payload)
+
+
+def _normalize_text(text: str) -> str:
+    return " ".join(text.split()) if text else ""
 
 
 class SimulationManager:
@@ -208,9 +248,15 @@ class SimulationManager:
                 print(f"{percentage_cached:.1f}% of input prompt cached ({total_input_tokens} tokens)")
                 print('\n')
 
-            tool_calls, response_message_content = self.extract_tool_calls_and_response_message(model, response)
+            response_message, tool_calls, response_message_content = self.extract_tool_calls_and_response_message(model, response)
 
             if verbose:
+                assistant_text = _extract_text(response_message_content, allowed_types={"text"})
+                if response_message is not None:
+                    reasoning_payload = getattr(response_message, "reasoning", None)
+                    reasoning_text = _extract_text(reasoning_payload, allowed_types={"reasoning", "text"})
+                    if reasoning_text and _normalize_text(reasoning_text) != _normalize_text(assistant_text):
+                        print("Reasoning: ", reasoning_text)
                 print("Response message content: ", response_message_content)
                 print("Tool calls: ", tool_calls)
 
@@ -509,7 +555,6 @@ class SimulationManager:
                 tool_calls = response_message.tool_calls
                 response_message_content = response_message.content
             elif model_family.name == "anthropic":
-                response_message = response
                 text_blocks = [block.text for block in response.content if isinstance(block, TextBlock) and block.text.strip()]
                 tool_blocks = [block for block in response.content if isinstance(block, ToolUseBlock)]
 
@@ -519,10 +564,11 @@ class SimulationManager:
 
                 tool_calls = tool_blocks
                 response_message_content = " ".join(text_blocks) if text_blocks else None
+                response_message = response
             else:
                 raise ValueError(f"Unsupported model: {model}")
 
-            return tool_calls, response_message_content
+            return response_message, tool_calls, response_message_content
         except Exception as e:
             logging.error("Error extracting tool calls: %s", str(e), exc_info=True)
             raise
