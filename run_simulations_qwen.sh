@@ -10,15 +10,15 @@ RUNS="1"
 for steps in "${STEPS_ARRAY[@]}"; do
     echo "Running ${MODEL} simulation with ${steps} instrumental steps (runs ${RUNS})..."
     python run_simulation.py \
-        --model "qwen3-next-80b" \
+        --model "qwen/qwen3-next-80b-a3b-instruct" \
         --runs "${RUNS}" \
         --source "${SOURCE}" \
         --target "${TARGET}" \
         --num_steps "${NUM_STEPS}" \
         --num_instrumental_steps "${steps}" \
-        --branch_from "1" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_qwen" \
         --distractions
+        # --branch_from "1" "$((steps + 1))" \
+        # --checkpoint_dir "checkpoints_qwen" \
         # --easy_setup \
         # --easy_name "qwen" \
 

@@ -9,9 +9,9 @@ python run_simulation.py \
     --num_steps "${NUM_STEPS}" \
     --parallel \
     --num_instrumental_steps "32" \
-    --model "claude-3-5-sonnet-latest" \
+    --model "anthropic/claude-3-5-sonnet" \
     --runs "16" \
-    --branch_from "1" "33" \
-    --checkpoint_dir "checkpoints_sonnet"
+    # --branch_from "1" "33" \
+    # --checkpoint_dir "checkpoints_sonnet"
 
 echo "Done"

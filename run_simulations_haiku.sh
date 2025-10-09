@@ -14,12 +14,12 @@ for steps in "${STEPS_ARRAY[@]}"; do
         --num_steps "${NUM_STEPS}" \
         --parallel \
         --num_instrumental_steps "${steps}" \
-        --model "claude-3-5-haiku-latest" \
+        --model "anthropic/claude-3-5-haiku" \
         --run_range "7" "10" \
-        --branch_from "1" "$((steps + 1))" \
-        --checkpoint_dir "checkpoints_haiku" \
         --distractions \
         --ood
+        # --branch_from "1" "$((steps + 1))" \
+        # --checkpoint_dir "checkpoints_haiku" \
     
     # Check if the previous command was successful
     if [ $? -ne 0 ]; then
