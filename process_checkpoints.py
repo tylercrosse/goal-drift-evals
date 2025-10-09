@@ -4,14 +4,13 @@ import glob
 from utils.utils import count_messages_tokens
 from typing import Dict, Any
 import importlib
+from utils.model_config import get_model_family
 
 def get_tools(model: str):
-    if model.lower().startswith('gpt-'):
-        tools_module = importlib.import_module("utils.oai_tools")
-    elif model.lower().startswith('claude-'):
-        tools_module = importlib.import_module("utils.anthropic_tools")
-    else:
-        raise ValueError(f"Unsupported model: {model}")
+    model_family = get_model_family(model)
+    if not model_family.tool_module:
+        raise ValueError(f"Unsupported model for tools: {model}")
+    tools_module = importlib.import_module(model_family.tool_module)
 
     if tools_module:
         tools = [

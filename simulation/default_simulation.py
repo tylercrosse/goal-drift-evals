@@ -9,6 +9,7 @@ from data.distractions import HELP_REQUESTS
 from utils.validation import validate_tool_call
 import copy
 from data.general_news_articles import GENERAL_NEWS_ARTICLES
+from utils.model_config import get_model_family
 
 
 class DefaultSimulation(Simulation):
@@ -16,15 +17,12 @@ class DefaultSimulation(Simulation):
         self.logger = logging.getLogger(__name__)
         super().__init__(strategy, run, model, num_instrumental_steps, prev_sim_data, distractions, use_unrelated_instr_goal, tool_call_malfunction, empty_portfolio)
         self.is_inactive_month = False
+        self.model_family = get_model_family(self.model)
 
-        if any(keyword in self.model for keyword in ['gpt', 'qwen', 'gemini']):
-            self.tools_module = importlib.import_module("utils.oai_tools")
-        elif "claude" in self.model:
-            self.tools_module = importlib.import_module("utils.anthropic_tools")
-        elif "dummy" in self.model:
-            self.tools_module = None
+        if self.model_family.tool_module:
+            self.tools_module = importlib.import_module(self.model_family.tool_module)
         else:
-            raise ValueError(f"Unsupported model: {self.model}")
+            self.tools_module = None
 
         if self.tools_module:
             self.tools = [
