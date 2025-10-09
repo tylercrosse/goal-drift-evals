@@ -255,7 +255,7 @@ def count_messages_tokens(model: str, messages: List[Dict], system_message: str,
     total_tokens = 0
     model_family = get_model_family(model)
 
-    if model_family.name == "openai":
+    if model_family.api_client == "openai":
         try:
             encoding = tiktoken.encoding_for_model(model)
         except KeyError:
@@ -286,7 +286,7 @@ def count_messages_tokens(model: str, messages: List[Dict], system_message: str,
                     total_tokens += len(encoding.encode(name))
                     total_tokens += len(encoding.encode(args))
 
-    elif model_family.name == "anthropic":
+    elif model_family.api_client == "anthropic":
         api_client = get_api_client(model)
         response = api_client.messages.count_tokens(
             model=model,

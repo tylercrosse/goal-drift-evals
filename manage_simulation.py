@@ -64,7 +64,7 @@ class SimulationManager:
         self.branched_from = branched_from
         self.api_client = get_api_client(model)
         self.model_family = get_model_family(model)
-        self.uses_openai_style = self.model_family.name == "openai"
+        self.uses_openai_style = self.model_family.name in ("openai", "anthropic")
 
     def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, baseline_run: bool = False, interrogate: bool = False, remind_model_about_goal: bool = False, use_unrelated_instr_goal: bool = False, condition_claude_on_gpt: bool = False, condition_gpt_on_claude: bool = False, checkpoint_dir: str = "checkpoints", tool_call_malfunction: bool = False, empty_portfolio: bool = False, ood_variant: str = None):
         """
@@ -223,6 +223,7 @@ class SimulationManager:
             Tuple containing the updated simulation instance and messages.
         """
         try:
+            model_family = get_model_family(model)
             messages = deepcopy(self.messages)
             response = self.call_api(
                 model=model,
@@ -231,11 +232,16 @@ class SimulationManager:
                 tool_choice="auto",
             )
 
-            if get_model_family(model).name == "anthropic":
-                input_tokens = response.usage.input_tokens
-                output_tokens = response.usage.output_tokens
-                input_tokens_cache_read = getattr(response.usage, 'cache_read_input_tokens', '---')
-                input_tokens_cache_create = getattr(response.usage, 'cache_creation_input_tokens', '---')
+            usage = getattr(response, "usage", None)
+            if (
+                model_family.name == "anthropic"
+                and usage
+                and hasattr(usage, "input_tokens")
+            ):
+                input_tokens = usage.input_tokens
+                output_tokens = usage.output_tokens
+                input_tokens_cache_read = getattr(usage, 'cache_read_input_tokens', '---')
+                input_tokens_cache_create = getattr(usage, 'cache_creation_input_tokens', '---')
                 print('\n')
                 print(f"User input tokens: {input_tokens}")
                 print(f"Output tokens: {output_tokens}")
@@ -335,18 +341,18 @@ class SimulationManager:
         try:
             for _ in range(max_retries):
                 model_family = get_model_family(model)
-                if model_family.name == "openai":
-                    client = self.api_client if self.model_family.name == "openai" else get_api_client(model)
+                if model_family.api_client == "openai":
+                    client = self.api_client if self.model_family.api_client == "openai" else get_api_client(model)
                     return client.chat.completions.create(
                         model=model,
                         messages=messages,
                         tools=tools,
                         tool_choice=tool_choice,
                     )
-                elif model_family.name == "anthropic":
+                elif model_family.api_client == "anthropic":
                     messages = self.modify_messages_for_claude(messages)
                     messages, tools = self.add_prompt_caching(messages, tools)
-                    client = self.api_client if self.model_family.name == "anthropic" else get_api_client(model)
+                    client = self.api_client if self.model_family.api_client == "anthropic" else get_api_client(model)
                     return client.messages.create(
                         model=model,
                         messages=messages,
@@ -549,12 +555,12 @@ class SimulationManager:
     def extract_tool_calls_and_response_message(self, model, response):
         try:
             model_family = get_model_family(model)
-            if model_family.name == "openai":
+            if model_family.api_client == "openai":
                 response_message = response.choices[0].message
                 self.messages.append(response_message)
                 tool_calls = response_message.tool_calls
                 response_message_content = response_message.content
-            elif model_family.name == "anthropic":
+            elif model_family.api_client == "anthropic":
                 text_blocks = [block.text for block in response.content if isinstance(block, TextBlock) and block.text.strip()]
                 tool_blocks = [block for block in response.content if isinstance(block, ToolUseBlock)]
 

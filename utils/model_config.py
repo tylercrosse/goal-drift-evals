@@ -46,9 +46,9 @@ MODEL_FAMILIES: tuple[ModelFamily, ...] = (
     ModelFamily(
         name="anthropic",
         keywords=("claude",),
-        api_client="anthropic",
+        api_client="openai",
         tool_module="utils.anthropic_tools",
-        needs_system_message_prefill=False,
+        needs_system_message_prefill=True,
         max_messages=30,
     )
 )
