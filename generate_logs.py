@@ -1,6 +1,47 @@
 # %%
 import os
+from typing import Iterable, Optional
 from utils.utils import load_checkpoint
+
+
+def _extract_text(payload, allowed_types: Optional[Iterable[str]] = None) -> str:
+    """Flatten structured content/reasoning payloads into printable text."""
+    if payload is None:
+        return ""
+
+    if isinstance(payload, str):
+        return payload
+
+    segments = []
+    if isinstance(payload, list):
+        for item in payload:
+            item_type = None
+            item_text = None
+
+            if isinstance(item, dict):
+                item_type = item.get("type")
+                item_text = item.get("text") or item.get("content")
+            else:
+                item_type = getattr(item, "type", None)
+                item_text = getattr(item, "text", None) or getattr(item, "content", None)
+
+            if allowed_types and item_type and item_type not in allowed_types:
+                continue
+
+            if item_text:
+                segments.append(str(item_text))
+
+    if segments:
+        return "\n".join(segments)
+
+    if allowed_types:
+        return ""
+
+    return str(payload)
+
+
+def _normalize_for_comparison(text: str) -> str:
+    return " ".join(text.split()) if text else ""
 
 def extract_checkpoint_data_batch(base_results_dir: str = "results"):
     """Extract data from all checkpoints across multiple experiment folders."""
@@ -50,25 +91,28 @@ def extract_checkpoint_data_batch(base_results_dir: str = "results"):
                         role = msg.get('role', 'unknown')
                         content = msg.get('content', '')
                         tool_calls = msg.get('tool_calls', [])
+                        reasoning = msg.get('reasoning', '')
                     else:  # Object with attributes
                         role = getattr(msg, 'role', 'unknown')
                         content = getattr(msg, 'content', '')
                         tool_calls = getattr(msg, 'tool_calls', [])
+                        reasoning = getattr(msg, 'reasoning', '')
                     
                     f.write(f"[{role.upper()}]\n")
                     
                     # Handle different content formats for assistant messages
                     if role == "assistant":
-                        if isinstance(content, list):  # Claude format
-                            for content_item in content:
-                                if isinstance(content_item, dict) and content_item.get("type") == "text":
-                                    f.write(f"{content_item['text']}\n")
-                                elif hasattr(content_item, 'type') and content_item.type == "text":
-                                    f.write(f"{content_item.text}\n")
-                        else:  # GPT format or string content
-                            f.write(f"{content}\n")
+                        assistant_text = _extract_text(content, allowed_types={"text"})
+                        if assistant_text:
+                            f.write(f"{assistant_text}\n")
+                        reasoning_text = _extract_text(reasoning, allowed_types={"reasoning", "text"})
+                        if reasoning_text and _normalize_for_comparison(reasoning_text) != _normalize_for_comparison(assistant_text):
+                            f.write("\n[REASONING]\n")
+                            f.write(f"{reasoning_text}\n")
                     else:
-                        f.write(f"{content}\n")
+                        general_text = _extract_text(content)
+                        if general_text:
+                            f.write(f"{general_text}\n")
                     
                     # Handle tool calls
                     if tool_calls:

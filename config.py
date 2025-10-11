@@ -3,6 +3,7 @@ from openai import OpenAI
 from anthropic import Anthropic
 import os
 from dotenv import load_dotenv
+from utils.model_config import get_model_family
 
 # Load environment variables from a local .env file if present
 # This enables OPENROUTER_API_KEY to be set without exporting in the shell
@@ -24,13 +25,12 @@ anthropic_client = Anthropic(
 )
 
 def get_api_client(model: str):
-    model_lower = model.lower()
-    if any(keyword in model_lower for keyword in ['gpt', 'qwen', 'gemini']):
+    model_family = get_model_family(model)
+    if model_family.api_client == "openai":
         return oai_client
-    elif "claude" in model.lower():
+    if model_family.api_client == "anthropic":
         return anthropic_client
-    else:
-        raise ValueError(f"Unsupported model: {model}")
+    raise ValueError(f"Unsupported model: {model}")
 
 class EnvType(Enum):
     PROFIT_ENV_INSTR = auto()

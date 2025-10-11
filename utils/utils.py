@@ -7,6 +7,7 @@ import tiktoken
 
 from typing import List, Dict
 from config import get_api_client
+from utils.model_config import get_model_family
 
 
 def gen_seed(timestep: int, run: int) -> int:
@@ -104,6 +105,8 @@ def replace_assistant_messages_with_random_sentences(model: str, messages: List[
     Replaces all messages between 'Quarter' messages with random text of equivalent length.
     Preserves system message and Quarter messages.
     """
+    model_family = get_model_family(model)
+    is_anthropic = model_family.name == "anthropic"
     new_messages = []
     current_batch = []
     found_first_quarter = False
@@ -159,7 +162,7 @@ def replace_assistant_messages_with_random_sentences(model: str, messages: List[
                 batch_msg = {"role": "assistant", "content": batch_string}
                 original_tokens = count_messages_tokens(model, [batch_msg], "", [])
                 # This approach overshoots the corrent token count by ~250 tokens for Claude
-                if "claude" in model.lower():
+                if is_anthropic:
                     original_tokens -= 250
                 
                 if original_tokens > 0:
@@ -182,8 +185,8 @@ def replace_assistant_messages_with_random_sentences(model: str, messages: List[
         batch_string = convert_batch_to_string(current_batch)
         batch_msg = {"role": "assistant", "content": batch_string}
         original_tokens = count_messages_tokens(model, [batch_msg], "", [])
-        if "claude" in model.lower():
-            original_tokens -= 250  
+        if is_anthropic:
+            original_tokens -= 250
         
         if original_tokens > 0:
             random_text = build_text_to_token_target_for_assistant(model, run, original_tokens)
@@ -250,9 +253,9 @@ def build_dots_to_token_target(model: str, random_gen: random.Random, target_tok
 def count_messages_tokens(model: str, messages: List[Dict], system_message: str, tools: List[Dict]) -> int:
     """Count the total number of tokens in messages"""
     total_tokens = 0
-    api_client = get_api_client(model)
+    model_family = get_model_family(model)
 
-    if "gpt" in model.lower():
+    if model_family.api_client == "openai":
         try:
             encoding = tiktoken.encoding_for_model(model)
         except KeyError:
@@ -283,7 +286,8 @@ def count_messages_tokens(model: str, messages: List[Dict], system_message: str,
                     total_tokens += len(encoding.encode(name))
                     total_tokens += len(encoding.encode(args))
 
-    elif "claude" in model.lower():
+    elif model_family.api_client == "anthropic":
+        api_client = get_api_client(model)
         response = api_client.messages.count_tokens(
             model=model,
             tools=tools,
@@ -291,5 +295,7 @@ def count_messages_tokens(model: str, messages: List[Dict], system_message: str,
             messages=messages,
         )
         total_tokens = response.input_tokens
+    else:
+        raise ValueError(f"Unsupported model for token counting: {model}")
 
     return total_tokens

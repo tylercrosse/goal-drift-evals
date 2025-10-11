@@ -1,5 +1,5 @@
 import json
-from typing import List, Dict
+from typing import List, Dict, Iterable, Optional
 import pickle
 import os
 from anthropic.types import ToolUseBlock, TextBlock
@@ -12,6 +12,47 @@ from copy import deepcopy
 import random
 import pprint
 import logging
+from utils.model_config import get_model_family
+
+
+def _extract_text(payload, allowed_types: Optional[Iterable[str]] = None) -> str:
+    """Flatten structured content/reasoning payloads into printable text."""
+    if payload is None:
+        return ""
+
+    if isinstance(payload, str):
+        return payload
+
+    segments = []
+    if isinstance(payload, list):
+        for item in payload:
+            item_type = None
+            item_text = None
+
+            if isinstance(item, dict):
+                item_type = item.get("type")
+                item_text = item.get("text") or item.get("content")
+            else:
+                item_type = getattr(item, "type", None)
+                item_text = getattr(item, "text", None) or getattr(item, "content", None)
+
+            if allowed_types and item_type and item_type not in allowed_types:
+                continue
+
+            if item_text:
+                segments.append(str(item_text))
+
+    if segments:
+        return "\n".join(segments)
+
+    if allowed_types:
+        return ""
+
+    return str(payload)
+
+
+def _normalize_text(text: str) -> str:
+    return " ".join(text.split()) if text else ""
 
 
 class SimulationManager:
@@ -22,6 +63,8 @@ class SimulationManager:
         self.run = run
         self.branched_from = branched_from
         self.api_client = get_api_client(model)
+        self.model_family = get_model_family(model)
+        self.uses_openai_style = self.model_family.name in ("openai", "anthropic")
 
     def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, baseline_run: bool = False, interrogate: bool = False, remind_model_about_goal: bool = False, use_unrelated_instr_goal: bool = False, condition_claude_on_gpt: bool = False, condition_gpt_on_claude: bool = False, checkpoint_dir: str = "checkpoints", tool_call_malfunction: bool = False, empty_portfolio: bool = False, ood_variant: str = None):
         """
@@ -36,8 +79,7 @@ class SimulationManager:
         self.checkpoint_dir = checkpoint_dir
         os.makedirs(self.checkpoint_dir, exist_ok=True)
 
-        model_lower = self.model.lower()
-        self.messages = [system_message] if any(keyword in model_lower for keyword in ["gpt", "qwen", "gemini"]) else []
+        self.messages = [system_message] if self.model_family.needs_system_message_prefill else []
         self.system_message = system_message['content']
 
         checkpoint_state = None
@@ -70,7 +112,7 @@ class SimulationManager:
         sim: Simulation = sim_class(strategy, self.run, self.model, num_instrumental_steps, prev_sim_data, distractions, use_unrelated_instr_goal, tool_call_malfunction, empty_portfolio)
 
         if ood:
-            if any(keyword in model_lower for keyword in ["gpt", "qwen", "gemini"]):
+            if self.uses_openai_style:
                 num_tokens = count_messages_tokens(self.model, self.messages[1:], "", sim.get_tools())
                 num_tool_tokens = 0
             else:
@@ -93,7 +135,7 @@ class SimulationManager:
 
             num_tokens = count_messages_tokens(self.model, self.messages, "", sim.get_tools())
             print("Num tokens after: ", num_tokens - num_tool_tokens)
-            if any(keyword in model_lower for keyword in ["gpt", "qwen", "gemini"]):
+            if self.uses_openai_style:
                 self.messages = [{"role": "system", "content": self.system_message}] + self.messages
             print(self.messages)
 
@@ -120,7 +162,7 @@ class SimulationManager:
             timestep_start = sim.current_timestep
             i = 0
             while timestep_start == sim.current_timestep:
-                max_messages = 10 if (any(keyword in model_lower for keyword in ["gpt", "qwen", "gemini"])) else 30
+                max_messages = self.model_family.max_messages
                 if interrogate:
                     max_messages = 2
                 if i > max_messages:
@@ -181,6 +223,7 @@ class SimulationManager:
             Tuple containing the updated simulation instance and messages.
         """
         try:
+            model_family = get_model_family(model)
             messages = deepcopy(self.messages)
             response = self.call_api(
                 model=model,
@@ -189,11 +232,16 @@ class SimulationManager:
                 tool_choice="auto",
             )
 
-            if "claude" in model.lower():
-                input_tokens = response.usage.input_tokens
-                output_tokens = response.usage.output_tokens
-                input_tokens_cache_read = getattr(response.usage, 'cache_read_input_tokens', '---')
-                input_tokens_cache_create = getattr(response.usage, 'cache_creation_input_tokens', '---')
+            usage = getattr(response, "usage", None)
+            if (
+                model_family.name == "anthropic"
+                and usage
+                and hasattr(usage, "input_tokens")
+            ):
+                input_tokens = usage.input_tokens
+                output_tokens = usage.output_tokens
+                input_tokens_cache_read = getattr(usage, 'cache_read_input_tokens', '---')
+                input_tokens_cache_create = getattr(usage, 'cache_creation_input_tokens', '---')
                 print('\n')
                 print(f"User input tokens: {input_tokens}")
                 print(f"Output tokens: {output_tokens}")
@@ -206,9 +254,15 @@ class SimulationManager:
                 print(f"{percentage_cached:.1f}% of input prompt cached ({total_input_tokens} tokens)")
                 print('\n')
 
-            tool_calls, response_message_content = self.extract_tool_calls_and_response_message(model, response)
+            response_message, tool_calls, response_message_content = self.extract_tool_calls_and_response_message(model, response)
 
             if verbose:
+                assistant_text = _extract_text(response_message_content, allowed_types={"text"})
+                if response_message is not None:
+                    reasoning_payload = getattr(response_message, "reasoning", None)
+                    reasoning_text = _extract_text(reasoning_payload, allowed_types={"reasoning", "text"})
+                    if reasoning_text and _normalize_text(reasoning_text) != _normalize_text(assistant_text):
+                        print("Reasoning: ", reasoning_text)
                 print("Response message content: ", response_message_content)
                 print("Tool calls: ", tool_calls)
 
@@ -286,18 +340,20 @@ class SimulationManager:
         max_retries = 10
         try:
             for _ in range(max_retries):
-                model_lower = model.lower()
-                if any(keyword in model_lower for keyword in ["gpt", "qwen", "gemini"]):
-                    return self.api_client.chat.completions.create(
+                model_family = get_model_family(model)
+                if model_family.api_client == "openai":
+                    client = self.api_client if self.model_family.api_client == "openai" else get_api_client(model)
+                    return client.chat.completions.create(
                         model=model,
                         messages=messages,
                         tools=tools,
                         tool_choice=tool_choice,
                     )
-                elif "claude" in model_lower:
+                elif model_family.api_client == "anthropic":
                     messages = self.modify_messages_for_claude(messages)
                     messages, tools = self.add_prompt_caching(messages, tools)
-                    return self.api_client.messages.create(
+                    client = self.api_client if self.model_family.api_client == "anthropic" else get_api_client(model)
+                    return client.messages.create(
                         model=model,
                         messages=messages,
                         tools=tools,
@@ -498,14 +554,13 @@ class SimulationManager:
 
     def extract_tool_calls_and_response_message(self, model, response):
         try:
-            model_lower = model.lower()
-            if any(keyword in model_lower for keyword in ["gpt", "qwen", "gemini"]):
+            model_family = get_model_family(model)
+            if model_family.api_client == "openai":
                 response_message = response.choices[0].message
                 self.messages.append(response_message)
                 tool_calls = response_message.tool_calls
                 response_message_content = response_message.content
-            elif "claude" in model.lower():
-                response_message = response
+            elif model_family.api_client == "anthropic":
                 text_blocks = [block.text for block in response.content if isinstance(block, TextBlock) and block.text.strip()]
                 tool_blocks = [block for block in response.content if isinstance(block, ToolUseBlock)]
 
@@ -515,10 +570,11 @@ class SimulationManager:
 
                 tool_calls = tool_blocks
                 response_message_content = " ".join(text_blocks) if text_blocks else None
+                response_message = response
             else:
                 raise ValueError(f"Unsupported model: {model}")
 
-            return tool_calls, response_message_content
+            return response_message, tool_calls, response_message_content
         except Exception as e:
             logging.error("Error extracting tool calls: %s", str(e), exc_info=True)
             raise
