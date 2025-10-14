@@ -12,18 +12,20 @@ from copy import deepcopy
 import random
 import pprint
 import logging
-
+from openai.types.chat import ChatCompletionMessage
+import re
 
 class SimulationManager:
 
-    def __init__(self, model: str, run: int, branched_from: int):
+    def __init__(self, model: str, run: int, branched_from: int, remove_goals: bool):
         self.logger = logging.getLogger(__name__)
         self.model = model
         self.run = run
         self.branched_from = branched_from
         self.api_client = get_api_client(model)
+        self.remove_goals = remove_goals
 
-    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, baseline_run: bool = False, interrogate: bool = False, remind_model_about_goal: bool = False, use_unrelated_instr_goal: bool = False, condition_claude_on_gpt: bool = False, condition_gpt_on_claude: bool = False, checkpoint_dir: str = "checkpoints", tool_call_malfunction: bool = False, empty_portfolio: bool = False, ood_variant: str = None):
+    def run_simulation(self, sim_class: Simulation, num_steps: int, source_goal: str, target_goal: str, system_message: str, distractions: bool, ood: bool, num_instrumental_steps: int, resume: bool = False, branch_from: tuple = None, baseline_run: bool = False, interrogate: bool = False, remind_model_about_goal: bool = False, use_unrelated_instr_goal: bool = False, condition_claude_on_gpt: bool = False, condition_gpt_on_claude: bool = False, checkpoint_dir: str = "checkpoints", tool_call_malfunction: bool = False, empty_portfolio: bool = False, ood_variant: str = None, remove_goals: bool = False):
         """
         Args:
             sim_class: The simulation class to use
@@ -292,7 +294,7 @@ class SimulationManager:
                         model=model,
                         messages=messages,
                         tools=tools,
-                        tool_choice=tool_choice,
+                        tool_choice=tool_choice
                     )
                 elif "claude" in model_lower:
                     messages = self.modify_messages_for_claude(messages)
@@ -501,6 +503,8 @@ class SimulationManager:
             model_lower = model.lower()
             if any(keyword in model_lower for keyword in ["gpt", "qwen", "gemini"]):
                 response_message = response.choices[0].message
+                if self.remove_goals and isinstance(response_message, ChatCompletionMessage):
+                    response_message = self.remove_goal_sentences(response_message)
                 self.messages.append(response_message)
                 tool_calls = response_message.tool_calls
                 response_message_content = response_message.content
@@ -522,6 +526,32 @@ class SimulationManager:
         except Exception as e:
             logging.error("Error extracting tool calls: %s", str(e), exc_info=True)
             raise
+
+
+    def remove_goal_sentences(self, message):
+
+        if not message.content:
+            return message
+
+        sentences = re.split(r'(?<=[.!?])\s+', message.content)
+
+        goal_terms = [
+            r"maximiz"
+            r"goal",
+            r"objective",
+            r"mission",
+            r"target",
+            r"profit",
+            r"highe",
+            r"return[s]?"
+        ]
+
+        pattern = re.compile("|".join(goal_terms), re.IGNORECASE)
+
+        filtered = [s for s in sentences if not pattern.search(s)]
+        message.content = " ".join(filtered).strip()
+
+        return message
 
 
     def add_prompt_caching(self, messages: List[Dict], tools: List[Dict]) -> List[Dict]:
