@@ -164,7 +164,8 @@ def run_single_simulation(run, model, results_file, lock, verbose, use_soft_syst
         system_message = SYSTEM_MESSAGE[env_type]
         branched_from = sim_params['branch_from'][0] if sim_params.get('branch_from', None) else None
         remove_goals = sim_params['remove_goals']
-        sim_manager = SimulationManager(model, run, branched_from, remove_goals)
+        reverse_goal = sim_params['reverse_goal']
+        sim_manager = SimulationManager(model, run, branched_from, remove_goals, reverse_goal)
         result = sim_manager.run_simulation(DefaultSimulation, **sim_params, system_message=system_message)
 
         # Save results with lock
@@ -226,6 +227,7 @@ def parse_args():
     parser.add_argument("--use_soft_system_prompt", action="store_true", help="Use a system prompt less explicit about the goal.")
     parser.add_argument("--remind_model_about_goal", action="store_true", help="Remind the model about the goal through user messages.")
     parser.add_argument("--remove_goals", action="store_true", help="Remove any goal-related messages from the model.")
+    parser.add_argument("--reverse_goal", action="store_true", help="Change the system prompt to the environmental goal at the end of a simulation.")
     parser.add_argument("--use_unrelated_instr_goal", action="store_true", help="Use an instrumental goal unrelated to both the system and the target goal.")
     parser.add_argument("--condition_claude_on_gpt", action="store_true", help="Condition the Claude model on the GPT model's messages.")
     parser.add_argument("--condition_gpt_on_claude", action="store_true", help="Condition the GPT model on the Claude model's messages.")
@@ -320,6 +322,7 @@ if __name__ == "__main__":
         'interrogate': args.interrogate,
         'remind_model_about_goal': args.remind_model_about_goal,
         'remove_goals': args.remove_goals,
+        'reverse_goal': args.reverse_goal,
         'branch_from': args.branch_from,
         'use_unrelated_instr_goal': args.use_unrelated_instr_goal,
         'condition_claude_on_gpt': args.condition_claude_on_gpt,
